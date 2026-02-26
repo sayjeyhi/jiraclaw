@@ -1,8 +1,8 @@
-"use client"
+"use client";
 
-import { useRouter } from "next/navigation"
-import { LogOut, Shield, Settings, CreditCard } from "lucide-react"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { useRouter } from "next/navigation";
+import { LogOut, Shield, Settings, CreditCard } from "lucide-react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,9 +11,9 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { useAuth } from "@/lib/auth-context"
-import { Badge } from "@/components/ui/badge"
+} from "@/components/ui/dropdown-menu";
+import { useAuth } from "@/lib/auth-context";
+import { Badge } from "@/components/ui/badge";
 
 function getInitials(name: string): string {
   return name
@@ -21,25 +21,25 @@ function getInitials(name: string): string {
     .map((n) => n[0])
     .join("")
     .toUpperCase()
-    .slice(0, 2)
+    .slice(0, 2);
 }
 
 export function UserMenu() {
-  const { user, signOut } = useAuth()
-  const router = useRouter()
+  const { user, signOut } = useAuth();
+  const router = useRouter();
 
-  if (!user) return null
+  if (!user) return null;
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button
-          className="flex items-center gap-2 rounded-full outline-none ring-ring focus-visible:ring-2"
+          className="ring-ring flex items-center gap-2 rounded-full outline-none focus-visible:ring-2"
           aria-label="User menu"
         >
-          <Avatar className="size-8 border border-border">
+          <Avatar className="border-border size-8 border">
             <AvatarImage src={user.avatarUrl} alt={user.name} />
-            <AvatarFallback className="bg-primary/10 text-xs font-medium text-primary">
+            <AvatarFallback className="bg-primary/10 text-primary text-xs font-medium">
               {getInitials(user.name)}
             </AvatarFallback>
           </Avatar>
@@ -49,7 +49,7 @@ export function UserMenu() {
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-2">
-              <p className="text-sm font-medium leading-none">{user.name}</p>
+              <p className="text-sm leading-none font-medium">{user.name}</p>
               <Badge
                 variant={user.role === "admin" ? "default" : "secondary"}
                 className="px-1.5 py-0 text-[10px]"
@@ -57,9 +57,7 @@ export function UserMenu() {
                 {user.role}
               </Badge>
             </div>
-            <p className="text-xs leading-none text-muted-foreground">
-              {user.email}
-            </p>
+            <p className="text-muted-foreground text-xs leading-none">{user.email}</p>
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
@@ -83,8 +81,8 @@ export function UserMenu() {
         <DropdownMenuItem
           variant="destructive"
           onClick={() => {
-            signOut()
-            router.push("/sign-in")
+            signOut();
+            router.push("/sign-in");
           }}
         >
           <LogOut className="mr-2 size-4" />
@@ -92,5 +90,5 @@ export function UserMenu() {
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
-  )
+  );
 }

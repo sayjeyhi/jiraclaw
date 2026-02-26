@@ -6,7 +6,7 @@ import {
   initialChannels,
   initialTickets,
   initialLogs,
-} from "@/lib/store"
+} from "@/lib/store";
 import type {
   User,
   BotConfig,
@@ -16,8 +16,8 @@ import type {
   SystemPrompt,
   ChannelConfig,
   LogEntry,
-} from "@/lib/types"
-import { ADMIN_PERMISSIONS, DEFAULT_USER_PERMISSIONS } from "@/lib/types"
+} from "@/lib/types";
+import { ADMIN_PERMISSIONS, DEFAULT_USER_PERMISSIONS } from "@/lib/types";
 
 // In-memory database singleton.
 // In production this would be backed by a real database; here we
@@ -56,17 +56,17 @@ class Database {
       permissions: DEFAULT_USER_PERMISSIONS,
       createdAt: "2026-02-05T09:30:00Z",
     },
-  ]
-  bots: BotConfig[] = [...initialBots]
-  tickets: BotTicket[] = [...initialTickets]
-  jiraProjects: JiraProject[] = [...initialJiraProjects]
-  providers: AIProvider[] = [...initialProviders]
-  prompts: SystemPrompt[] = [...initialPrompts]
-  channels: ChannelConfig[] = [...initialChannels]
-  logs: LogEntry[] = [...initialLogs]
+  ];
+  bots: BotConfig[] = [...initialBots];
+  tickets: BotTicket[] = [...initialTickets];
+  jiraProjects: JiraProject[] = [...initialJiraProjects];
+  providers: AIProvider[] = [...initialProviders];
+  prompts: SystemPrompt[] = [...initialPrompts];
+  channels: ChannelConfig[] = [...initialChannels];
+  logs: LogEntry[] = [...initialLogs];
 }
 
 // Ensure a single instance survives HMR in development
-const globalForDb = globalThis as unknown as { __db?: Database }
-export const db = globalForDb.__db ?? new Database()
-globalForDb.__db = db
+const globalForDb = globalThis as unknown as { __db?: Database };
+export const db = globalForDb.__db ?? new Database();
+globalForDb.__db = db;

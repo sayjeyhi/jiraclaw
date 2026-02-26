@@ -1,8 +1,8 @@
 export interface Product {
-  id: string
-  name: string
-  description: string
-  priceInCents: number
+  id: string;
+  name: string;
+  description: string;
+  priceInCents: number;
 }
 
 export const PRODUCTS: Product[] = [
@@ -18,4 +18,4 @@ export const PRODUCTS: Product[] = [
     description: "For teams that need collaboration and advanced features",
     priceInCents: 3900,
   },
-]
+];

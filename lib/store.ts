@@ -6,7 +6,7 @@ import type {
   SystemPrompt,
   ChannelConfig,
   LogEntry,
-} from "./types"
+} from "./types";
 
 export const initialBots: BotConfig[] = [
   {
@@ -50,7 +50,7 @@ export const initialBots: BotConfig[] = [
     enabledChannels: ["slack"],
     createdAt: "2026-02-10T09:15:00Z",
   },
-]
+];
 
 export const initialJiraProjects: JiraProject[] = [
   {
@@ -104,7 +104,7 @@ export const initialJiraProjects: JiraProject[] = [
     botId: "bot-2",
     status: "syncing",
   },
-]
+];
 
 export const initialProviders: AIProvider[] = [
   {
@@ -157,18 +157,14 @@ export const initialProviders: AIProvider[] = [
     name: "Groq",
     slug: "groq",
     enabled: false,
-    models: [
-      { id: "llama-3.3-70b", name: "Llama 3.3 70B", maxTokens: 128000 },
-    ],
+    models: [{ id: "llama-3.3-70b", name: "Llama 3.3 70B", maxTokens: 128000 }],
   },
   {
     id: "mistral",
     name: "Mistral",
     slug: "mistral",
     enabled: false,
-    models: [
-      { id: "mistral-large", name: "Mistral Large", maxTokens: 128000 },
-    ],
+    models: [{ id: "mistral-large", name: "Mistral Large", maxTokens: 128000 }],
   },
   { id: "xai", name: "xAI", slug: "xai", enabled: false, models: [] },
   {
@@ -176,9 +172,7 @@ export const initialProviders: AIProvider[] = [
     name: "DeepSeek",
     slug: "deepseek",
     enabled: false,
-    models: [
-      { id: "deepseek-chat", name: "DeepSeek Chat", maxTokens: 64000 },
-    ],
+    models: [{ id: "deepseek-chat", name: "DeepSeek Chat", maxTokens: 64000 }],
   },
   { id: "together", name: "Together", slug: "together", enabled: false, models: [] },
   { id: "fireworks", name: "Fireworks", slug: "fireworks", enabled: false, models: [] },
@@ -193,7 +187,7 @@ export const initialProviders: AIProvider[] = [
   { id: "deepinfra", name: "Deep Infra", slug: "deepinfra", enabled: false, models: [] },
   { id: "lepton", name: "Lepton", slug: "lepton", enabled: false, models: [] },
   { id: "anyscale", name: "Anyscale", slug: "anyscale", enabled: false, models: [] },
-]
+];
 
 export const initialPrompts: SystemPrompt[] = [
   {
@@ -219,27 +213,163 @@ export const initialPrompts: SystemPrompt[] = [
     updatedAt: "2026-02-22T16:00:00Z",
     createdAt: "2026-01-10T09:00:00Z",
   },
-]
+];
 
 export const initialChannels: ChannelConfig[] = [
-  { id: "cli", name: "CLI", slug: "cli", icon: "Terminal", enabled: false, credentials: {}, botOverrides: {} },
-  { id: "telegram", name: "Telegram", slug: "telegram", icon: "Send", enabled: true, credentials: { botToken: "****" }, botOverrides: {} },
-  { id: "signal", name: "Signal", slug: "signal", icon: "Shield", enabled: false, credentials: {}, botOverrides: {} },
-  { id: "discord", name: "Discord", slug: "discord", icon: "Headphones", enabled: true, credentials: { botToken: "****", guildId: "****" }, botOverrides: {} },
-  { id: "slack", name: "Slack", slug: "slack", icon: "Hash", enabled: true, credentials: { webhookUrl: "****", botToken: "****" }, botOverrides: {} },
-  { id: "whatsapp", name: "WhatsApp", slug: "whatsapp", icon: "MessageCircle", enabled: false, credentials: {}, botOverrides: {} },
-  { id: "line", name: "Line", slug: "line", icon: "MessageSquare", enabled: false, credentials: {}, botOverrides: {} },
-  { id: "lark", name: "Lark / Feishu", slug: "lark", icon: "Feather", enabled: false, credentials: {}, botOverrides: {} },
-  { id: "onebot", name: "OneBot", slug: "onebot", icon: "Bot", enabled: false, credentials: {}, botOverrides: {} },
-  { id: "qq", name: "QQ", slug: "qq", icon: "MessagesSquare", enabled: false, credentials: {}, botOverrides: {} },
-  { id: "matrix", name: "Matrix", slug: "matrix", icon: "Grid3x3", enabled: false, credentials: {}, botOverrides: {} },
-  { id: "irc", name: "IRC", slug: "irc", icon: "Hash", enabled: false, credentials: {}, botOverrides: {} },
-  { id: "imessage", name: "iMessage", slug: "imessage", icon: "Smartphone", enabled: false, credentials: {}, botOverrides: {} },
-  { id: "email", name: "Email", slug: "email", icon: "Mail", enabled: true, credentials: { smtpHost: "smtp.gmail.com", smtpPort: "587" }, botOverrides: {} },
-  { id: "dingtalk", name: "DingTalk", slug: "dingtalk", icon: "Bell", enabled: false, credentials: {}, botOverrides: {} },
-  { id: "maixcam", name: "MaixCam", slug: "maixcam", icon: "Camera", enabled: false, credentials: {}, botOverrides: {} },
-  { id: "webhook", name: "Webhook", slug: "webhook", icon: "Webhook", enabled: true, credentials: { url: "https://hooks.example.com/jiraclaw" }, botOverrides: {} },
-]
+  {
+    id: "cli",
+    name: "CLI",
+    slug: "cli",
+    icon: "Terminal",
+    enabled: false,
+    credentials: {},
+    botOverrides: {},
+  },
+  {
+    id: "telegram",
+    name: "Telegram",
+    slug: "telegram",
+    icon: "Send",
+    enabled: true,
+    credentials: { botToken: "****" },
+    botOverrides: {},
+  },
+  {
+    id: "signal",
+    name: "Signal",
+    slug: "signal",
+    icon: "Shield",
+    enabled: false,
+    credentials: {},
+    botOverrides: {},
+  },
+  {
+    id: "discord",
+    name: "Discord",
+    slug: "discord",
+    icon: "Headphones",
+    enabled: true,
+    credentials: { botToken: "****", guildId: "****" },
+    botOverrides: {},
+  },
+  {
+    id: "slack",
+    name: "Slack",
+    slug: "slack",
+    icon: "Hash",
+    enabled: true,
+    credentials: { webhookUrl: "****", botToken: "****" },
+    botOverrides: {},
+  },
+  {
+    id: "whatsapp",
+    name: "WhatsApp",
+    slug: "whatsapp",
+    icon: "MessageCircle",
+    enabled: false,
+    credentials: {},
+    botOverrides: {},
+  },
+  {
+    id: "line",
+    name: "Line",
+    slug: "line",
+    icon: "MessageSquare",
+    enabled: false,
+    credentials: {},
+    botOverrides: {},
+  },
+  {
+    id: "lark",
+    name: "Lark / Feishu",
+    slug: "lark",
+    icon: "Feather",
+    enabled: false,
+    credentials: {},
+    botOverrides: {},
+  },
+  {
+    id: "onebot",
+    name: "OneBot",
+    slug: "onebot",
+    icon: "Bot",
+    enabled: false,
+    credentials: {},
+    botOverrides: {},
+  },
+  {
+    id: "qq",
+    name: "QQ",
+    slug: "qq",
+    icon: "MessagesSquare",
+    enabled: false,
+    credentials: {},
+    botOverrides: {},
+  },
+  {
+    id: "matrix",
+    name: "Matrix",
+    slug: "matrix",
+    icon: "Grid3x3",
+    enabled: false,
+    credentials: {},
+    botOverrides: {},
+  },
+  {
+    id: "irc",
+    name: "IRC",
+    slug: "irc",
+    icon: "Hash",
+    enabled: false,
+    credentials: {},
+    botOverrides: {},
+  },
+  {
+    id: "imessage",
+    name: "iMessage",
+    slug: "imessage",
+    icon: "Smartphone",
+    enabled: false,
+    credentials: {},
+    botOverrides: {},
+  },
+  {
+    id: "email",
+    name: "Email",
+    slug: "email",
+    icon: "Mail",
+    enabled: true,
+    credentials: { smtpHost: "smtp.gmail.com", smtpPort: "587" },
+    botOverrides: {},
+  },
+  {
+    id: "dingtalk",
+    name: "DingTalk",
+    slug: "dingtalk",
+    icon: "Bell",
+    enabled: false,
+    credentials: {},
+    botOverrides: {},
+  },
+  {
+    id: "maixcam",
+    name: "MaixCam",
+    slug: "maixcam",
+    icon: "Camera",
+    enabled: false,
+    credentials: {},
+    botOverrides: {},
+  },
+  {
+    id: "webhook",
+    name: "Webhook",
+    slug: "webhook",
+    icon: "Webhook",
+    enabled: true,
+    credentials: { url: "https://hooks.example.com/jiraclaw" },
+    botOverrides: {},
+  },
+];
 
 export const initialTickets: BotTicket[] = [
   {
@@ -254,18 +384,71 @@ export const initialTickets: BotTicket[] = [
     branch: "fix/PLAT-1234-auth-bypass",
     repoName: "platform-api",
     channelMessages: [
-      { id: "msg-1", channel: "slack", message: "Picked up PLAT-1234: Fix authentication bypass in API middleware", sentAt: "2026-02-23T08:01:00Z", status: "delivered" },
-      { id: "msg-2", channel: "slack", message: "PR #142 opened for PLAT-1234 - ready for review", sentAt: "2026-02-23T12:15:00Z", status: "delivered" },
-      { id: "msg-3", channel: "email", message: "Code review completed for PLAT-1234. 2 issues found, 1 critical.", sentAt: "2026-02-23T13:00:00Z", status: "delivered" },
+      {
+        id: "msg-1",
+        channel: "slack",
+        message: "Picked up PLAT-1234: Fix authentication bypass in API middleware",
+        sentAt: "2026-02-23T08:01:00Z",
+        status: "delivered",
+      },
+      {
+        id: "msg-2",
+        channel: "slack",
+        message: "PR #142 opened for PLAT-1234 - ready for review",
+        sentAt: "2026-02-23T12:15:00Z",
+        status: "delivered",
+      },
+      {
+        id: "msg-3",
+        channel: "email",
+        message: "Code review completed for PLAT-1234. 2 issues found, 1 critical.",
+        sentAt: "2026-02-23T13:00:00Z",
+        status: "delivered",
+      },
     ],
     actions: [
-      { id: "act-1", type: "status_changed", description: "Status changed from Open to In Progress", timestamp: "2026-02-23T08:00:00Z" },
-      { id: "act-2", type: "branch_created", description: "Created branch fix/PLAT-1234-auth-bypass on platform-api", timestamp: "2026-02-23T08:02:00Z" },
-      { id: "act-3", type: "message_sent", description: "Notified #code-reviews on Slack", timestamp: "2026-02-23T08:03:00Z" },
-      { id: "act-4", type: "review_submitted", description: "Code review submitted: found SQL injection vulnerability in auth middleware", timestamp: "2026-02-23T12:00:00Z" },
-      { id: "act-5", type: "pr_opened", description: "PR #142 opened: Fix auth bypass vulnerability", timestamp: "2026-02-23T12:15:00Z" },
-      { id: "act-6", type: "merged", description: "PR #142 merged into main", timestamp: "2026-02-23T14:30:00Z" },
-      { id: "act-7", type: "status_changed", description: "Status changed from In Review to Done", timestamp: "2026-02-23T14:30:00Z" },
+      {
+        id: "act-1",
+        type: "status_changed",
+        description: "Status changed from Open to In Progress",
+        timestamp: "2026-02-23T08:00:00Z",
+      },
+      {
+        id: "act-2",
+        type: "branch_created",
+        description: "Created branch fix/PLAT-1234-auth-bypass on platform-api",
+        timestamp: "2026-02-23T08:02:00Z",
+      },
+      {
+        id: "act-3",
+        type: "message_sent",
+        description: "Notified #code-reviews on Slack",
+        timestamp: "2026-02-23T08:03:00Z",
+      },
+      {
+        id: "act-4",
+        type: "review_submitted",
+        description: "Code review submitted: found SQL injection vulnerability in auth middleware",
+        timestamp: "2026-02-23T12:00:00Z",
+      },
+      {
+        id: "act-5",
+        type: "pr_opened",
+        description: "PR #142 opened: Fix auth bypass vulnerability",
+        timestamp: "2026-02-23T12:15:00Z",
+      },
+      {
+        id: "act-6",
+        type: "merged",
+        description: "PR #142 merged into main",
+        timestamp: "2026-02-23T14:30:00Z",
+      },
+      {
+        id: "act-7",
+        type: "status_changed",
+        description: "Status changed from In Review to Done",
+        timestamp: "2026-02-23T14:30:00Z",
+      },
     ],
   },
   {
@@ -279,15 +462,52 @@ export const initialTickets: BotTicket[] = [
     branch: "refactor/PLAT-1189-user-service",
     repoName: "platform-api",
     channelMessages: [
-      { id: "msg-4", channel: "slack", message: "Picked up PLAT-1189: Refactor user service", sentAt: "2026-02-24T09:01:00Z", status: "delivered" },
-      { id: "msg-5", channel: "slack", message: "PR #148 opened for PLAT-1189", sentAt: "2026-02-24T15:00:00Z", status: "delivered" },
+      {
+        id: "msg-4",
+        channel: "slack",
+        message: "Picked up PLAT-1189: Refactor user service",
+        sentAt: "2026-02-24T09:01:00Z",
+        status: "delivered",
+      },
+      {
+        id: "msg-5",
+        channel: "slack",
+        message: "PR #148 opened for PLAT-1189",
+        sentAt: "2026-02-24T15:00:00Z",
+        status: "delivered",
+      },
     ],
     actions: [
-      { id: "act-8", type: "status_changed", description: "Status changed from Open to In Progress", timestamp: "2026-02-24T09:00:00Z" },
-      { id: "act-9", type: "branch_created", description: "Created branch refactor/PLAT-1189-user-service on platform-api", timestamp: "2026-02-24T09:05:00Z" },
-      { id: "act-10", type: "review_submitted", description: "Reviewed 12 files across 3 modules. Suggested extracting interface.", timestamp: "2026-02-24T14:45:00Z" },
-      { id: "act-11", type: "pr_opened", description: "PR #148 opened: Refactor user service with repository pattern", timestamp: "2026-02-24T15:00:00Z" },
-      { id: "act-12", type: "status_changed", description: "Status changed to In Review", timestamp: "2026-02-24T15:01:00Z" },
+      {
+        id: "act-8",
+        type: "status_changed",
+        description: "Status changed from Open to In Progress",
+        timestamp: "2026-02-24T09:00:00Z",
+      },
+      {
+        id: "act-9",
+        type: "branch_created",
+        description: "Created branch refactor/PLAT-1189-user-service on platform-api",
+        timestamp: "2026-02-24T09:05:00Z",
+      },
+      {
+        id: "act-10",
+        type: "review_submitted",
+        description: "Reviewed 12 files across 3 modules. Suggested extracting interface.",
+        timestamp: "2026-02-24T14:45:00Z",
+      },
+      {
+        id: "act-11",
+        type: "pr_opened",
+        description: "PR #148 opened: Refactor user service with repository pattern",
+        timestamp: "2026-02-24T15:00:00Z",
+      },
+      {
+        id: "act-12",
+        type: "status_changed",
+        description: "Status changed to In Review",
+        timestamp: "2026-02-24T15:01:00Z",
+      },
     ],
   },
   {
@@ -301,12 +521,33 @@ export const initialTickets: BotTicket[] = [
     branch: "chore/PLAT-1201-deps-update",
     repoName: "platform-web",
     channelMessages: [
-      { id: "msg-6", channel: "slack", message: "Picked up PLAT-1201: Update dependencies and fix security advisories", sentAt: "2026-02-25T07:31:00Z", status: "delivered" },
+      {
+        id: "msg-6",
+        channel: "slack",
+        message: "Picked up PLAT-1201: Update dependencies and fix security advisories",
+        sentAt: "2026-02-25T07:31:00Z",
+        status: "delivered",
+      },
     ],
     actions: [
-      { id: "act-13", type: "status_changed", description: "Status changed from Open to In Progress", timestamp: "2026-02-25T07:30:00Z" },
-      { id: "act-14", type: "branch_created", description: "Created branch chore/PLAT-1201-deps-update on platform-web", timestamp: "2026-02-25T07:32:00Z" },
-      { id: "act-15", type: "comment_added", description: "Added comment: Found 3 critical and 7 moderate advisories", timestamp: "2026-02-25T08:00:00Z" },
+      {
+        id: "act-13",
+        type: "status_changed",
+        description: "Status changed from Open to In Progress",
+        timestamp: "2026-02-25T07:30:00Z",
+      },
+      {
+        id: "act-14",
+        type: "branch_created",
+        description: "Created branch chore/PLAT-1201-deps-update on platform-web",
+        timestamp: "2026-02-25T07:32:00Z",
+      },
+      {
+        id: "act-15",
+        type: "comment_added",
+        description: "Added comment: Found 3 critical and 7 moderate advisories",
+        timestamp: "2026-02-25T08:00:00Z",
+      },
     ],
   },
   {
@@ -321,15 +562,52 @@ export const initialTickets: BotTicket[] = [
     branch: "feat/PLAT-1150-rate-limiting",
     repoName: "platform-api",
     channelMessages: [
-      { id: "msg-7", channel: "slack", message: "Picked up PLAT-1150: Add rate limiting", sentAt: "2026-02-20T10:01:00Z", status: "delivered" },
-      { id: "msg-8", channel: "email", message: "PR #139 merged for PLAT-1150", sentAt: "2026-02-21T16:00:00Z", status: "delivered" },
+      {
+        id: "msg-7",
+        channel: "slack",
+        message: "Picked up PLAT-1150: Add rate limiting",
+        sentAt: "2026-02-20T10:01:00Z",
+        status: "delivered",
+      },
+      {
+        id: "msg-8",
+        channel: "email",
+        message: "PR #139 merged for PLAT-1150",
+        sentAt: "2026-02-21T16:00:00Z",
+        status: "delivered",
+      },
     ],
     actions: [
-      { id: "act-16", type: "status_changed", description: "Status changed to In Progress", timestamp: "2026-02-20T10:00:00Z" },
-      { id: "act-17", type: "branch_created", description: "Created branch feat/PLAT-1150-rate-limiting", timestamp: "2026-02-20T10:02:00Z" },
-      { id: "act-18", type: "pr_opened", description: "PR #139 opened: Implement rate limiting middleware", timestamp: "2026-02-21T11:00:00Z" },
-      { id: "act-19", type: "merged", description: "PR #139 merged into main", timestamp: "2026-02-21T16:00:00Z" },
-      { id: "act-20", type: "status_changed", description: "Status changed to Done", timestamp: "2026-02-21T16:00:00Z" },
+      {
+        id: "act-16",
+        type: "status_changed",
+        description: "Status changed to In Progress",
+        timestamp: "2026-02-20T10:00:00Z",
+      },
+      {
+        id: "act-17",
+        type: "branch_created",
+        description: "Created branch feat/PLAT-1150-rate-limiting",
+        timestamp: "2026-02-20T10:02:00Z",
+      },
+      {
+        id: "act-18",
+        type: "pr_opened",
+        description: "PR #139 opened: Implement rate limiting middleware",
+        timestamp: "2026-02-21T11:00:00Z",
+      },
+      {
+        id: "act-19",
+        type: "merged",
+        description: "PR #139 merged into main",
+        timestamp: "2026-02-21T16:00:00Z",
+      },
+      {
+        id: "act-20",
+        type: "status_changed",
+        description: "Status changed to Done",
+        timestamp: "2026-02-21T16:00:00Z",
+      },
     ],
   },
   {
@@ -343,13 +621,40 @@ export const initialTickets: BotTicket[] = [
     completedAt: "2026-02-22T11:15:00Z",
     repoName: "mobile-app",
     channelMessages: [
-      { id: "msg-9", channel: "discord", message: "Triaged MOB-567: Critical crash on biometric login. Assigned to @mobile-team.", sentAt: "2026-02-22T11:10:00Z", status: "delivered" },
+      {
+        id: "msg-9",
+        channel: "discord",
+        message: "Triaged MOB-567: Critical crash on biometric login. Assigned to @mobile-team.",
+        sentAt: "2026-02-22T11:10:00Z",
+        status: "delivered",
+      },
     ],
     actions: [
-      { id: "act-21", type: "status_changed", description: "Categorized as Critical - P0", timestamp: "2026-02-22T11:05:00Z" },
-      { id: "act-22", type: "comment_added", description: "Added triage analysis: Crash in BiometricAuth.swift line 142, null pointer on keychain access", timestamp: "2026-02-22T11:08:00Z" },
-      { id: "act-23", type: "message_sent", description: "Notified #mobile-critical on Discord", timestamp: "2026-02-22T11:10:00Z" },
-      { id: "act-24", type: "status_changed", description: "Assigned to mobile-team, status set to Open", timestamp: "2026-02-22T11:15:00Z" },
+      {
+        id: "act-21",
+        type: "status_changed",
+        description: "Categorized as Critical - P0",
+        timestamp: "2026-02-22T11:05:00Z",
+      },
+      {
+        id: "act-22",
+        type: "comment_added",
+        description:
+          "Added triage analysis: Crash in BiometricAuth.swift line 142, null pointer on keychain access",
+        timestamp: "2026-02-22T11:08:00Z",
+      },
+      {
+        id: "act-23",
+        type: "message_sent",
+        description: "Notified #mobile-critical on Discord",
+        timestamp: "2026-02-22T11:10:00Z",
+      },
+      {
+        id: "act-24",
+        type: "status_changed",
+        description: "Assigned to mobile-team, status set to Open",
+        timestamp: "2026-02-22T11:15:00Z",
+      },
     ],
   },
   {
@@ -363,13 +668,42 @@ export const initialTickets: BotTicket[] = [
     completedAt: "2026-02-24T14:20:00Z",
     repoName: "mobile-app",
     channelMessages: [
-      { id: "msg-10", channel: "discord", message: "Triaged MOB-589: Push notification issue on Android 15. Assigned to @android-team.", sentAt: "2026-02-24T14:15:00Z", status: "delivered" },
-      { id: "msg-11", channel: "webhook", message: "{\"ticket\": \"MOB-589\", \"action\": \"triaged\", \"priority\": \"high\"}", sentAt: "2026-02-24T14:16:00Z", status: "delivered" },
+      {
+        id: "msg-10",
+        channel: "discord",
+        message:
+          "Triaged MOB-589: Push notification issue on Android 15. Assigned to @android-team.",
+        sentAt: "2026-02-24T14:15:00Z",
+        status: "delivered",
+      },
+      {
+        id: "msg-11",
+        channel: "webhook",
+        message: '{"ticket": "MOB-589", "action": "triaged", "priority": "high"}',
+        sentAt: "2026-02-24T14:16:00Z",
+        status: "delivered",
+      },
     ],
     actions: [
-      { id: "act-25", type: "status_changed", description: "Categorized as High - P1", timestamp: "2026-02-24T14:05:00Z" },
-      { id: "act-26", type: "comment_added", description: "Added triage analysis: FCM token refresh failing on Android 15 due to new permission model", timestamp: "2026-02-24T14:10:00Z" },
-      { id: "act-27", type: "message_sent", description: "Notified #android-bugs on Discord", timestamp: "2026-02-24T14:15:00Z" },
+      {
+        id: "act-25",
+        type: "status_changed",
+        description: "Categorized as High - P1",
+        timestamp: "2026-02-24T14:05:00Z",
+      },
+      {
+        id: "act-26",
+        type: "comment_added",
+        description:
+          "Added triage analysis: FCM token refresh failing on Android 15 due to new permission model",
+        timestamp: "2026-02-24T14:10:00Z",
+      },
+      {
+        id: "act-27",
+        type: "message_sent",
+        description: "Notified #android-bugs on Discord",
+        timestamp: "2026-02-24T14:15:00Z",
+      },
     ],
   },
   {
@@ -382,11 +716,27 @@ export const initialTickets: BotTicket[] = [
     assignedAt: "2026-02-25T09:00:00Z",
     repoName: "mobile-app",
     channelMessages: [
-      { id: "msg-12", channel: "discord", message: "Triaging MOB-601: Memory leak reported in image gallery", sentAt: "2026-02-25T09:01:00Z", status: "delivered" },
+      {
+        id: "msg-12",
+        channel: "discord",
+        message: "Triaging MOB-601: Memory leak reported in image gallery",
+        sentAt: "2026-02-25T09:01:00Z",
+        status: "delivered",
+      },
     ],
     actions: [
-      { id: "act-28", type: "status_changed", description: "Starting triage analysis", timestamp: "2026-02-25T09:00:00Z" },
-      { id: "act-29", type: "comment_added", description: "Analyzing heap dumps from crash reports", timestamp: "2026-02-25T09:05:00Z" },
+      {
+        id: "act-28",
+        type: "status_changed",
+        description: "Starting triage analysis",
+        timestamp: "2026-02-25T09:00:00Z",
+      },
+      {
+        id: "act-29",
+        type: "comment_added",
+        description: "Analyzing heap dumps from crash reports",
+        timestamp: "2026-02-25T09:05:00Z",
+      },
     ],
   },
   {
@@ -399,18 +749,41 @@ export const initialTickets: BotTicket[] = [
     assignedAt: "2026-02-21T00:00:00Z",
     repoName: "platform-api",
     channelMessages: [
-      { id: "msg-13", channel: "slack", message: "Failed to generate Sprint 23 report: OpenRouter API timeout", sentAt: "2026-02-21T00:05:00Z", status: "failed" },
+      {
+        id: "msg-13",
+        channel: "slack",
+        message: "Failed to generate Sprint 23 report: OpenRouter API timeout",
+        sentAt: "2026-02-21T00:05:00Z",
+        status: "failed",
+      },
     ],
     actions: [
-      { id: "act-30", type: "status_changed", description: "Started generating sprint report", timestamp: "2026-02-21T00:00:00Z" },
-      { id: "act-31", type: "comment_added", description: "Error: OpenRouter API connection timed out after 30s", timestamp: "2026-02-21T00:05:00Z" },
+      {
+        id: "act-30",
+        type: "status_changed",
+        description: "Started generating sprint report",
+        timestamp: "2026-02-21T00:00:00Z",
+      },
+      {
+        id: "act-31",
+        type: "comment_added",
+        description: "Error: OpenRouter API connection timed out after 30s",
+        timestamp: "2026-02-21T00:05:00Z",
+      },
     ],
   },
-]
+];
 
 function generateLogs(): LogEntry[] {
-  const services: Array<"jira" | "git" | "ai" | "channels"> = ["jira", "git", "ai", "channels"]
-  const levels: Array<"info" | "warning" | "error" | "debug"> = ["info", "info", "info", "warning", "error", "debug"]
+  const services: Array<"jira" | "git" | "ai" | "channels"> = ["jira", "git", "ai", "channels"];
+  const levels: Array<"info" | "warning" | "error" | "debug"> = [
+    "info",
+    "info",
+    "info",
+    "warning",
+    "error",
+    "debug",
+  ];
   const messages: Record<string, string[]> = {
     jira: [
       "Ticket PLAT-1234 assigned to reviewer@jiraclaw.ai",
@@ -447,18 +820,18 @@ function generateLogs(): LogEntry[] {
       "Slack channel #sprint-reports not found",
       "Webhook retry 2/3 for failed delivery",
     ],
-  }
+  };
 
-  const entries: LogEntry[] = []
-  const now = Date.now()
+  const entries: LogEntry[] = [];
+  const now = Date.now();
 
   for (let i = 0; i < 120; i++) {
-    const service = services[Math.floor(Math.random() * services.length)]
-    const level = levels[Math.floor(Math.random() * levels.length)]
-    const msgs = messages[service]
-    const message = msgs[Math.floor(Math.random() * msgs.length)]
+    const service = services[Math.floor(Math.random() * services.length)];
+    const level = levels[Math.floor(Math.random() * levels.length)];
+    const msgs = messages[service];
+    const message = msgs[Math.floor(Math.random() * msgs.length)];
 
-    const repoNames = ["platform-api", "platform-web", "mobile-app"]
+    const repoNames = ["platform-api", "platform-web", "mobile-app"];
     entries.push({
       id: `log-${i}`,
       service,
@@ -466,12 +839,21 @@ function generateLogs(): LogEntry[] {
       message,
       timestamp: new Date(now - i * 60000 * Math.random() * 30).toISOString(),
       botId: Math.random() > 0.3 ? `bot-${Math.floor(Math.random() * 3) + 1}` : undefined,
-      repoName: (service === "git" || service === "jira") ? repoNames[Math.floor(Math.random() * repoNames.length)] : undefined,
-      metadata: level === "error" ? { stack: "Error: Connection timeout\n  at fetch (/src/services/jira.ts:45)\n  at monitor (/src/services/jira.ts:102)" } : undefined,
-    })
+      repoName:
+        service === "git" || service === "jira"
+          ? repoNames[Math.floor(Math.random() * repoNames.length)]
+          : undefined,
+      metadata:
+        level === "error"
+          ? {
+              stack:
+                "Error: Connection timeout\n  at fetch (/src/services/jira.ts:45)\n  at monitor (/src/services/jira.ts:102)",
+            }
+          : undefined,
+    });
   }
 
-  return entries.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+  return entries.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 }
 
-export const initialLogs: LogEntry[] = generateLogs()
+export const initialLogs: LogEntry[] = generateLogs();

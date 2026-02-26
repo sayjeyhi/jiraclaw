@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -8,30 +8,30 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { Badge } from "@/components/ui/badge"
-import type { BotConfig, AIProvider, SupervisedSettings } from "@/lib/types"
-import { Eye, Zap } from "lucide-react"
-import { cn } from "@/lib/utils"
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import type { BotConfig, AIProvider, SupervisedSettings } from "@/lib/types";
+import { Eye, Zap } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface BotDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  bot?: BotConfig | null
-  providers: AIProvider[]
-  onSave: (data: Omit<BotConfig, "id" | "createdAt" | "status">) => void
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  bot?: BotConfig | null;
+  providers: AIProvider[];
+  onSave: (data: Omit<BotConfig, "id" | "createdAt" | "status">) => void;
 }
 
 const defaultSupervisedSettings: SupervisedSettings = {
@@ -39,58 +39,59 @@ const defaultSupervisedSettings: SupervisedSettings = {
   confirmPush: false,
   confirmJiraComment: true,
   confirmSolution: false,
-}
+};
 
 export function BotDialog({ open, onOpenChange, bot, providers, onSave }: BotDialogProps) {
-  const [title, setTitle] = useState("")
-  const [email, setEmail] = useState("")
-  const [jobDescription, setJobDescription] = useState("")
-  const [selectedProvider, setSelectedProvider] = useState<string>("")
-  const [selectedModel, setSelectedModel] = useState<string>("")
-  const [githubToken, setGithubToken] = useState("")
-  const [spendingLimit, setSpendingLimit] = useState<string>("")
-  const [autonomyLevel, setAutonomyLevel] = useState<"autonomous" | "supervised">("autonomous")
-  const [supervisedSettings, setSupervisedSettings] = useState<SupervisedSettings>(defaultSupervisedSettings)
+  const [title, setTitle] = useState("");
+  const [email, setEmail] = useState("");
+  const [jobDescription, setJobDescription] = useState("");
+  const [selectedProvider, setSelectedProvider] = useState<string>("");
+  const [selectedModel, setSelectedModel] = useState<string>("");
+  const [githubToken, setGithubToken] = useState("");
+  const [spendingLimit, setSpendingLimit] = useState<string>("");
+  const [autonomyLevel, setAutonomyLevel] = useState<"autonomous" | "supervised">("autonomous");
+  const [supervisedSettings, setSupervisedSettings] =
+    useState<SupervisedSettings>(defaultSupervisedSettings);
 
-  const enabledProviders = providers.filter((p) => p.enabled)
-  const activeProvider = enabledProviders.find((p) => p.id === selectedProvider)
-  const availableModels = activeProvider?.models ?? []
+  const enabledProviders = providers.filter((p) => p.enabled);
+  const activeProvider = enabledProviders.find((p) => p.id === selectedProvider);
+  const availableModels = activeProvider?.models ?? [];
 
   useEffect(() => {
     if (bot) {
-      setTitle(bot.title)
-      setEmail(bot.email)
-      setJobDescription(bot.jobDescription)
-      setSelectedProvider(bot.defaultProvider ?? "")
-      setSelectedModel(bot.defaultModel ?? "")
-      setGithubToken(bot.githubToken ?? "")
-      setSpendingLimit(bot.spendingLimit?.toString() ?? "")
-      setAutonomyLevel(bot.autonomyLevel)
-      setSupervisedSettings(bot.supervisedSettings)
+      setTitle(bot.title);
+      setEmail(bot.email);
+      setJobDescription(bot.jobDescription);
+      setSelectedProvider(bot.defaultProvider ?? "");
+      setSelectedModel(bot.defaultModel ?? "");
+      setGithubToken(bot.githubToken ?? "");
+      setSpendingLimit(bot.spendingLimit?.toString() ?? "");
+      setAutonomyLevel(bot.autonomyLevel);
+      setSupervisedSettings(bot.supervisedSettings);
     } else {
-      setTitle("")
-      setEmail("")
-      setJobDescription("")
-      setSelectedProvider("")
-      setSelectedModel("")
-      setGithubToken("")
-      setSpendingLimit("")
-      setAutonomyLevel("autonomous")
-      setSupervisedSettings(defaultSupervisedSettings)
+      setTitle("");
+      setEmail("");
+      setJobDescription("");
+      setSelectedProvider("");
+      setSelectedModel("");
+      setGithubToken("");
+      setSpendingLimit("");
+      setAutonomyLevel("autonomous");
+      setSupervisedSettings(defaultSupervisedSettings);
     }
-  }, [bot, open])
+  }, [bot, open]);
 
   const handleProviderChange = (providerId: string) => {
-    setSelectedProvider(providerId)
-    setSelectedModel("")
-  }
+    setSelectedProvider(providerId);
+    setSelectedModel("");
+  };
 
   const toggleSupervisedSetting = (key: keyof SupervisedSettings) => {
-    setSupervisedSettings((prev) => ({ ...prev, [key]: !prev[key] }))
-  }
+    setSupervisedSettings((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     onSave({
       title,
       email,
@@ -101,15 +102,16 @@ export function BotDialog({ open, onOpenChange, bot, providers, onSave }: BotDia
       githubToken: githubToken || undefined,
       spendingLimit: spendingLimit ? parseFloat(spendingLimit) : undefined,
       autonomyLevel,
-      supervisedSettings: autonomyLevel === "supervised" ? supervisedSettings : defaultSupervisedSettings,
+      supervisedSettings:
+        autonomyLevel === "supervised" ? supervisedSettings : defaultSupervisedSettings,
       systemPromptId: bot?.systemPromptId,
-    })
-    onOpenChange(false)
-  }
+    });
+    onOpenChange(false);
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
             <DialogTitle>{bot ? "Edit Bot" : "Create Bot"}</DialogTitle>
@@ -144,7 +146,7 @@ export function BotDialog({ open, onOpenChange, bot, providers, onSave }: BotDia
                   onChange={(e) => setEmail(e.target.value)}
                   required
                 />
-                <p className="text-[11px] text-muted-foreground">
+                <p className="text-muted-foreground text-[11px]">
                   Used for Jira assignment detection
                 </p>
               </div>
@@ -162,11 +164,11 @@ export function BotDialog({ open, onOpenChange, bot, providers, onSave }: BotDia
               </div>
             </div>
 
-            <div className="h-px bg-border" />
+            <div className="bg-border h-px" />
 
             {/* AI Model Selection */}
             <div className="flex flex-col gap-4">
-              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              <h4 className="text-muted-foreground text-xs font-semibold tracking-wider uppercase">
                 AI Model
               </h4>
               <div className="grid grid-cols-2 gap-3">
@@ -194,7 +196,9 @@ export function BotDialog({ open, onOpenChange, bot, providers, onSave }: BotDia
                     disabled={!selectedProvider || availableModels.length === 0}
                   >
                     <SelectTrigger id="model">
-                      <SelectValue placeholder={availableModels.length === 0 ? "No models" : "Select model"} />
+                      <SelectValue
+                        placeholder={availableModels.length === 0 ? "No models" : "Select model"}
+                      />
                     </SelectTrigger>
                     <SelectContent>
                       {availableModels.map((m) => (
@@ -208,11 +212,11 @@ export function BotDialog({ open, onOpenChange, bot, providers, onSave }: BotDia
               </div>
             </div>
 
-            <div className="h-px bg-border" />
+            <div className="bg-border h-px" />
 
             {/* GitHub & Spending */}
             <div className="flex flex-col gap-4">
-              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              <h4 className="text-muted-foreground text-xs font-semibold tracking-wider uppercase">
                 Credentials & Limits
               </h4>
               <div className="grid grid-cols-2 gap-3">
@@ -225,9 +229,7 @@ export function BotDialog({ open, onOpenChange, bot, providers, onSave }: BotDia
                     value={githubToken}
                     onChange={(e) => setGithubToken(e.target.value)}
                   />
-                  <p className="text-[11px] text-muted-foreground">
-                    Dedicated token for this bot
-                  </p>
+                  <p className="text-muted-foreground text-[11px]">Dedicated token for this bot</p>
                 </div>
 
                 <div className="flex flex-col gap-2">
@@ -241,18 +243,16 @@ export function BotDialog({ open, onOpenChange, bot, providers, onSave }: BotDia
                     value={spendingLimit}
                     onChange={(e) => setSpendingLimit(e.target.value)}
                   />
-                  <p className="text-[11px] text-muted-foreground">
-                    Max AI spend per month
-                  </p>
+                  <p className="text-muted-foreground text-[11px]">Max AI spend per month</p>
                 </div>
               </div>
             </div>
 
-            <div className="h-px bg-border" />
+            <div className="bg-border h-px" />
 
             {/* Autonomy Level */}
             <div className="flex flex-col gap-4">
-              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              <h4 className="text-muted-foreground text-xs font-semibold tracking-wider uppercase">
                 Autonomy Level
               </h4>
 
@@ -264,14 +264,24 @@ export function BotDialog({ open, onOpenChange, bot, providers, onSave }: BotDia
                     "flex flex-col items-center gap-2 rounded-lg border-2 px-4 py-4 transition-all",
                     autonomyLevel === "autonomous"
                       ? "border-primary bg-primary/5"
-                      : "border-border hover:border-muted-foreground/30"
+                      : "border-border hover:border-muted-foreground/30",
                   )}
                 >
-                  <Zap className={cn("size-5", autonomyLevel === "autonomous" ? "text-primary" : "text-muted-foreground")} />
-                  <span className={cn("text-sm font-medium", autonomyLevel === "autonomous" ? "text-primary" : "text-muted-foreground")}>
+                  <Zap
+                    className={cn(
+                      "size-5",
+                      autonomyLevel === "autonomous" ? "text-primary" : "text-muted-foreground",
+                    )}
+                  />
+                  <span
+                    className={cn(
+                      "text-sm font-medium",
+                      autonomyLevel === "autonomous" ? "text-primary" : "text-muted-foreground",
+                    )}
+                  >
                     Autonomous
                   </span>
-                  <span className="text-center text-[11px] text-muted-foreground leading-relaxed">
+                  <span className="text-muted-foreground text-center text-[11px] leading-relaxed">
                     Bot acts independently without confirmation
                   </span>
                 </button>
@@ -283,40 +293,47 @@ export function BotDialog({ open, onOpenChange, bot, providers, onSave }: BotDia
                     "flex flex-col items-center gap-2 rounded-lg border-2 px-4 py-4 transition-all",
                     autonomyLevel === "supervised"
                       ? "border-warning bg-warning/5"
-                      : "border-border hover:border-muted-foreground/30"
+                      : "border-border hover:border-muted-foreground/30",
                   )}
                 >
-                  <Eye className={cn("size-5", autonomyLevel === "supervised" ? "text-warning" : "text-muted-foreground")} />
-                  <span className={cn("text-sm font-medium", autonomyLevel === "supervised" ? "text-warning" : "text-muted-foreground")}>
+                  <Eye
+                    className={cn(
+                      "size-5",
+                      autonomyLevel === "supervised" ? "text-warning" : "text-muted-foreground",
+                    )}
+                  />
+                  <span
+                    className={cn(
+                      "text-sm font-medium",
+                      autonomyLevel === "supervised" ? "text-warning" : "text-muted-foreground",
+                    )}
+                  >
                     Supervised
                   </span>
-                  <span className="text-center text-[11px] text-muted-foreground leading-relaxed">
+                  <span className="text-muted-foreground text-center text-[11px] leading-relaxed">
                     Bot confirms actions before executing
                   </span>
                 </button>
               </div>
 
               {autonomyLevel === "supervised" && (
-                <div className="flex flex-col gap-3 rounded-lg border border-warning/20 bg-warning/5 p-4">
-                  <p className="text-[11px] leading-relaxed text-muted-foreground">
+                <div className="border-warning/20 bg-warning/5 flex flex-col gap-3 rounded-lg border p-4">
+                  <p className="text-muted-foreground text-[11px] leading-relaxed">
                     The bot will confirm actions via channels before doing the activity
                   </p>
                   <div className="flex flex-col gap-2.5">
-                    {([
+                    {[
                       { key: "confirmPrCreation" as const, label: "Confirm PR creation" },
                       { key: "confirmPush" as const, label: "Confirm Push" },
                       { key: "confirmJiraComment" as const, label: "Confirm Jira Comment" },
                       { key: "confirmSolution" as const, label: "Confirm Solution" },
-                    ]).map(({ key, label }) => (
-                      <label
-                        key={key}
-                        className="flex items-center gap-2.5 cursor-pointer"
-                      >
+                    ].map(({ key, label }) => (
+                      <label key={key} className="flex cursor-pointer items-center gap-2.5">
                         <Checkbox
                           checked={supervisedSettings[key]}
                           onCheckedChange={() => toggleSupervisedSetting(key)}
                         />
-                        <span className="text-xs text-foreground">{label}</span>
+                        <span className="text-foreground text-xs">{label}</span>
                       </label>
                     ))}
                   </div>
@@ -329,12 +346,10 @@ export function BotDialog({ open, onOpenChange, bot, providers, onSave }: BotDia
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button type="submit">
-              {bot ? "Save Changes" : "Create Bot"}
-            </Button>
+            <Button type="submit">{bot ? "Save Changes" : "Create Bot"}</Button>
           </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

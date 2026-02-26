@@ -1,5 +1,5 @@
-@import 'tailwindcss';
-@import 'tw-animate-css';
+@import "tailwindcss";
+@import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -84,8 +84,8 @@
 }
 
 @theme inline {
-  --font-sans: var(--font-jetbrains), 'JetBrains Mono', monospace;
-  --font-mono: var(--font-jetbrains), 'JetBrains Mono', monospace;
+  --font-sans: var(--font-jetbrains), "JetBrains Mono", monospace;
+  --font-mono: var(--font-jetbrains), "JetBrains Mono", monospace;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);

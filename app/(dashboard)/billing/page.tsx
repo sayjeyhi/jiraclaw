@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
   CreditCard,
@@ -13,33 +13,33 @@ import {
   ScrollText,
   Kanban,
   Loader2,
-} from "lucide-react"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
+} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface PlanFeature {
-  label: string
-  included: boolean
+  label: string;
+  included: boolean;
 }
 
 interface Plan {
-  id: string
-  name: string
-  price: number
-  period: string
-  description: string
-  seats: number
-  badge?: string
-  features: PlanFeature[]
+  id: string;
+  name: string;
+  price: number;
+  period: string;
+  description: string;
+  seats: number;
+  badge?: string;
+  features: PlanFeature[];
   services: {
-    bots: number | "Unlimited"
-    jira: number | "Unlimited"
-    aiModels: number | "Unlimited"
-    channels: number | "Unlimited"
-    prompts: number | "Unlimited"
-    logs: string
-  }
+    bots: number | "Unlimited";
+    jira: number | "Unlimited";
+    aiModels: number | "Unlimited";
+    channels: number | "Unlimited";
+    prompts: number | "Unlimited";
+    logs: string;
+  };
 }
 
 const plans: Plan[] = [
@@ -122,7 +122,7 @@ const plans: Plan[] = [
       logs: "Unlimited",
     },
   },
-]
+];
 
 const serviceIcons = [
   { key: "bots", label: "Bots", icon: Bot },
@@ -131,45 +131,36 @@ const serviceIcons = [
   { key: "channels", label: "Channels", icon: Radio },
   { key: "prompts", label: "Prompts", icon: ScrollText },
   { key: "logs", label: "Log Retention", icon: ScrollText },
-]
+];
 
 export default function BillingPage() {
-  const router = useRouter()
-  const [currentPlan] = useState("free")
-  const [upgrading, setUpgrading] = useState<string | null>(null)
+  const router = useRouter();
+  const [currentPlan] = useState("free");
+  const [upgrading, setUpgrading] = useState<string | null>(null);
 
   async function handleSelectPlan(planId: string) {
-    if (planId === currentPlan) return
-    setUpgrading(planId)
+    if (planId === currentPlan) return;
+    setUpgrading(planId);
     // Simulated API call
-    await new Promise((resolve) => setTimeout(resolve, 1500))
-    setUpgrading(null)
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+    setUpgrading(null);
   }
 
   return (
     <div className="flex flex-col gap-8">
       <div className="flex items-center gap-3">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="size-8"
-          onClick={() => router.back()}
-        >
+        <Button variant="ghost" size="icon" className="size-8" onClick={() => router.back()}>
           <ArrowLeft className="size-4" />
         </Button>
         <div className="flex items-center gap-2">
-          <CreditCard className="size-5 text-primary" />
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-            Billing
-          </h1>
+          <CreditCard className="text-primary size-5" />
+          <h1 className="text-foreground text-2xl font-semibold tracking-tight">Billing</h1>
         </div>
       </div>
 
       <div className="flex flex-col gap-2">
-        <h2 className="text-sm font-semibold text-foreground">
-          Choose your plan
-        </h2>
-        <p className="text-xs text-muted-foreground">
+        <h2 className="text-foreground text-sm font-semibold">Choose your plan</h2>
+        <p className="text-muted-foreground text-xs">
           Select a plan that fits your team size and automation needs.
         </p>
       </div>
@@ -177,51 +168,41 @@ export default function BillingPage() {
       {/* Plan cards */}
       <div className="grid gap-4 lg:grid-cols-3">
         {plans.map((plan) => {
-          const isCurrent = currentPlan === plan.id
-          const isUpgrading = upgrading === plan.id
+          const isCurrent = currentPlan === plan.id;
+          const isUpgrading = upgrading === plan.id;
           return (
             <div
               key={plan.id}
               className={cn(
                 "relative flex flex-col rounded-xl border p-6 transition-all",
-                plan.badge
-                  ? "border-primary/40 bg-primary/[0.03]"
-                  : "border-border bg-card",
-                isCurrent && "ring-2 ring-primary/20"
+                plan.badge ? "border-primary/40 bg-primary/[0.03]" : "border-border bg-card",
+                isCurrent && "ring-primary/20 ring-2",
               )}
             >
               {plan.badge && (
-                <Badge className="absolute -top-2.5 right-4 text-[10px]">
-                  {plan.badge}
-                </Badge>
+                <Badge className="absolute -top-2.5 right-4 text-[10px]">{plan.badge}</Badge>
               )}
 
               <div className="flex flex-col gap-3">
                 <div className="flex items-center gap-2">
-                  <h3 className="text-lg font-semibold text-foreground">
-                    {plan.name}
-                  </h3>
+                  <h3 className="text-foreground text-lg font-semibold">{plan.name}</h3>
                   {isCurrent && (
                     <Badge variant="outline" className="text-[10px]">
                       Current
                     </Badge>
                   )}
                 </div>
-                <p className="text-xs leading-relaxed text-muted-foreground">
-                  {plan.description}
-                </p>
+                <p className="text-muted-foreground text-xs leading-relaxed">{plan.description}</p>
               </div>
 
               <div className="mt-4 flex items-baseline gap-1">
-                <span className="text-3xl font-bold tracking-tight text-foreground">
+                <span className="text-foreground text-3xl font-bold tracking-tight">
                   ${plan.price}
                 </span>
-                <span className="text-xs text-muted-foreground">
-                  /{plan.period}
-                </span>
+                <span className="text-muted-foreground text-xs">/{plan.period}</span>
               </div>
 
-              <div className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
+              <div className="text-muted-foreground mt-2 flex items-center gap-1.5 text-xs">
                 <Users className="size-3" />
                 {plan.seats === 1 ? "1 seat" : `Up to ${plan.seats} seats`}
               </div>
@@ -237,28 +218,21 @@ export default function BillingPage() {
               </Button>
 
               {/* Features list */}
-              <div className="mt-6 flex flex-col gap-2 border-t border-border pt-4">
-                <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+              <div className="border-border mt-6 flex flex-col gap-2 border-t pt-4">
+                <span className="text-muted-foreground text-[10px] font-medium tracking-wider uppercase">
                   Features
                 </span>
                 {plan.features.map((feature) => (
-                  <div
-                    key={feature.label}
-                    className="flex items-center gap-2 text-xs"
-                  >
+                  <div key={feature.label} className="flex items-center gap-2 text-xs">
                     <Check
                       className={cn(
                         "size-3 shrink-0",
-                        feature.included
-                          ? "text-emerald-500"
-                          : "text-muted-foreground/30"
+                        feature.included ? "text-emerald-500" : "text-muted-foreground/30",
                       )}
                     />
                     <span
                       className={cn(
-                        feature.included
-                          ? "text-foreground"
-                          : "text-muted-foreground line-through"
+                        feature.included ? "text-foreground" : "text-muted-foreground line-through",
                       )}
                     >
                       {feature.label}
@@ -268,48 +242,41 @@ export default function BillingPage() {
               </div>
 
               {/* Service limits */}
-              <div className="mt-4 flex flex-col gap-2 border-t border-border pt-4">
-                <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+              <div className="border-border mt-4 flex flex-col gap-2 border-t pt-4">
+                <span className="text-muted-foreground text-[10px] font-medium tracking-wider uppercase">
                   Service Limits
                 </span>
                 {serviceIcons.map(({ key, label, icon: Icon }) => {
-                  const value = plan.services[key as keyof typeof plan.services]
+                  const value = plan.services[key as keyof typeof plan.services];
                   return (
-                    <div
-                      key={key}
-                      className="flex items-center justify-between text-xs"
-                    >
-                      <div className="flex items-center gap-2 text-muted-foreground">
+                    <div key={key} className="flex items-center justify-between text-xs">
+                      <div className="text-muted-foreground flex items-center gap-2">
                         <Icon className="size-3" />
                         {label}
                       </div>
                       <span
                         className={cn(
                           "font-medium",
-                          value === "Unlimited"
-                            ? "text-emerald-500"
-                            : "text-foreground"
+                          value === "Unlimited" ? "text-emerald-500" : "text-foreground",
                         )}
                       >
                         {value}
                       </span>
                     </div>
-                  )
+                  );
                 })}
               </div>
             </div>
-          )
+          );
         })}
       </div>
 
       {/* Current plan summary */}
-      <div className="rounded-lg border border-border bg-card p-5">
+      <div className="border-border bg-card rounded-lg border p-5">
         <div className="flex items-center justify-between">
           <div className="flex flex-col gap-1">
-            <h3 className="text-sm font-semibold text-foreground">
-              Current Plan: Free
-            </h3>
-            <p className="text-xs text-muted-foreground">
+            <h3 className="text-foreground text-sm font-semibold">Current Plan: Free</h3>
+            <p className="text-muted-foreground text-xs">
               You are on the free plan. Upgrade to unlock more bots, team members, and features.
             </p>
           </div>
@@ -319,5 +286,5 @@ export default function BillingPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }

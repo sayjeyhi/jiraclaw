@@ -1,20 +1,17 @@
-const BASE = "/api"
+const BASE = "/api";
 
-export const fetcher = (url: string) => fetch(url).then((r) => r.json())
+export const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
-async function request<T>(
-  path: string,
-  options?: RequestInit
-): Promise<T> {
+async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
     ...options,
     headers: { "Content-Type": "application/json", ...options?.headers },
-  })
+  });
   if (!res.ok) {
-    const err = await res.text()
-    throw new Error(err || res.statusText)
+    const err = await res.text();
+    throw new Error(err || res.statusText);
   }
-  return res.json()
+  return res.json();
 }
 
 // ---- Auth / Users ----
@@ -26,8 +23,7 @@ export const api = {
       request("/auth/users", { method: "POST", body: JSON.stringify(body) }),
     updateUser: (id: string, body: Record<string, unknown>) =>
       request(`/auth/users/${id}`, { method: "PUT", body: JSON.stringify(body) }),
-    deleteUser: (id: string) =>
-      request(`/auth/users/${id}`, { method: "DELETE" }),
+    deleteUser: (id: string) => request(`/auth/users/${id}`, { method: "DELETE" }),
   },
 
   // ---- Bots ----
@@ -39,8 +35,7 @@ export const api = {
       request("/bots", { method: "POST", body: JSON.stringify(body) }),
     update: (id: string, body: Record<string, unknown>) =>
       request(`/bots/${id}`, { method: "PUT", body: JSON.stringify(body) }),
-    delete: (id: string) =>
-      request(`/bots/${id}`, { method: "DELETE" }),
+    delete: (id: string) => request(`/bots/${id}`, { method: "DELETE" }),
   },
 
   // ---- Jira ----
@@ -51,8 +46,7 @@ export const api = {
       request("/jira", { method: "POST", body: JSON.stringify(body) }),
     update: (id: string, body: Record<string, unknown>) =>
       request(`/jira/${id}`, { method: "PUT", body: JSON.stringify(body) }),
-    delete: (id: string) =>
-      request(`/jira/${id}`, { method: "DELETE" }),
+    delete: (id: string) => request(`/jira/${id}`, { method: "DELETE" }),
   },
 
   // ---- AI Models / Providers ----
@@ -71,8 +65,7 @@ export const api = {
       request("/prompts", { method: "POST", body: JSON.stringify(body) }),
     update: (id: string, body: Record<string, unknown>) =>
       request(`/prompts/${id}`, { method: "PUT", body: JSON.stringify(body) }),
-    delete: (id: string) =>
-      request(`/prompts/${id}`, { method: "DELETE" }),
+    delete: (id: string) => request(`/prompts/${id}`, { method: "DELETE" }),
   },
 
   // ---- Channels ----
@@ -86,8 +79,8 @@ export const api = {
   // ---- Logs ----
   logs: {
     list: (params?: Record<string, string>) => {
-      const qs = params ? "?" + new URLSearchParams(params).toString() : ""
-      return request(`/logs${qs}`)
+      const qs = params ? "?" + new URLSearchParams(params).toString() : "";
+      return request(`/logs${qs}`);
     },
   },
-}
+};

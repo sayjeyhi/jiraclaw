@@ -1,8 +1,8 @@
-"use client"
+"use client";
 
-import { createContext, useContext, useState, useCallback, type ReactNode } from "react"
-import type { User } from "./types"
-import { ADMIN_PERMISSIONS, DEFAULT_USER_PERMISSIONS } from "./types"
+import { createContext, useContext, useState, useCallback, type ReactNode } from "react";
+import type { User } from "./types";
+import { ADMIN_PERMISSIONS, DEFAULT_USER_PERMISSIONS } from "./types";
 
 const mockUsers: User[] = [
   {
@@ -34,52 +34,52 @@ const mockUsers: User[] = [
     permissions: DEFAULT_USER_PERMISSIONS,
     createdAt: "2026-02-05T09:30:00Z",
   },
-]
+];
 
 interface AuthContextValue {
-  user: User | null
-  users: User[]
-  isLoading: boolean
-  signIn: (email: string) => void
-  signOut: () => void
-  updateUser: (updates: Partial<User>) => void
-  updateUsers: (users: User[]) => void
+  user: User | null;
+  users: User[];
+  isLoading: boolean;
+  signIn: (email: string) => void;
+  signOut: () => void;
+  updateUser: (updates: Partial<User>) => void;
+  updateUsers: (users: User[]) => void;
 }
 
-const AuthContext = createContext<AuthContextValue | null>(null)
+const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(mockUsers[0])
-  const [users, setUsers] = useState<User[]>(mockUsers)
-  const [isLoading] = useState(false)
+  const [user, setUser] = useState<User | null>(mockUsers[0]);
+  const [users, setUsers] = useState<User[]>(mockUsers);
+  const [isLoading] = useState(false);
 
   const signIn = useCallback(
     (email: string) => {
-      const found = users.find((u) => u.email === email)
+      const found = users.find((u) => u.email === email);
       if (found) {
-        setUser(found)
+        setUser(found);
       }
     },
-    [users]
-  )
+    [users],
+  );
 
   const signOut = useCallback(() => {
-    setUser(null)
-  }, [])
+    setUser(null);
+  }, []);
 
   const updateUser = useCallback(
     (updates: Partial<User>) => {
-      if (!user) return
-      const updated = { ...user, ...updates }
-      setUser(updated)
-      setUsers((prev) => prev.map((u) => (u.id === updated.id ? updated : u)))
+      if (!user) return;
+      const updated = { ...user, ...updates };
+      setUser(updated);
+      setUsers((prev) => prev.map((u) => (u.id === updated.id ? updated : u)));
     },
-    [user]
-  )
+    [user],
+  );
 
   const updateUsers = useCallback((newUsers: User[]) => {
-    setUsers(newUsers)
-  }, [])
+    setUsers(newUsers);
+  }, []);
 
   return (
     <AuthContext.Provider
@@ -87,11 +87,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     >
       {children}
     </AuthContext.Provider>
-  )
+  );
 }
 
 export function useAuth() {
-  const ctx = useContext(AuthContext)
-  if (!ctx) throw new Error("useAuth must be used within AuthProvider")
-  return ctx
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
+  return ctx;
 }

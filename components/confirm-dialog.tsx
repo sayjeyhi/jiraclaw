@@ -1,8 +1,8 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { AlertTriangle, Loader2 } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { useState } from "react";
+import { AlertTriangle, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -10,16 +10,16 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
+} from "@/components/ui/dialog";
 
 interface ConfirmDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  title: string
-  description: string
-  confirmLabel?: string
-  variant?: "destructive" | "default"
-  onConfirm: () => Promise<void> | void
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  title: string;
+  description: string;
+  confirmLabel?: string;
+  variant?: "destructive" | "default";
+  onConfirm: () => Promise<void> | void;
 }
 
 export function ConfirmDialog({
@@ -31,15 +31,15 @@ export function ConfirmDialog({
   variant = "destructive",
   onConfirm,
 }: ConfirmDialogProps) {
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(false);
 
   async function handleConfirm() {
-    setLoading(true)
+    setLoading(true);
     try {
-      await onConfirm()
-      onOpenChange(false)
+      await onConfirm();
+      onOpenChange(false);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
   }
 
@@ -48,14 +48,10 @@ export function ConfirmDialog({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-base">
-            {variant === "destructive" && (
-              <AlertTriangle className="size-4 text-destructive" />
-            )}
+            {variant === "destructive" && <AlertTriangle className="text-destructive size-4" />}
             {title}
           </DialogTitle>
-          <DialogDescription className="text-xs leading-relaxed">
-            {description}
-          </DialogDescription>
+          <DialogDescription className="text-xs leading-relaxed">{description}</DialogDescription>
         </DialogHeader>
         <DialogFooter className="gap-2 sm:gap-0">
           <Button
@@ -80,5 +76,5 @@ export function ConfirmDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

@@ -1,31 +1,31 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { ChevronDown, ChevronUp, Eye, EyeOff, Key } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Switch } from "@/components/ui/switch"
-import type { AIProvider } from "@/lib/types"
-import { cn } from "@/lib/utils"
+import { useState } from "react";
+import { ChevronDown, ChevronUp, Eye, EyeOff, Key } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import type { AIProvider } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 interface ProviderCardProps {
-  provider: AIProvider
-  onToggle: (id: string, enabled: boolean) => void
-  onUpdateApiKey: (id: string, apiKey: string) => void
+  provider: AIProvider;
+  onToggle: (id: string, enabled: boolean) => void;
+  onUpdateApiKey: (id: string, apiKey: string) => void;
 }
 
 export function ProviderCard({ provider, onToggle, onUpdateApiKey }: ProviderCardProps) {
-  const [expanded, setExpanded] = useState(false)
-  const [showKey, setShowKey] = useState(false)
-  const [apiKey, setApiKey] = useState(provider.apiKey ?? "")
+  const [expanded, setExpanded] = useState(false);
+  const [showKey, setShowKey] = useState(false);
+  const [apiKey, setApiKey] = useState(provider.apiKey ?? "");
 
   return (
     <div
       className={cn(
-        "rounded-lg border bg-card transition-colors",
-        provider.enabled ? "border-primary/30" : "border-border"
+        "bg-card rounded-lg border transition-colors",
+        provider.enabled ? "border-primary/30" : "border-border",
       )}
     >
       <div className="flex items-center justify-between px-4 py-3">
@@ -33,17 +33,15 @@ export function ProviderCard({ provider, onToggle, onUpdateApiKey }: ProviderCar
           <div
             className={cn(
               "flex size-8 items-center justify-center rounded-md text-xs font-bold",
-              provider.enabled
-                ? "bg-primary/15 text-primary"
-                : "bg-muted text-muted-foreground"
+              provider.enabled ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground",
             )}
           >
             {provider.name.slice(0, 2).toUpperCase()}
           </div>
           <div>
-            <h3 className="text-sm font-medium text-card-foreground">{provider.name}</h3>
+            <h3 className="text-card-foreground text-sm font-medium">{provider.name}</h3>
             {provider.models.length > 0 && (
-              <p className="text-xs text-muted-foreground">
+              <p className="text-muted-foreground text-xs">
                 {provider.models.length} model{provider.models.length !== 1 ? "s" : ""} available
               </p>
             )}
@@ -52,7 +50,7 @@ export function ProviderCard({ provider, onToggle, onUpdateApiKey }: ProviderCar
 
         <div className="flex items-center gap-3">
           {provider.apiKey && (
-            <Badge variant="outline" className="text-[10px] text-success border-success/25">
+            <Badge variant="outline" className="text-success border-success/25 text-[10px]">
               <Key className="mr-1 size-2.5" />
               Configured
             </Badge>
@@ -64,7 +62,7 @@ export function ProviderCard({ provider, onToggle, onUpdateApiKey }: ProviderCar
           <Button
             variant="ghost"
             size="icon"
-            className="size-7 text-muted-foreground"
+            className="text-muted-foreground size-7"
             onClick={() => setExpanded(!expanded)}
           >
             {expanded ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
@@ -74,7 +72,7 @@ export function ProviderCard({ provider, onToggle, onUpdateApiKey }: ProviderCar
       </div>
 
       {expanded && (
-        <div className="border-t border-border px-4 py-3">
+        <div className="border-border border-t px-4 py-3">
           <div className="flex flex-col gap-4">
             <div className="flex flex-col gap-2">
               <Label className="text-xs">API Key</Label>
@@ -113,10 +111,10 @@ export function ProviderCard({ provider, onToggle, onUpdateApiKey }: ProviderCar
                   {provider.models.map((model) => (
                     <div
                       key={model.id}
-                      className="flex items-center gap-2 rounded-md border border-border bg-muted/50 px-3 py-1.5"
+                      className="border-border bg-muted/50 flex items-center gap-2 rounded-md border px-3 py-1.5"
                     >
-                      <span className="text-xs font-mono text-foreground">{model.name}</span>
-                      <span className="text-[10px] text-muted-foreground">
+                      <span className="text-foreground font-mono text-xs">{model.name}</span>
+                      <span className="text-muted-foreground text-[10px]">
                         {(model.maxTokens / 1000).toFixed(0)}k tokens
                       </span>
                     </div>
@@ -128,5 +126,5 @@ export function ProviderCard({ provider, onToggle, onUpdateApiKey }: ProviderCar
         </div>
       )}
     </div>
-  )
+  );
 }

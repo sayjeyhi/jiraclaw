@@ -1,5 +1,5 @@
-import { Elysia, t } from "elysia"
-import { db } from "../db"
+import { Elysia, t } from "elysia";
+import { db } from "../db";
 
 const repoSchema = t.Object({
   id: t.String(),
@@ -7,18 +7,14 @@ const repoSchema = t.Object({
   url: t.String(),
   branch: t.String(),
   label: t.String(),
-  status: t.Union([
-    t.Literal("cloned"),
-    t.Literal("cloning"),
-    t.Literal("error"),
-  ]),
+  status: t.Union([t.Literal("cloned"), t.Literal("cloning"), t.Literal("error")]),
   lastSync: t.Optional(t.String()),
-})
+});
 
 const labelMappingSchema = t.Object({
   label: t.String(),
   repositoryId: t.String(),
-})
+});
 
 const projectBody = t.Object({
   name: t.String(),
@@ -27,21 +23,15 @@ const projectBody = t.Object({
   repositories: t.Array(repoSchema),
   labelMappings: t.Array(labelMappingSchema),
   botId: t.Optional(t.String()),
-  status: t.Optional(
-    t.Union([
-      t.Literal("connected"),
-      t.Literal("syncing"),
-      t.Literal("error"),
-    ])
-  ),
-})
+  status: t.Optional(t.Union([t.Literal("connected"), t.Literal("syncing"), t.Literal("error")])),
+});
 
 export const jiraService = new Elysia({ prefix: "/jira", aot: false })
   .get("/", () => db.jiraProjects)
   .get("/:id", ({ params }) => {
-    const proj = db.jiraProjects.find((p) => p.id === params.id)
-    if (!proj) throw new Error("Project not found")
-    return proj
+    const proj = db.jiraProjects.find((p) => p.id === params.id);
+    if (!proj) throw new Error("Project not found");
+    return proj;
   })
   .post(
     "/",
@@ -50,25 +40,25 @@ export const jiraService = new Elysia({ prefix: "/jira", aot: false })
         ...body,
         id: `proj-${Date.now()}`,
         status: body.status ?? ("connected" as const),
-      }
-      db.jiraProjects.push(project)
-      return project
+      };
+      db.jiraProjects.push(project);
+      return project;
     },
-    { body: projectBody }
+    { body: projectBody },
   )
   .put(
     "/:id",
     ({ params, body }) => {
-      const idx = db.jiraProjects.findIndex((p) => p.id === params.id)
-      if (idx === -1) throw new Error("Project not found")
-      db.jiraProjects[idx] = { ...db.jiraProjects[idx], ...body }
-      return db.jiraProjects[idx]
+      const idx = db.jiraProjects.findIndex((p) => p.id === params.id);
+      if (idx === -1) throw new Error("Project not found");
+      db.jiraProjects[idx] = { ...db.jiraProjects[idx], ...body };
+      return db.jiraProjects[idx];
     },
-    { body: t.Partial(projectBody) }
+    { body: t.Partial(projectBody) },
   )
   .delete("/:id", ({ params }) => {
-    const idx = db.jiraProjects.findIndex((p) => p.id === params.id)
-    if (idx === -1) throw new Error("Project not found")
-    db.jiraProjects.splice(idx, 1)
-    return { success: true }
-  })
+    const idx = db.jiraProjects.findIndex((p) => p.id === params.id);
+    if (idx === -1) throw new Error("Project not found");
+    db.jiraProjects.splice(idx, 1);
+    return { success: true };
+  });

@@ -1,6 +1,6 @@
-"use client"
+"use client";
 
-import { useState } from "react"
+import { useState } from "react";
 import {
   ChevronDown,
   ChevronUp,
@@ -22,14 +22,14 @@ import {
   Bell,
   Camera,
   Webhook,
-} from "lucide-react"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Switch } from "@/components/ui/switch"
-import type { ChannelConfig } from "@/lib/types"
-import { cn } from "@/lib/utils"
+} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import type { ChannelConfig } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Terminal,
@@ -48,32 +48,32 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Bell,
   Camera,
   Webhook,
-}
+};
 
 interface ChannelCardProps {
-  channel: ChannelConfig
-  onToggle: (id: string, enabled: boolean) => void
-  onUpdateCredentials: (id: string, credentials: Record<string, string>) => void
+  channel: ChannelConfig;
+  onToggle: (id: string, enabled: boolean) => void;
+  onUpdateCredentials: (id: string, credentials: Record<string, string>) => void;
 }
 
 export function ChannelCard({ channel, onToggle, onUpdateCredentials }: ChannelCardProps) {
-  const [expanded, setExpanded] = useState(false)
-  const [showSecrets, setShowSecrets] = useState(false)
-  const [credentials, setCredentials] = useState(channel.credentials)
+  const [expanded, setExpanded] = useState(false);
+  const [showSecrets, setShowSecrets] = useState(false);
+  const [credentials, setCredentials] = useState(channel.credentials);
 
-  const Icon = iconMap[channel.icon] ?? Terminal
-  const credentialKeys = Object.keys(credentials)
-  const hasCredentials = credentialKeys.length > 0
+  const Icon = iconMap[channel.icon] ?? Terminal;
+  const credentialKeys = Object.keys(credentials);
+  const hasCredentials = credentialKeys.length > 0;
 
   const updateCredential = (key: string, value: string) => {
-    setCredentials((prev) => ({ ...prev, [key]: value }))
-  }
+    setCredentials((prev) => ({ ...prev, [key]: value }));
+  };
 
   return (
     <div
       className={cn(
-        "rounded-lg border bg-card transition-colors",
-        channel.enabled ? "border-primary/30" : "border-border"
+        "bg-card rounded-lg border transition-colors",
+        channel.enabled ? "border-primary/30" : "border-border",
       )}
     >
       <div className="flex items-center justify-between px-4 py-3">
@@ -81,18 +81,17 @@ export function ChannelCard({ channel, onToggle, onUpdateCredentials }: ChannelC
           <div
             className={cn(
               "flex size-8 items-center justify-center rounded-md",
-              channel.enabled
-                ? "bg-primary/15 text-primary"
-                : "bg-muted text-muted-foreground"
+              channel.enabled ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground",
             )}
           >
             <Icon className="size-4" />
           </div>
           <div>
-            <h3 className="text-sm font-medium text-card-foreground">{channel.name}</h3>
+            <h3 className="text-card-foreground text-sm font-medium">{channel.name}</h3>
             {hasCredentials && channel.enabled && (
-              <p className="text-xs text-muted-foreground">
-                {credentialKeys.length} credential{credentialKeys.length !== 1 ? "s" : ""} configured
+              <p className="text-muted-foreground text-xs">
+                {credentialKeys.length} credential{credentialKeys.length !== 1 ? "s" : ""}{" "}
+                configured
               </p>
             )}
           </div>
@@ -100,7 +99,7 @@ export function ChannelCard({ channel, onToggle, onUpdateCredentials }: ChannelC
 
         <div className="flex items-center gap-3">
           {channel.enabled && hasCredentials && (
-            <Badge variant="outline" className="text-[10px] text-success border-success/25">
+            <Badge variant="outline" className="text-success border-success/25 text-[10px]">
               Active
             </Badge>
           )}
@@ -111,7 +110,7 @@ export function ChannelCard({ channel, onToggle, onUpdateCredentials }: ChannelC
           <Button
             variant="ghost"
             size="icon"
-            className="size-7 text-muted-foreground"
+            className="text-muted-foreground size-7"
             onClick={() => setExpanded(!expanded)}
           >
             {expanded ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
@@ -121,7 +120,7 @@ export function ChannelCard({ channel, onToggle, onUpdateCredentials }: ChannelC
       </div>
 
       {expanded && (
-        <div className="border-t border-border px-4 py-3">
+        <div className="border-border border-t px-4 py-3">
           <div className="flex flex-col gap-3">
             <div className="flex items-center justify-between">
               <Label className="text-xs">Credentials</Label>
@@ -141,7 +140,7 @@ export function ChannelCard({ channel, onToggle, onUpdateCredentials }: ChannelC
               <div className="flex flex-col gap-2">
                 {credentialKeys.map((key) => (
                   <div key={key} className="flex items-center gap-2">
-                    <Label className="w-28 shrink-0 text-xs text-muted-foreground">{key}</Label>
+                    <Label className="text-muted-foreground w-28 shrink-0 text-xs">{key}</Label>
                     <Input
                       type={showSecrets ? "text" : "password"}
                       value={credentials[key]}
@@ -160,7 +159,7 @@ export function ChannelCard({ channel, onToggle, onUpdateCredentials }: ChannelC
                 </Button>
               </div>
             ) : (
-              <p className="text-xs text-muted-foreground">
+              <p className="text-muted-foreground text-xs">
                 No credentials required for this channel.
               </p>
             )}
@@ -168,5 +167,5 @@ export function ChannelCard({ channel, onToggle, onUpdateCredentials }: ChannelC
         </div>
       )}
     </div>
-  )
+  );
 }

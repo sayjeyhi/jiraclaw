@@ -7,6 +7,6 @@ const nextConfig = {
     unoptimized: true,
   },
   serverExternalPackages: ["elysia", "@elysiajs/eden"],
-}
+};
 
-export default nextConfig
+export default nextConfig;

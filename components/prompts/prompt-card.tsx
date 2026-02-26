@@ -1,33 +1,33 @@
-"use client"
+"use client";
 
-import { Globe, MoreVertical, Pencil, Trash2, User } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
+import { Globe, MoreVertical, Pencil, Trash2, User } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import type { SystemPrompt } from "@/lib/types"
-import { formatDate } from "@/lib/utils"
+} from "@/components/ui/dropdown-menu";
+import type { SystemPrompt } from "@/lib/types";
+import { formatDate } from "@/lib/utils";
 
 interface PromptCardProps {
-  prompt: SystemPrompt
-  onEdit: (prompt: SystemPrompt) => void
-  onDelete: (id: string) => void
+  prompt: SystemPrompt;
+  onEdit: (prompt: SystemPrompt) => void;
+  onDelete: (id: string) => void;
 }
 
 export function PromptCard({ prompt, onEdit, onDelete }: PromptCardProps) {
-  const overrideCount = Object.keys(prompt.botOverrides).length
+  const overrideCount = Object.keys(prompt.botOverrides).length;
 
   return (
-    <div className="group flex flex-col gap-3 rounded-lg border border-border bg-card p-5 transition-colors hover:border-primary/30">
+    <div className="group border-border bg-card hover:border-primary/30 flex flex-col gap-3 rounded-lg border p-5 transition-colors">
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-2">
-          <h3 className="text-sm font-semibold text-card-foreground">{prompt.name}</h3>
+          <h3 className="text-card-foreground text-sm font-semibold">{prompt.name}</h3>
           {prompt.isGlobal ? (
-            <Badge variant="outline" className="text-[10px] text-primary border-primary/25">
+            <Badge variant="outline" className="text-primary border-primary/25 text-[10px]">
               <Globe className="mr-1 size-2.5" />
               Global
             </Badge>
@@ -41,7 +41,11 @@ export function PromptCard({ prompt, onEdit, onDelete }: PromptCardProps) {
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="size-8 text-muted-foreground opacity-0 group-hover:opacity-100">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-muted-foreground size-8 opacity-0 group-hover:opacity-100"
+            >
               <MoreVertical className="size-4" />
               <span className="sr-only">Prompt actions</span>
             </Button>
@@ -59,11 +63,9 @@ export function PromptCard({ prompt, onEdit, onDelete }: PromptCardProps) {
         </DropdownMenu>
       </div>
 
-      <p className="text-sm leading-relaxed text-muted-foreground line-clamp-3">
-        {prompt.content}
-      </p>
+      <p className="text-muted-foreground line-clamp-3 text-sm leading-relaxed">{prompt.content}</p>
 
-      <div className="flex items-center justify-between border-t border-border pt-3 text-xs text-muted-foreground">
+      <div className="border-border text-muted-foreground flex items-center justify-between border-t pt-3 text-xs">
         <div className="flex items-center gap-3">
           {overrideCount > 0 && (
             <span>
@@ -74,5 +76,5 @@ export function PromptCard({ prompt, onEdit, onDelete }: PromptCardProps) {
         </div>
       </div>
     </div>
-  )
+  );
 }

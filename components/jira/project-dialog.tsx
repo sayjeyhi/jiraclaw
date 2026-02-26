@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Plus, X } from "lucide-react"
+import { useState, useEffect } from "react";
+import { Plus, X } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -9,20 +9,20 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Button } from "@/components/ui/button"
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import type { JiraProject } from "@/lib/types"
+} from "@/components/ui/select";
+import type { JiraProject } from "@/lib/types";
 
-const MAX_REPOS = 3
+const MAX_REPOS = 3;
 
 const labelOptions = [
   { value: "any", label: "any" },
@@ -33,68 +33,68 @@ const labelOptions = [
   { value: "devops", label: "devops" },
   { value: "docs", label: "docs" },
   { value: "testing", label: "testing" },
-]
+];
 
 interface RepoRow {
-  url: string
-  label: string
+  url: string;
+  label: string;
 }
 
 interface ProjectDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  project?: JiraProject | null
-  onSave: (data: Pick<JiraProject, "name" | "key" | "url"> & { repos: RepoRow[] }) => void
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  project?: JiraProject | null;
+  onSave: (data: Pick<JiraProject, "name" | "key" | "url"> & { repos: RepoRow[] }) => void;
 }
 
 export function ProjectDialog({ open, onOpenChange, project, onSave }: ProjectDialogProps) {
-  const [name, setName] = useState("")
-  const [key, setKey] = useState("")
-  const [url, setUrl] = useState("")
-  const [repos, setRepos] = useState<RepoRow[]>([{ url: "", label: "any" }])
+  const [name, setName] = useState("");
+  const [key, setKey] = useState("");
+  const [url, setUrl] = useState("");
+  const [repos, setRepos] = useState<RepoRow[]>([{ url: "", label: "any" }]);
 
   useEffect(() => {
     if (project) {
-      setName(project.name)
-      setKey(project.key)
-      setUrl(project.url)
+      setName(project.name);
+      setKey(project.key);
+      setUrl(project.url);
       setRepos(
         project.repositories.map((r) => ({
           url: r.url,
           label: r.label ?? "any",
-        }))
-      )
+        })),
+      );
     } else {
-      setName("")
-      setKey("")
-      setUrl("")
-      setRepos([{ url: "", label: "any" }])
+      setName("");
+      setKey("");
+      setUrl("");
+      setRepos([{ url: "", label: "any" }]);
     }
-  }, [project, open])
+  }, [project, open]);
 
   const addRepo = () => {
     if (repos.length < MAX_REPOS) {
-      setRepos((prev) => [...prev, { url: "", label: "any" }])
+      setRepos((prev) => [...prev, { url: "", label: "any" }]);
     }
-  }
+  };
 
   const removeRepo = (index: number) => {
-    setRepos((prev) => prev.filter((_, i) => i !== index))
-  }
+    setRepos((prev) => prev.filter((_, i) => i !== index));
+  };
 
   const updateRepoUrl = (index: number, value: string) => {
-    setRepos((prev) => prev.map((r, i) => (i === index ? { ...r, url: value } : r)))
-  }
+    setRepos((prev) => prev.map((r, i) => (i === index ? { ...r, url: value } : r)));
+  };
 
   const updateRepoLabel = (index: number, value: string) => {
-    setRepos((prev) => prev.map((r, i) => (i === index ? { ...r, label: value } : r)))
-  }
+    setRepos((prev) => prev.map((r, i) => (i === index ? { ...r, label: value } : r)));
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    onSave({ name, key, url, repos: repos.filter((r) => r.url.trim()) })
-    onOpenChange(false)
-  }
+    e.preventDefault();
+    onSave({ name, key, url, repos: repos.filter((r) => r.url.trim()) });
+    onOpenChange(false);
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -144,16 +144,15 @@ export function ProjectDialog({ open, onOpenChange, project, onSave }: ProjectDi
 
             <div className="flex flex-col gap-2">
               <div className="flex items-center justify-between">
-                <Label>Repositories ({repos.length}/{MAX_REPOS})</Label>
+                <Label>
+                  Repositories ({repos.length}/{MAX_REPOS})
+                </Label>
               </div>
               <div className="flex flex-col gap-2">
                 {repos.map((repo, index) => (
                   <div key={index} className="flex items-center gap-2">
-                    <span className="shrink-0 text-xs text-muted-foreground">Label</span>
-                    <Select
-                      value={repo.label}
-                      onValueChange={(v) => updateRepoLabel(index, v)}
-                    >
+                    <span className="text-muted-foreground shrink-0 text-xs">Label</span>
+                    <Select value={repo.label} onValueChange={(v) => updateRepoLabel(index, v)}>
                       <SelectTrigger className="w-28 shrink-0 text-xs">
                         <SelectValue />
                       </SelectTrigger>
@@ -176,7 +175,7 @@ export function ProjectDialog({ open, onOpenChange, project, onSave }: ProjectDi
                         type="button"
                         variant="ghost"
                         size="icon"
-                        className="size-8 shrink-0 text-muted-foreground hover:text-destructive"
+                        className="text-muted-foreground hover:text-destructive size-8 shrink-0"
                         onClick={() => removeRepo(index)}
                       >
                         <X className="size-4" />
@@ -193,7 +192,7 @@ export function ProjectDialog({ open, onOpenChange, project, onSave }: ProjectDi
                 </Button>
               )}
               {repos.length >= MAX_REPOS && (
-                <p className="text-xs text-muted-foreground">
+                <p className="text-muted-foreground text-xs">
                   Maximum of {MAX_REPOS} repositories per project.
                 </p>
               )}
@@ -204,12 +203,10 @@ export function ProjectDialog({ open, onOpenChange, project, onSave }: ProjectDi
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button type="submit">
-              {project ? "Save Changes" : "Connect Project"}
-            </Button>
+            <Button type="submit">{project ? "Save Changes" : "Connect Project"}</Button>
           </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

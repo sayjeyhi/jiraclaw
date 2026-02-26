@@ -68,8 +68,8 @@ const SERVICE_SECTIONS: {
     ],
   },
   {
-    key: "jira",
-    label: "Jira Integration",
+    key: "ticket",
+    label: "Ticket Integration",
     actions: [
       { key: "view", label: "View" },
       { key: "create", label: "Add Integration" },

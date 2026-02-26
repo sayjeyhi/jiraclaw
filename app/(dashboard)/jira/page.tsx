@@ -75,7 +75,7 @@ export default function JiraPage() {
   return (
     <div className="flex flex-col gap-6">
       <PageHeader
-        title="Jira Integration"
+        title="Ticket Integration"
         description="Connect Jira projects and link GitHub repositories for automated monitoring."
       >
         <Button

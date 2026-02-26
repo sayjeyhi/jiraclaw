@@ -1,22 +1,22 @@
 import Link from "next/link";
-import { ArrowLeft, Grip } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
+import { Logo } from "@/components/logo";
 
 export default function PrivacyPolicyPage() {
   return (
     <div className="mx-auto w-full max-w-2xl px-4 py-12">
       <div className="mb-8 flex items-center gap-3">
-        <Link
-          href="/sign-in"
-          className="text-muted-foreground hover:bg-accent hover:text-foreground flex size-8 items-center justify-center rounded-md transition-colors"
-        >
-          <ArrowLeft className="size-4" />
-        </Link>
-        <div className="flex items-center gap-2">
-          <div className="bg-primary flex size-7 items-center justify-center rounded-md">
-            <Grip className="text-primary-foreground size-3.5" />
+        <Link href="/sign-in" className="flex gap-2">
+          <div className="text-muted-foreground hover:bg-accent hover:text-foreground flex size-8 items-center justify-center rounded-md transition-colors">
+            <ArrowLeft className="size-4" />
           </div>
-          <span className="text-foreground text-sm font-semibold tracking-tight">JiraClaw</span>
-        </div>
+
+          <div className="flex items-center gap-2">
+            <Logo className="size-5" />
+
+            <span className="text-foreground text-sm font-semibold tracking-tight">JiraClaw</span>
+          </div>
+        </Link>
       </div>
 
       <h1 className="text-foreground text-2xl font-bold tracking-tight">Privacy Policy</h1>

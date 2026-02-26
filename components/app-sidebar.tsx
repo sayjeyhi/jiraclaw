@@ -11,7 +11,6 @@ import {
   FileText,
   Radio,
   ScrollText,
-  Grip,
   Menu,
   X,
   Sun,
@@ -24,7 +23,7 @@ import { Logo } from "@/components/logo";
 
 const navigation = [
   { name: "Bots", href: "/bots", icon: Bot },
-  { name: "Jira Integration", href: "/jira", icon: Kanban },
+  { name: "Ticket Integration", href: "/jira", icon: Kanban },
   { name: "AI Models", href: "/ai-models", icon: BrainCircuit },
   { name: "Prompts", href: "/prompts", icon: FileText },
   { name: "Channels", href: "/channels", icon: Radio },
@@ -38,9 +37,7 @@ function SidebarContent({ onNavClick }: { onNavClick?: () => void }) {
   return (
     <>
       <div className="border-sidebar-border flex h-14 items-center gap-2 border-b px-4">
-        <div className="bg-primary flex size-8 items-center justify-center rounded-lg">
-          <Grip className="text-primary-foreground size-4" />
-        </div>
+        <Logo className="size-6" />
         <span className="text-sidebar-foreground text-base font-semibold tracking-tight">
           JiraClaw
         </span>
@@ -105,9 +102,7 @@ export function MobileHeader() {
             <Menu className="size-5" />
           </Button>
           <div className="flex items-center gap-2">
-            <div className="bg-primary flex size-7 items-center justify-center rounded-md">
-              <Logo />
-            </div>
+            <Logo className="size-6" />
             <span className="text-foreground text-sm font-semibold tracking-tight">JiraClaw</span>
           </div>
         </div>

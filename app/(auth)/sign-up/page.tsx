@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Grip } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/auth-context";
+import { Logo } from "@/components/logo";
 
 function GitHubIcon({ className }: { className?: string }) {
   return (
@@ -49,9 +49,8 @@ export default function SignUpPage() {
   return (
     <div className="w-full max-w-sm">
       <div className="mb-8 flex flex-col items-center gap-3">
-        <div className="bg-primary flex size-12 items-center justify-center rounded-xl">
-          <Grip className="text-primary-foreground size-6" />
-        </div>
+        <Logo className="mb-2 size-10" />
+
         <h1 className="text-foreground text-xl font-semibold tracking-tight">
           Create your account
         </h1>

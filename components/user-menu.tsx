@@ -62,6 +62,12 @@ export function UserMenu() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
+          {user.role === "admin" && (
+            <DropdownMenuItem onClick={() => router.push("/admin")}>
+              <Shield className="mr-2 size-4" />
+              Manage Users
+            </DropdownMenuItem>
+          )}
           <DropdownMenuItem onClick={() => router.push("/profile")}>
             <Settings className="mr-2 size-4" />
             Profile
@@ -70,12 +76,6 @@ export function UserMenu() {
             <CreditCard className="mr-2 size-4" />
             Billing
           </DropdownMenuItem>
-          {user.role === "admin" && (
-            <DropdownMenuItem onClick={() => router.push("/admin")}>
-              <Shield className="mr-2 size-4" />
-              Manage Users
-            </DropdownMenuItem>
-          )}
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem

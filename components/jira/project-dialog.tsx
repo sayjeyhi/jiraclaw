@@ -199,7 +199,7 @@ export function ProjectDialog({ open, onOpenChange, project, onSave }: ProjectDi
             </div>
           </div>
 
-          <DialogFooter className="mt-6">
+          <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>

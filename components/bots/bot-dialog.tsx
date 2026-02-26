@@ -21,9 +21,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 import type { BotConfig, AIProvider, SupervisedSettings } from "@/lib/types";
-import { Eye, Zap } from "lucide-react";
+import { Eye, Zap, Bot, Cpu, KeyRound, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface BotDialogProps {
@@ -41,7 +40,16 @@ const defaultSupervisedSettings: SupervisedSettings = {
   confirmSolution: false,
 };
 
+const STEPS = [
+  { id: 1, label: "Basics", icon: Bot, optional: false },
+  { id: 2, label: "AI Model", icon: Cpu, optional: true },
+  { id: 3, label: "Credentials", icon: KeyRound, optional: true },
+  { id: 4, label: "Autonomy", icon: ShieldCheck, optional: false },
+] as const;
+
 export function BotDialog({ open, onOpenChange, bot, providers, onSave }: BotDialogProps) {
+  const [step, setStep] = useState(1);
+
   const [title, setTitle] = useState("");
   const [email, setEmail] = useState("");
   const [jobDescription, setJobDescription] = useState("");
@@ -58,26 +66,29 @@ export function BotDialog({ open, onOpenChange, bot, providers, onSave }: BotDia
   const availableModels = activeProvider?.models ?? [];
 
   useEffect(() => {
-    if (bot) {
-      setTitle(bot.title);
-      setEmail(bot.email);
-      setJobDescription(bot.jobDescription);
-      setSelectedProvider(bot.defaultProvider ?? "");
-      setSelectedModel(bot.defaultModel ?? "");
-      setGithubToken(bot.githubToken ?? "");
-      setSpendingLimit(bot.spendingLimit?.toString() ?? "");
-      setAutonomyLevel(bot.autonomyLevel);
-      setSupervisedSettings(bot.supervisedSettings);
-    } else {
-      setTitle("");
-      setEmail("");
-      setJobDescription("");
-      setSelectedProvider("");
-      setSelectedModel("");
-      setGithubToken("");
-      setSpendingLimit("");
-      setAutonomyLevel("autonomous");
-      setSupervisedSettings(defaultSupervisedSettings);
+    if (open) {
+      setStep(1);
+      if (bot) {
+        setTitle(bot.title);
+        setEmail(bot.email);
+        setJobDescription(bot.jobDescription);
+        setSelectedProvider(bot.defaultProvider ?? "");
+        setSelectedModel(bot.defaultModel ?? "");
+        setGithubToken(bot.githubToken ?? "");
+        setSpendingLimit(bot.spendingLimit?.toString() ?? "");
+        setAutonomyLevel(bot.autonomyLevel);
+        setSupervisedSettings(bot.supervisedSettings);
+      } else {
+        setTitle("");
+        setEmail("");
+        setJobDescription("");
+        setSelectedProvider("");
+        setSelectedModel("");
+        setGithubToken("");
+        setSpendingLimit("");
+        setAutonomyLevel("autonomous");
+        setSupervisedSettings(defaultSupervisedSettings);
+      }
     }
   }, [bot, open]);
 
@@ -90,8 +101,13 @@ export function BotDialog({ open, onOpenChange, bot, providers, onSave }: BotDia
     setSupervisedSettings((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const isStep1Valid = title.trim() !== "" && email.trim() !== "" && jobDescription.trim() !== "";
+
+  const handleNext = () => setStep((s) => Math.min(s + 1, STEPS.length));
+  const handleBack = () => setStep((s) => Math.max(s - 1, 1));
+  const handleSkip = () => handleNext();
+
+  const handleSubmit = () => {
     onSave({
       title,
       email,
@@ -109,22 +125,75 @@ export function BotDialog({ open, onOpenChange, bot, providers, onSave }: BotDia
     onOpenChange(false);
   };
 
+  const currentStepMeta = STEPS[step - 1];
+  const isLastStep = step === STEPS.length;
+  const isFirstStep = step === 1;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl">
-        <form onSubmit={handleSubmit}>
-          <DialogHeader>
-            <DialogTitle>{bot ? "Edit Bot" : "Create Bot"}</DialogTitle>
-            <DialogDescription>
-              {bot
-                ? "Update the bot's configuration."
-                : "Define a new AI-powered bot to monitor Jira and interact with repositories."}
-            </DialogDescription>
-          </DialogHeader>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>{bot ? "Edit Bot" : "Create Bot"}</DialogTitle>
+          <DialogDescription>
+            {bot ? "Update the bot's configuration." : "Set up a new bot in a few steps."}
+          </DialogDescription>
+        </DialogHeader>
 
-          <div className="mt-4 flex flex-col gap-5">
-            {/* Basic Info */}
-            <div className="flex flex-col gap-4">
+        {/* Step indicator */}
+        <div className="flex items-center gap-1">
+          {STEPS.map((s, i) => {
+            const Icon = s.icon;
+            const isCompleted = step > s.id;
+            const isCurrent = step === s.id;
+            return (
+              <div key={s.id} className="flex flex-1 flex-col items-center gap-1">
+                <div className="flex w-full items-center gap-1">
+                  {i > 0 && (
+                    <div
+                      className={cn(
+                        "h-px flex-1 transition-colors",
+                        isCompleted || isCurrent ? "bg-primary" : "bg-border",
+                      )}
+                    />
+                  )}
+                  <div
+                    className={cn(
+                      "flex size-7 items-center justify-center rounded-full border-2 transition-all",
+                      isCurrent && "border-primary bg-primary text-primary-foreground",
+                      isCompleted && "border-primary bg-primary/10 text-primary",
+                      !isCurrent && !isCompleted && "border-border text-muted-foreground",
+                    )}
+                  >
+                    <Icon className="size-3.5" />
+                  </div>
+                  {i < STEPS.length - 1 && (
+                    <div
+                      className={cn(
+                        "h-px flex-1 transition-colors",
+                        isCompleted ? "bg-primary" : "bg-border",
+                      )}
+                    />
+                  )}
+                </div>
+                <span
+                  className={cn(
+                    "text-[10px] font-medium",
+                    isCurrent ? "text-primary" : "text-muted-foreground",
+                  )}
+                >
+                  {s.label}
+                  {s.optional && <span className="ml-0.5 opacity-60">*</span>}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+        <p className="text-muted-foreground -mt-1 text-right text-[10px]">* optional</p>
+
+        {/* Step content */}
+        <div className="flex flex-col gap-4 py-1">
+          {step === 1 && (
+            <>
               <div className="flex flex-col gap-2">
                 <Label htmlFor="title">Title</Label>
                 <Input
@@ -133,6 +202,7 @@ export function BotDialog({ open, onOpenChange, bot, providers, onSave }: BotDia
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   required
+                  autoFocus
                 />
               </div>
 
@@ -146,7 +216,7 @@ export function BotDialog({ open, onOpenChange, bot, providers, onSave }: BotDia
                   onChange={(e) => setEmail(e.target.value)}
                   required
                 />
-                <p className="text-muted-foreground text-[11px]">
+                <p className="text-muted-foreground -mt-1 text-[9px]">
                   Used for Jira assignment detection
                 </p>
               </div>
@@ -162,15 +232,15 @@ export function BotDialog({ open, onOpenChange, bot, providers, onSave }: BotDia
                   required
                 />
               </div>
-            </div>
+            </>
+          )}
 
-            <div className="bg-border h-px" />
-
-            {/* AI Model Selection */}
-            <div className="flex flex-col gap-4">
-              <h4 className="text-muted-foreground text-xs font-semibold tracking-wider uppercase">
-                AI Model
-              </h4>
+          {step === 2 && (
+            <>
+              <p className="text-muted-foreground text-xs">
+                Choose an AI provider and model for this bot. You can skip this and configure it
+                later.
+              </p>
               <div className="grid grid-cols-2 gap-3">
                 <div className="flex flex-col gap-2">
                   <Label htmlFor="provider">Provider</Label>
@@ -210,15 +280,15 @@ export function BotDialog({ open, onOpenChange, bot, providers, onSave }: BotDia
                   </Select>
                 </div>
               </div>
-            </div>
+            </>
+          )}
 
-            <div className="bg-border h-px" />
-
-            {/* GitHub & Spending */}
-            <div className="flex flex-col gap-4">
-              <h4 className="text-muted-foreground text-xs font-semibold tracking-wider uppercase">
-                Credentials & Limits
-              </h4>
+          {step === 3 && (
+            <>
+              <p className="text-muted-foreground text-xs">
+                Optionally provide a GitHub token and a monthly spending cap. Both can be added
+                later.
+              </p>
               <div className="grid grid-cols-2 gap-3">
                 <div className="flex flex-col gap-2">
                   <Label htmlFor="github-token">GitHub Token</Label>
@@ -246,16 +316,11 @@ export function BotDialog({ open, onOpenChange, bot, providers, onSave }: BotDia
                   <p className="text-muted-foreground text-[11px]">Max AI spend per month</p>
                 </div>
               </div>
-            </div>
+            </>
+          )}
 
-            <div className="bg-border h-px" />
-
-            {/* Autonomy Level */}
-            <div className="flex flex-col gap-4">
-              <h4 className="text-muted-foreground text-xs font-semibold tracking-wider uppercase">
-                Autonomy Level
-              </h4>
-
+          {step === 4 && (
+            <>
               <div className="grid grid-cols-2 gap-3">
                 <button
                   type="button"
@@ -339,16 +404,39 @@ export function BotDialog({ open, onOpenChange, bot, providers, onSave }: BotDia
                   </div>
                 </div>
               )}
-            </div>
-          </div>
+            </>
+          )}
+        </div>
 
-          <DialogFooter className="mt-6">
+        <DialogFooter>
+          {isFirstStep ? (
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button type="submit">{bot ? "Save Changes" : "Create Bot"}</Button>
-          </DialogFooter>
-        </form>
+          ) : (
+            <Button type="button" variant="outline" onClick={handleBack}>
+              Back
+            </Button>
+          )}
+
+          <div className="flex gap-2">
+            {currentStepMeta.optional && (
+              <Button type="button" variant="ghost" onClick={handleSkip}>
+                Skip
+              </Button>
+            )}
+
+            {isLastStep ? (
+              <Button type="button" onClick={handleSubmit}>
+                {bot ? "Save Changes" : "Create Bot"}
+              </Button>
+            ) : (
+              <Button type="button" onClick={handleNext} disabled={step === 1 && !isStep1Valid}>
+                Next
+              </Button>
+            )}
+          </div>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

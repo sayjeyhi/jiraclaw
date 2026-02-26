@@ -1,11 +1,12 @@
 "use client";
 
 import * as React from "react";
+import { cn } from "@/lib/utils";
 
-export function Logo() {
+export function Logo({ className }: { className?: string }) {
   return (
     <svg
-      className="text-primary-foreground size-3.5"
+      className={cn("size-3.5 text-orange-700", className)}
       xmlns="http://www.w3.org/2000/svg"
       width="32"
       height="32"

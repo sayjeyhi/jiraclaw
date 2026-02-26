@@ -40,6 +40,16 @@ interface RepoRow {
   label: string;
 }
 
+type InternalRepoRow = RepoRow & { id: string };
+
+interface DialogState {
+  name: string;
+  key: string;
+  url: string;
+  apiKey: string;
+  repos: InternalRepoRow[];
+}
+
 interface ProjectDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -49,60 +59,70 @@ interface ProjectDialogProps {
   ) => void;
 }
 
+const defaultState: DialogState = {
+  name: "",
+  key: "",
+  url: "",
+  apiKey: "",
+  repos: [{ id: crypto.randomUUID(), url: "", label: "any" }],
+};
+
+function resetState(project: JiraProject | null | undefined): DialogState {
+  if (project) {
+    return {
+      name: project.name,
+      key: project.key,
+      url: project.url,
+      apiKey: project.apiKey ?? "",
+      repos: project.repositories.map((r) => ({ id: r.id, url: r.url, label: r.label ?? "any" })),
+    };
+  }
+  return { ...defaultState, repos: [{ id: crypto.randomUUID(), url: "", label: "any" }] };
+}
+
 export function ProjectDialog({ open, onOpenChange, project, onSave }: ProjectDialogProps) {
-  const [name, setName] = useState("");
-  const [key, setKey] = useState("");
-  const [url, setUrl] = useState("");
-  const [apiKey, setApiKey] = useState("");
-  const [repos, setRepos] = useState<RepoRow[]>([{ url: "", label: "any" }]);
+  const [state, setState] = useState<DialogState>(defaultState);
 
   useEffect(() => {
-    if (project) {
-      setName(project.name);
-      setKey(project.key);
-      setUrl(project.url);
-      setApiKey(project.apiKey ?? "");
-      setRepos(
-        project.repositories.map((r) => ({
-          url: r.url,
-          label: r.label ?? "any",
-        })),
-      );
-    } else {
-      setName("");
-      setKey("");
-      setUrl("");
-      setApiKey("");
-      setRepos([{ url: "", label: "any" }]);
-    }
+    if (!open) return;
+    setState(resetState(project));
   }, [project, open]);
 
   const addRepo = () => {
-    if (repos.length < MAX_REPOS) {
-      setRepos((prev) => [...prev, { url: "", label: "any" }]);
+    if (state.repos.length < MAX_REPOS) {
+      setState((prev) => ({
+        ...prev,
+        repos: [...prev.repos, { id: crypto.randomUUID(), url: "", label: "any" }],
+      }));
     }
   };
 
-  const removeRepo = (index: number) => {
-    setRepos((prev) => prev.filter((_, i) => i !== index));
+  const removeRepo = (id: string) => {
+    setState((prev) => ({ ...prev, repos: prev.repos.filter((r) => r.id !== id) }));
   };
 
-  const updateRepoUrl = (index: number, value: string) => {
-    setRepos((prev) => prev.map((r, i) => (i === index ? { ...r, url: value } : r)));
+  const updateRepoUrl = (id: string, value: string) => {
+    setState((prev) => ({
+      ...prev,
+      repos: prev.repos.map((r) => (r.id === id ? { ...r, url: value } : r)),
+    }));
   };
 
-  const updateRepoLabel = (index: number, value: string) => {
-    setRepos((prev) => prev.map((r, i) => (i === index ? { ...r, label: value } : r)));
+  const updateRepoLabel = (id: string, value: string) => {
+    setState((prev) => ({
+      ...prev,
+      repos: prev.repos.map((r) => (r.id === id ? { ...r, label: value } : r)),
+    }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     onSave({
-      name,
-      key,
-      url,
-      apiKey: apiKey.trim() || undefined,
-      repos: repos.filter((r) => r.url.trim()),
+      name: state.name,
+      key: state.key,
+      url: state.url,
+      apiKey: state.apiKey.trim() || undefined,
+      repos: state.repos.filter((r) => r.url.trim()).map(({ url, label }) => ({ url, label })),
     });
     onOpenChange(false);
   };
@@ -118,15 +138,15 @@ export function ProjectDialog({ open, onOpenChange, project, onSave }: ProjectDi
             </DialogDescription>
           </DialogHeader>
 
-          <div className="mt-4 flex flex-col gap-4">
+          <div className="mt-4 flex flex-col gap-6">
             <div className="grid grid-cols-2 gap-4">
               <div className="flex flex-col gap-2">
                 <Label htmlFor="projectName">Project Name</Label>
                 <Input
                   id="projectName"
                   placeholder="Platform Core"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  value={state.name}
+                  onChange={(e) => setState((prev) => ({ ...prev, name: e.target.value }))}
                   required
                 />
               </div>
@@ -135,8 +155,10 @@ export function ProjectDialog({ open, onOpenChange, project, onSave }: ProjectDi
                 <Input
                   id="projectKey"
                   placeholder="PLAT"
-                  value={key}
-                  onChange={(e) => setKey(e.target.value.toUpperCase())}
+                  value={state.key}
+                  onChange={(e) =>
+                    setState((prev) => ({ ...prev, key: e.target.value.toUpperCase() }))
+                  }
                   required
                 />
               </div>
@@ -147,8 +169,8 @@ export function ProjectDialog({ open, onOpenChange, project, onSave }: ProjectDi
               <Input
                 id="jiraUrl"
                 placeholder="https://team.atlassian.net/browse/PLAT"
-                value={url}
-                onChange={(e) => setUrl(e.target.value)}
+                value={state.url}
+                onChange={(e) => setState((prev) => ({ ...prev, url: e.target.value }))}
                 required
               />
             </div>
@@ -159,8 +181,8 @@ export function ProjectDialog({ open, onOpenChange, project, onSave }: ProjectDi
                 id="jiraApiKey"
                 type="password"
                 placeholder="Your Jira API token"
-                value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
+                value={state.apiKey}
+                onChange={(e) => setState((prev) => ({ ...prev, apiKey: e.target.value }))}
                 autoComplete="off"
               />
               <p className="text-muted-foreground text-xs">
@@ -171,14 +193,14 @@ export function ProjectDialog({ open, onOpenChange, project, onSave }: ProjectDi
             <div className="flex flex-col gap-2">
               <div className="flex items-center justify-between">
                 <Label>
-                  Repositories ({repos.length}/{MAX_REPOS})
+                  Repositories ({state.repos.length}/{MAX_REPOS})
                 </Label>
               </div>
               <div className="flex flex-col gap-2">
-                {repos.map((repo, index) => (
-                  <div key={index} className="flex items-center gap-2">
+                {state.repos.map((repo) => (
+                  <div key={repo.id} className="flex items-center gap-2">
                     <span className="text-muted-foreground shrink-0 text-xs">Label</span>
-                    <Select value={repo.label} onValueChange={(v) => updateRepoLabel(index, v)}>
+                    <Select value={repo.label} onValueChange={(v) => updateRepoLabel(repo.id, v)}>
                       <SelectTrigger className="w-28 shrink-0 text-xs">
                         <SelectValue />
                       </SelectTrigger>
@@ -193,16 +215,16 @@ export function ProjectDialog({ open, onOpenChange, project, onSave }: ProjectDi
                     <Input
                       placeholder="https://github.com/org/repo"
                       value={repo.url}
-                      onChange={(e) => updateRepoUrl(index, e.target.value)}
+                      onChange={(e) => updateRepoUrl(repo.id, e.target.value)}
                       className="flex-1"
                     />
-                    {repos.length > 1 && (
+                    {state.repos.length > 1 && (
                       <Button
                         type="button"
                         variant="ghost"
                         size="icon"
                         className="text-muted-foreground hover:text-destructive size-8 shrink-0"
-                        onClick={() => removeRepo(index)}
+                        onClick={() => removeRepo(repo.id)}
                       >
                         <X className="size-4" />
                         <span className="sr-only">Remove repository</span>
@@ -211,13 +233,13 @@ export function ProjectDialog({ open, onOpenChange, project, onSave }: ProjectDi
                   </div>
                 ))}
               </div>
-              {repos.length < MAX_REPOS && (
+              {state.repos.length < MAX_REPOS && (
                 <Button type="button" variant="outline" size="sm" onClick={addRepo}>
                   <Plus className="mr-1 size-3" />
                   Add Repository
                 </Button>
               )}
-              {repos.length >= MAX_REPOS && (
+              {state.repos.length >= MAX_REPOS && (
                 <p className="text-muted-foreground text-xs">
                   Maximum of {MAX_REPOS} repositories per project.
                 </p>

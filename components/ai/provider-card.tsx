@@ -60,6 +60,7 @@ export function ProviderCard({ provider, onToggle, onUpdateApiKey }: ProviderCar
             onCheckedChange={(checked) => onToggle(provider.id, checked)}
           />
           <Button
+            type="button"
             variant="ghost"
             size="icon"
             className="text-muted-foreground size-7"
@@ -95,6 +96,7 @@ export function ProviderCard({ provider, onToggle, onUpdateApiKey }: ProviderCar
                   <span className="sr-only">{showKey ? "Hide" : "Show"} API key</span>
                 </Button>
                 <Button
+                  type="button"
                   size="sm"
                   variant="outline"
                   onClick={() => onUpdateApiKey(provider.id, apiKey)}

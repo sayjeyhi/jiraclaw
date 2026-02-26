@@ -90,118 +90,155 @@ const step3Schema = z.object({
 
 type FieldErrors = Record<string, string>;
 
+interface FormState {
+  title: string;
+  email: string;
+  botSkillDescription: string;
+  selectedProvider: string;
+  selectedModel: string;
+  githubToken: string;
+  spendingLimit: string;
+  autonomyLevel: "autonomous" | "supervised";
+  supervisedSettings: SupervisedSettings;
+}
+
+const defaultForm: FormState = {
+  title: "",
+  email: "",
+  botSkillDescription: "",
+  selectedProvider: "",
+  selectedModel: "",
+  githubToken: "",
+  spendingLimit: "",
+  autonomyLevel: "supervised",
+  supervisedSettings: defaultSupervisedSettings,
+};
+
+function botToForm(bot: BotConfig): FormState {
+  return {
+    title: bot.title,
+    email: bot.email,
+    botSkillDescription: bot.botSkillDescription,
+    selectedProvider: bot.defaultProvider ?? "",
+    selectedModel: bot.defaultModel ?? "",
+    githubToken: bot.githubToken ?? "",
+    spendingLimit: bot.spendingLimit?.toString() ?? "",
+    autonomyLevel: bot.autonomyLevel,
+    supervisedSettings: bot.supervisedSettings,
+  };
+}
+
+interface DialogState {
+  step: number;
+  errors: FieldErrors;
+  form: FormState;
+}
+
+const defaultState: DialogState = { step: 1, errors: {}, form: defaultForm };
+
+function resetState(bot: BotConfig | null | undefined): DialogState {
+  return { step: 1, errors: {}, form: bot ? botToForm(bot) : defaultForm };
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 
 export function BotDialog({ open, onOpenChange, bot, providers, onSave }: BotDialogProps) {
-  const [step, setStep] = useState(1);
-  const [errors, setErrors] = useState<FieldErrors>({});
-
-  const [title, setTitle] = useState("");
-  const [email, setEmail] = useState("");
-  const [botSkillDescription, setbotSkillDescription] = useState("");
-  const [selectedProvider, setSelectedProvider] = useState<string>("");
-  const [selectedModel, setSelectedModel] = useState<string>("");
-  const [githubToken, setGithubToken] = useState("");
-  const [spendingLimit, setSpendingLimit] = useState<string>("");
-  const [autonomyLevel, setAutonomyLevel] = useState<"autonomous" | "supervised">("supervised");
-  const [supervisedSettings, setSupervisedSettings] =
-    useState<SupervisedSettings>(defaultSupervisedSettings);
+  const [state, setState] = useState<DialogState>(defaultState);
+  const { step, errors, form } = state;
 
   const enabledProviders = providers.filter((p) => p.enabled);
-  const activeProvider = enabledProviders.find((p) => p.id === selectedProvider);
+  const activeProvider = enabledProviders.find((p) => p.id === form.selectedProvider);
   const availableModels = activeProvider?.models ?? [];
 
   useEffect(() => {
-    if (open) {
-      setStep(1);
-      setErrors({});
-      if (bot) {
-        setTitle(bot.title);
-        setEmail(bot.email);
-        setbotSkillDescription(bot.botSkillDescription);
-        setSelectedProvider(bot.defaultProvider ?? "");
-        setSelectedModel(bot.defaultModel ?? "");
-        setGithubToken(bot.githubToken ?? "");
-        setSpendingLimit(bot.spendingLimit?.toString() ?? "");
-        setAutonomyLevel(bot.autonomyLevel);
-        setSupervisedSettings(bot.supervisedSettings);
-      } else {
-        setTitle("");
-        setEmail("");
-        setbotSkillDescription("");
-        setSelectedProvider("");
-        setSelectedModel("");
-        setGithubToken("");
-        setSpendingLimit("");
-        setAutonomyLevel("supervised");
-        setSupervisedSettings(defaultSupervisedSettings);
-      }
-    }
+    if (!open) return;
+    setState(resetState(bot));
   }, [bot, open]);
 
   const clearError = (field: string) =>
-    setErrors((prev) => {
-      const next = { ...prev };
+    setState((prev) => {
+      const next = { ...prev.errors };
       delete next[field];
-      return next;
+      return { ...prev, errors: next };
     });
 
   const handleProviderChange = (providerId: string) => {
-    setSelectedProvider(providerId);
-    setSelectedModel("");
-    clearError("selectedProvider");
-    clearError("selectedModel");
+    setState((prev) => ({
+      ...prev,
+      form: { ...prev.form, selectedProvider: providerId, selectedModel: "" },
+      errors: (({ selectedProvider: _, selectedModel: __, ...rest }) => rest)(prev.errors),
+    }));
   };
 
   const toggleSupervisedSetting = (key: keyof SupervisedSettings) => {
-    setSupervisedSettings((prev) => ({ ...prev, [key]: !prev[key] }));
+    setState((prev) => ({
+      ...prev,
+      form: {
+        ...prev.form,
+        supervisedSettings: {
+          ...prev.form.supervisedSettings,
+          [key]: !prev.form.supervisedSettings[key],
+        },
+      },
+    }));
   };
 
   function validateStep(): boolean {
     const result = (() => {
-      if (step === 1) return stepAutonomySchema.safeParse({ title });
-      if (step === 2) return step1Schema.safeParse({ title, email, botSkillDescription });
+      if (step === 1) return stepAutonomySchema.safeParse({ title: form.title });
+      if (step === 2)
+        return step1Schema.safeParse({
+          title: form.title,
+          email: form.email,
+          botSkillDescription: form.botSkillDescription,
+        });
       if (step === 3)
-        return step2Schema.safeParse({ selectedProvider, selectedModel, spendingLimit });
-      if (step === 4) return step3Schema.safeParse({ githubToken });
+        return step2Schema.safeParse({
+          selectedProvider: form.selectedProvider,
+          selectedModel: form.selectedModel,
+          spendingLimit: form.spendingLimit,
+        });
+      if (step === 4) return step3Schema.safeParse({ githubToken: form.githubToken });
       return { success: true as const };
     })();
 
     if (!result.success) {
       const flat = result.error.flatten().fieldErrors as Record<string, string[]>;
-      setErrors(Object.fromEntries(Object.entries(flat).map(([k, v]) => [k, v[0]])));
+      setState((prev) => ({
+        ...prev,
+        errors: Object.fromEntries(Object.entries(flat).map(([k, v]) => [k, v[0]])),
+      }));
       return false;
     }
-    setErrors({});
+    setState((prev) => ({ ...prev, errors: {} }));
     return true;
   }
 
   const handleNext = () => {
-    if (validateStep()) setStep((s) => Math.min(s + 1, STEPS.length));
+    if (validateStep())
+      setState((prev) => ({ ...prev, step: Math.min(prev.step + 1, STEPS.length) }));
   };
   const handleBack = () => {
-    setErrors({});
-    setStep((s) => Math.max(s - 1, 1));
+    setState((prev) => ({ ...prev, step: Math.max(prev.step - 1, 1), errors: {} }));
   };
   const handleSkip = () => {
-    setErrors({});
-    setStep((s) => Math.min(s + 1, STEPS.length));
+    setState((prev) => ({ ...prev, step: Math.min(prev.step + 1, STEPS.length), errors: {} }));
   };
 
   const handleSubmit = () => {
     if (!validateStep()) return;
     onSave({
-      title,
-      email,
-      botSkillDescription,
+      title: form.title,
+      email: form.email,
+      botSkillDescription: form.botSkillDescription,
       enabledChannels: bot?.enabledChannels ?? [],
-      defaultProvider: selectedProvider || undefined,
-      defaultModel: selectedModel || undefined,
-      githubToken: githubToken || undefined,
-      spendingLimit: spendingLimit ? parseFloat(spendingLimit) : undefined,
-      autonomyLevel,
+      defaultProvider: form.selectedProvider || undefined,
+      defaultModel: form.selectedModel || undefined,
+      githubToken: form.githubToken || undefined,
+      spendingLimit: form.spendingLimit ? parseFloat(form.spendingLimit) : undefined,
+      autonomyLevel: form.autonomyLevel,
       supervisedSettings:
-        autonomyLevel === "supervised" ? supervisedSettings : defaultSupervisedSettings,
+        form.autonomyLevel === "supervised" ? form.supervisedSettings : defaultSupervisedSettings,
       systemPromptId: bot?.systemPromptId,
     });
     onOpenChange(false);
@@ -281,12 +318,14 @@ export function BotDialog({ open, onOpenChange, bot, providers, onSave }: BotDia
                 <Input
                   id="title"
                   placeholder="e.g. Backend Engineer"
-                  value={title}
+                  value={form.title}
                   onChange={(e) => {
-                    setTitle(e.target.value);
+                    setState((prev) => ({
+                      ...prev,
+                      form: { ...prev.form, title: e.target.value },
+                    }));
                     clearError("title");
                   }}
-                  autoFocus
                   aria-invalid={!!errors.title}
                   className={cn(
                     errors.title && "border-destructive focus-visible:ring-destructive",
@@ -298,10 +337,15 @@ export function BotDialog({ open, onOpenChange, bot, providers, onSave }: BotDia
               <div className="grid grid-cols-2 gap-3">
                 <button
                   type="button"
-                  onClick={() => setAutonomyLevel("supervised")}
+                  onClick={() =>
+                    setState((prev) => ({
+                      ...prev,
+                      form: { ...prev.form, autonomyLevel: "supervised" },
+                    }))
+                  }
                   className={cn(
                     "flex flex-col items-center gap-2 rounded-lg border-2 px-4 py-4 transition-all",
-                    autonomyLevel === "supervised"
+                    form.autonomyLevel === "supervised"
                       ? "border-warning bg-warning/5"
                       : "border-border hover:border-muted-foreground/30",
                   )}
@@ -309,13 +353,17 @@ export function BotDialog({ open, onOpenChange, bot, providers, onSave }: BotDia
                   <Eye
                     className={cn(
                       "size-5",
-                      autonomyLevel === "supervised" ? "text-warning" : "text-muted-foreground",
+                      form.autonomyLevel === "supervised"
+                        ? "text-warning"
+                        : "text-muted-foreground",
                     )}
                   />
                   <span
                     className={cn(
                       "text-sm font-medium",
-                      autonomyLevel === "supervised" ? "text-warning" : "text-muted-foreground",
+                      form.autonomyLevel === "supervised"
+                        ? "text-warning"
+                        : "text-muted-foreground",
                     )}
                   >
                     Supervised
@@ -327,10 +375,15 @@ export function BotDialog({ open, onOpenChange, bot, providers, onSave }: BotDia
 
                 <button
                   type="button"
-                  onClick={() => setAutonomyLevel("autonomous")}
+                  onClick={() =>
+                    setState((prev) => ({
+                      ...prev,
+                      form: { ...prev.form, autonomyLevel: "autonomous" },
+                    }))
+                  }
                   className={cn(
                     "flex flex-col items-center gap-2 rounded-lg border-2 px-4 py-4 transition-all",
-                    autonomyLevel === "autonomous"
+                    form.autonomyLevel === "autonomous"
                       ? "border-primary bg-primary/5"
                       : "border-border hover:border-muted-foreground/30",
                   )}
@@ -338,13 +391,17 @@ export function BotDialog({ open, onOpenChange, bot, providers, onSave }: BotDia
                   <Zap
                     className={cn(
                       "size-5",
-                      autonomyLevel === "autonomous" ? "text-primary" : "text-muted-foreground",
+                      form.autonomyLevel === "autonomous"
+                        ? "text-primary"
+                        : "text-muted-foreground",
                     )}
                   />
                   <span
                     className={cn(
                       "text-sm font-medium",
-                      autonomyLevel === "autonomous" ? "text-primary" : "text-muted-foreground",
+                      form.autonomyLevel === "autonomous"
+                        ? "text-primary"
+                        : "text-muted-foreground",
                     )}
                   >
                     Autonomous
@@ -355,7 +412,7 @@ export function BotDialog({ open, onOpenChange, bot, providers, onSave }: BotDia
                 </button>
               </div>
 
-              {autonomyLevel === "supervised" && (
+              {form.autonomyLevel === "supervised" && (
                 <div className="flex flex-col gap-3 rounded-lg border p-4">
                   <p className="text-muted-foreground text-[11px] leading-relaxed">
                     The bot will confirm actions via channels before doing the activity
@@ -373,7 +430,7 @@ export function BotDialog({ open, onOpenChange, bot, providers, onSave }: BotDia
                     ].map(({ key, label }) => (
                       <label key={key} className="flex cursor-pointer items-center gap-2.5">
                         <Checkbox
-                          checked={supervisedSettings[key]}
+                          checked={form.supervisedSettings[key]}
                           onCheckedChange={() => toggleSupervisedSetting(key)}
                         />
                         <span className="text-foreground text-xs">{label}</span>
@@ -393,9 +450,12 @@ export function BotDialog({ open, onOpenChange, bot, providers, onSave }: BotDia
                   id="email"
                   type="email"
                   placeholder="bot@jiraclaw.ai"
-                  value={email}
+                  value={form.email}
                   onChange={(e) => {
-                    setEmail(e.target.value);
+                    setState((prev) => ({
+                      ...prev,
+                      form: { ...prev.form, email: e.target.value },
+                    }));
                     clearError("email");
                   }}
                   aria-invalid={!!errors.email}
@@ -418,9 +478,12 @@ export function BotDialog({ open, onOpenChange, bot, providers, onSave }: BotDia
                   id="description"
                   placeholder="Describe the bot's role, responsibilities, and behavior..."
                   rows={6}
-                  value={botSkillDescription}
+                  value={form.botSkillDescription}
                   onChange={(e) => {
-                    setbotSkillDescription(e.target.value);
+                    setState((prev) => ({
+                      ...prev,
+                      form: { ...prev.form, botSkillDescription: e.target.value },
+                    }));
                     clearError("botSkillDescription");
                   }}
                   aria-invalid={!!errors.botSkillDescription}
@@ -446,7 +509,7 @@ export function BotDialog({ open, onOpenChange, bot, providers, onSave }: BotDia
               <div className="grid grid-cols-2 gap-3">
                 <div className="flex flex-col gap-2">
                   <Label htmlFor="provider">Provider</Label>
-                  <Select value={selectedProvider} onValueChange={handleProviderChange}>
+                  <Select value={form.selectedProvider} onValueChange={handleProviderChange}>
                     <SelectTrigger className="w-full" id="provider">
                       <SelectValue placeholder="Select provider" />
                     </SelectTrigger>
@@ -463,12 +526,12 @@ export function BotDialog({ open, onOpenChange, bot, providers, onSave }: BotDia
                 <div className="flex flex-col gap-2">
                   <Label htmlFor="model">Model</Label>
                   <Select
-                    value={selectedModel}
+                    value={form.selectedModel}
                     onValueChange={(v) => {
-                      setSelectedModel(v);
+                      setState((prev) => ({ ...prev, form: { ...prev.form, selectedModel: v } }));
                       clearError("selectedModel");
                     }}
-                    disabled={!selectedProvider || availableModels.length === 0}
+                    disabled={!form.selectedProvider || availableModels.length === 0}
                   >
                     <SelectTrigger
                       className={cn(
@@ -503,9 +566,12 @@ export function BotDialog({ open, onOpenChange, bot, providers, onSave }: BotDia
                   min="0"
                   step="1"
                   placeholder="e.g. 100"
-                  value={spendingLimit}
+                  value={form.spendingLimit}
                   onChange={(e) => {
-                    setSpendingLimit(e.target.value);
+                    setState((prev) => ({
+                      ...prev,
+                      form: { ...prev.form, spendingLimit: e.target.value },
+                    }));
                     clearError("spendingLimit");
                   }}
                   aria-invalid={!!errors.spendingLimit}
@@ -533,9 +599,12 @@ export function BotDialog({ open, onOpenChange, bot, providers, onSave }: BotDia
                   id="github-token"
                   type="password"
                   placeholder="ghp_..."
-                  value={githubToken}
+                  value={form.githubToken}
                   onChange={(e) => {
-                    setGithubToken(e.target.value);
+                    setState((prev) => ({
+                      ...prev,
+                      form: { ...prev.form, githubToken: e.target.value },
+                    }));
                     clearError("githubToken");
                   }}
                   aria-invalid={!!errors.githubToken}

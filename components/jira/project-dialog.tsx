@@ -44,13 +44,16 @@ interface ProjectDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   project?: JiraProject | null;
-  onSave: (data: Pick<JiraProject, "name" | "key" | "url"> & { repos: RepoRow[] }) => void;
+  onSave: (
+    data: Pick<JiraProject, "name" | "key" | "url"> & { apiKey?: string; repos: RepoRow[] },
+  ) => void;
 }
 
 export function ProjectDialog({ open, onOpenChange, project, onSave }: ProjectDialogProps) {
   const [name, setName] = useState("");
   const [key, setKey] = useState("");
   const [url, setUrl] = useState("");
+  const [apiKey, setApiKey] = useState("");
   const [repos, setRepos] = useState<RepoRow[]>([{ url: "", label: "any" }]);
 
   useEffect(() => {
@@ -58,6 +61,7 @@ export function ProjectDialog({ open, onOpenChange, project, onSave }: ProjectDi
       setName(project.name);
       setKey(project.key);
       setUrl(project.url);
+      setApiKey(project.apiKey ?? "");
       setRepos(
         project.repositories.map((r) => ({
           url: r.url,
@@ -68,6 +72,7 @@ export function ProjectDialog({ open, onOpenChange, project, onSave }: ProjectDi
       setName("");
       setKey("");
       setUrl("");
+      setApiKey("");
       setRepos([{ url: "", label: "any" }]);
     }
   }, [project, open]);
@@ -92,7 +97,13 @@ export function ProjectDialog({ open, onOpenChange, project, onSave }: ProjectDi
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave({ name, key, url, repos: repos.filter((r) => r.url.trim()) });
+    onSave({
+      name,
+      key,
+      url,
+      apiKey: apiKey.trim() || undefined,
+      repos: repos.filter((r) => r.url.trim()),
+    });
     onOpenChange(false);
   };
 
@@ -140,6 +151,21 @@ export function ProjectDialog({ open, onOpenChange, project, onSave }: ProjectDi
                 onChange={(e) => setUrl(e.target.value)}
                 required
               />
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="jiraApiKey">Jira API Key</Label>
+              <Input
+                id="jiraApiKey"
+                type="password"
+                placeholder="Your Jira API token"
+                value={apiKey}
+                onChange={(e) => setApiKey(e.target.value)}
+                autoComplete="off"
+              />
+              <p className="text-muted-foreground text-xs">
+                Create an API token from your Atlassian account settings for Jira Cloud.
+              </p>
             </div>
 
             <div className="flex flex-col gap-2">

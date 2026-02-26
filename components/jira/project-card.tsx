@@ -1,24 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import {
-  ExternalLink,
-  FileText,
-  GitBranch,
-  MoreVertical,
-  Pencil,
-  RefreshCw,
-  Tag,
-  Trash2,
-} from "lucide-react";
+import { ExternalLink, FileText, GitBranch, Pencil, RefreshCw, Tag, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import type { JiraProject } from "@/lib/types";
 import { cn, formatFullDate } from "@/lib/utils";
 
@@ -64,24 +49,26 @@ export function ProjectCard({ project, onEdit, onDelete }: ProjectCardProps) {
             {status.label}
           </Badge>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="text-muted-foreground size-8">
-                <MoreVertical className="size-4" />
-                <span className="sr-only">Project actions</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => onEdit(project)}>
-                <Pencil className="mr-2 size-4" />
-                Edit
-              </DropdownMenuItem>
-              <DropdownMenuItem className="text-destructive" onClick={() => onDelete(project.id)}>
-                <Trash2 className="mr-2 size-4" />
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="flex items-center gap-0.5">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-muted-foreground hover:text-foreground size-6"
+              onClick={() => onEdit(project)}
+            >
+              <Pencil className="size-3.5" />
+              <span className="sr-only">Edit</span>
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-muted-foreground hover:text-destructive size-6"
+              onClick={() => onDelete(project.id)}
+            >
+              <Trash2 className="size-3.5" />
+              <span className="sr-only">Delete</span>
+            </Button>
+          </div>
         </div>
       </div>
 

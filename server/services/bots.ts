@@ -11,7 +11,7 @@ const supervisedSettingsSchema = t.Object({
 const botBody = t.Object({
   title: t.String(),
   email: t.String(),
-  jobDescription: t.String(),
+  botSkillDescription: t.String(),
   status: t.Optional(
     t.Union([t.Literal("active"), t.Literal("idle"), t.Literal("working"), t.Literal("error")]),
   ),

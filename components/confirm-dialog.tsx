@@ -46,14 +46,14 @@ export function ConfirmDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
-        <DialogHeader>
+        <DialogHeader className="mb-1 border-0 pb-0">
           <DialogTitle className="flex items-center gap-2 text-base">
             {variant === "destructive" && <AlertTriangle className="text-destructive size-4" />}
             {title}
           </DialogTitle>
           <DialogDescription className="text-xs leading-relaxed">{description}</DialogDescription>
         </DialogHeader>
-        <DialogFooter className="gap-2 sm:gap-0">
+        <DialogFooter className="gap-2">
           <Button
             variant="outline"
             size="sm"

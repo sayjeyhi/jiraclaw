@@ -20,6 +20,7 @@ const projectBody = t.Object({
   name: t.String(),
   key: t.String(),
   url: t.String(),
+  apiKey: t.Optional(t.String()),
   repositories: t.Array(repoSchema),
   labelMappings: t.Array(labelMappingSchema),
   botId: t.Optional(t.String()),

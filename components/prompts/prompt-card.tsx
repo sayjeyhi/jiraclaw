@@ -1,14 +1,8 @@
 "use client";
 
-import { Globe, MoreVertical, Pencil, Trash2, User } from "lucide-react";
+import { Globe, Pencil, Trash2, User } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import type { SystemPrompt } from "@/lib/types";
 import { formatDate } from "@/lib/utils";
 
@@ -39,28 +33,26 @@ export function PromptCard({ prompt, onEdit, onDelete }: PromptCardProps) {
           )}
         </div>
 
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="text-muted-foreground size-8 opacity-0 group-hover:opacity-100"
-            >
-              <MoreVertical className="size-4" />
-              <span className="sr-only">Prompt actions</span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={() => onEdit(prompt)}>
-              <Pencil className="mr-2 size-4" />
-              Edit
-            </DropdownMenuItem>
-            <DropdownMenuItem className="text-destructive" onClick={() => onDelete(prompt.id)}>
-              <Trash2 className="mr-2 size-4" />
-              Delete
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className="flex items-center gap-0.5">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-muted-foreground hover:text-foreground size-6"
+            onClick={() => onEdit(prompt)}
+          >
+            <Pencil className="size-3.5" />
+            <span className="sr-only">Edit</span>
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-muted-foreground hover:text-destructive size-6"
+            onClick={() => onDelete(prompt.id)}
+          >
+            <Trash2 className="size-3.5" />
+            <span className="sr-only">Delete</span>
+          </Button>
+        </div>
       </div>
 
       <p className="text-muted-foreground line-clamp-3 text-sm leading-relaxed">{prompt.content}</p>

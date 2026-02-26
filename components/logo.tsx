@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 export function Logo({ className }: { className?: string }) {
   return (
     <svg
-      className={cn("size-3.5 text-orange-700", className)}
+      className={cn("size-3.5 text-orange-700 dark:text-orange-500", className)}
       xmlns="http://www.w3.org/2000/svg"
       width="32"
       height="32"

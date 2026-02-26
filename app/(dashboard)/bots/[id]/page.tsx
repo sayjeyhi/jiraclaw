@@ -2,6 +2,7 @@
 
 import { use, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import useSWR from "swr";
 import {
   ArrowLeft,
@@ -82,8 +83,8 @@ const actionIcon: Record<string, React.ReactNode> = {
   merged: <CheckCircle2 className="text-success size-3.5" />,
 };
 
-function TicketRow({ ticket }: { ticket: BotTicket }) {
-  const [expanded, setExpanded] = useState(false);
+function TicketRow({ ticket, defaultExpanded }: { ticket: BotTicket; defaultExpanded?: boolean }) {
+  const [expanded, setExpanded] = useState(defaultExpanded ?? false);
   const status = ticketStatusConfig[ticket.status];
   const priority = priorityConfig[ticket.priority];
 
@@ -220,6 +221,8 @@ function TicketRow({ ticket }: { ticket: BotTicket }) {
 
 export default function BotDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
+  const searchParams = useSearchParams();
+  const ticketIdFromUrl = searchParams.get("ticket");
   const { data: bot } = useSWR<BotConfig>(`/api/bots/${id}`, fetcher);
   const { data: tickets = [] } = useSWR<BotTicket[]>(`/api/bots/${id}/tickets`, fetcher);
 
@@ -260,7 +263,7 @@ export default function BotDetailPage({ params }: { params: Promise<{ id: string
           </div>
         </div>
         <p className="text-muted-foreground max-w-2xl text-xs leading-relaxed">
-          {bot.jobDescription}
+          {bot.botSkillDescription}
         </p>
       </div>
 
@@ -415,7 +418,11 @@ export default function BotDetailPage({ params }: { params: Promise<{ id: string
         </div>
         <div className="flex flex-col gap-2">
           {tickets.map((ticket) => (
-            <TicketRow key={ticket.id} ticket={ticket} />
+            <TicketRow
+              key={ticket.id}
+              ticket={ticket}
+              defaultExpanded={ticketIdFromUrl === ticket.id}
+            />
           ))}
           {tickets.length === 0 && (
             <div className="border-border flex items-center justify-center rounded-lg border border-dashed py-12">

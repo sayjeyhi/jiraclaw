@@ -13,7 +13,7 @@ export const initialBots: BotConfig[] = [
     id: "bot-2",
     title: "Issue Triager",
     email: "triage@jiraclaw.ai",
-    jobDescription:
+    botSkillDescription:
       "Monitors incoming Jira issues, categorizes them by priority and component, and assigns them to the appropriate team members.",
     status: "idle",
     defaultProvider: "anthropic",
@@ -35,7 +35,7 @@ export const initialBots: BotConfig[] = [
     id: "bot-3",
     title: "Sprint Reporter",
     email: "sprint@jiraclaw.ai",
-    jobDescription:
+    botSkillDescription:
       "Generates automated sprint reports, burndown summaries, and velocity metrics at the end of each sprint cycle.",
     status: "error",
     defaultProvider: "openrouter",

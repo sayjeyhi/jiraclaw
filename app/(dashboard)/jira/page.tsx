@@ -24,12 +24,13 @@ export default function JiraPage() {
   const [deleteTarget, setDeleteTarget] = useState<JiraProject | null>(null);
 
   const handleCreate = async (
-    data: Pick<JiraProject, "name" | "key" | "url"> & { repos: RepoRow[] },
+    data: Pick<JiraProject, "name" | "key" | "url"> & { apiKey?: string; repos: RepoRow[] },
   ) => {
     await api.jira.create({
       name: data.name,
       key: data.key,
       url: data.url,
+      apiKey: data.apiKey,
       repositories: data.repos.map((repo, i) => ({
         id: `repo-${Date.now()}-${i}`,
         name: repo.url.split("/").pop() ?? "repo",
@@ -45,13 +46,14 @@ export default function JiraPage() {
   };
 
   const handleEdit = async (
-    data: Pick<JiraProject, "name" | "key" | "url"> & { repos: RepoRow[] },
+    data: Pick<JiraProject, "name" | "key" | "url"> & { apiKey?: string; repos: RepoRow[] },
   ) => {
     if (!editingProject) return;
     await api.jira.update(editingProject.id, {
       name: data.name,
       key: data.key,
       url: data.url,
+      ...(data.apiKey !== undefined && { apiKey: data.apiKey }),
       repositories: data.repos.map((repo, i) => {
         const existing = editingProject.repositories.find((r) => r.url === repo.url);
         return existing

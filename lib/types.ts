@@ -57,17 +57,18 @@ export interface User {
 }
 
 export interface SupervisedSettings {
-  confirmPrCreation: boolean;
-  confirmPush: boolean;
-  confirmJiraComment: boolean;
-  confirmSolution: boolean;
+  confirmSolutionBeforeStart: boolean;
+  allowPrCreation: boolean;
+  allowPush: boolean;
+  allowJiraComment: boolean;
+  allowIssueTransition: boolean;
 }
 
 export interface BotConfig {
   id: string;
   title: string;
   email: string;
-  jobDescription: string;
+  botSkillDescription: string;
   status: "active" | "idle" | "working" | "error";
   defaultProvider?: string;
   defaultModel?: string;
@@ -85,6 +86,7 @@ export interface JiraProject {
   name: string;
   key: string;
   url: string;
+  apiKey?: string;
   repositories: Repository[];
   labelMappings: LabelMapping[];
   botId?: string;

@@ -4,10 +4,8 @@ import Link from "next/link";
 import {
   Bot,
   Mail,
-  MoreVertical,
   Pencil,
   Trash2,
-  ArrowRight,
   GitBranch,
   CheckCircle2,
   Circle,
@@ -20,12 +18,6 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import type { BotConfig, BotTicket } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -70,7 +62,12 @@ export function BotCard({ bot, tickets, onEdit, onDelete }: BotCardProps) {
             <Bot className="text-primary size-5" />
           </div>
           <div>
-            <h3 className="text-card-foreground text-sm font-semibold">{bot.title}</h3>
+            <Link
+              href={`/bots/${bot.id}`}
+              className="text-card-foreground hover:text-primary text-sm font-semibold transition-colors"
+            >
+              {bot.title}
+            </Link>
             <div className="text-muted-foreground mt-0.5 flex items-center gap-1.5 text-xs">
               <Mail className="size-3" />
               <span>{bot.email}</span>
@@ -92,45 +89,37 @@ export function BotCard({ bot, tickets, onEdit, onDelete }: BotCardProps) {
             {status.label}
           </Badge>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-muted-foreground size-8 opacity-0 group-hover:opacity-100"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <MoreVertical className="size-4" />
-                <span className="sr-only">Bot actions</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onEdit(bot);
-                }}
-              >
-                <Pencil className="mr-2 size-4" />
-                Edit
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                className="text-destructive"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDelete(bot.id);
-                }}
-              >
-                <Trash2 className="mr-2 size-4" />
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="flex items-center gap-0.5">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-muted-foreground hover:text-foreground size-6"
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit(bot);
+              }}
+            >
+              <Pencil className="size-3.5" />
+              <span className="sr-only">Edit</span>
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-muted-foreground hover:text-destructive size-6"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete(bot.id);
+              }}
+            >
+              <Trash2 className="size-3.5" />
+              <span className="sr-only">Delete</span>
+            </Button>
+          </div>
         </div>
       </div>
 
       <p className="text-muted-foreground line-clamp-2 text-xs leading-relaxed">
-        {bot.jobDescription}
+        {bot.botSkillDescription}
       </p>
 
       {recentTickets.length > 0 && (
@@ -138,11 +127,13 @@ export function BotCard({ bot, tickets, onEdit, onDelete }: BotCardProps) {
           <span className="text-muted-foreground text-[10px] font-medium tracking-wider uppercase">
             Recent Tickets
           </span>
-          <div className="flex flex-col gap-1.5">
+          <div className="flex min-h-24 flex-col gap-1.5">
             {recentTickets.map((ticket) => (
-              <div
+              <Link
                 key={ticket.id}
-                className="bg-muted/50 flex items-center gap-2 rounded-md px-2.5 py-1.5"
+                href={`/bots/${bot.id}?ticket=${ticket.id}`}
+                className="bg-muted/50 hover:bg-muted flex items-center gap-2 rounded-md px-2.5 py-1.5 transition-colors"
+                onClick={(e) => e.stopPropagation()}
               >
                 {ticketStatusIcon[ticket.status]}
                 <span
@@ -153,11 +144,13 @@ export function BotCard({ bot, tickets, onEdit, onDelete }: BotCardProps) {
                 >
                   {ticket.key}
                 </span>
-                <span className="text-muted-foreground truncate text-xs">{ticket.summary}</span>
+                <span className="text-muted-foreground min-w-0 flex-1 truncate text-xs">
+                  {ticket.summary}
+                </span>
                 {ticket.branch && (
                   <GitBranch className="text-muted-foreground/50 ml-auto size-3 shrink-0" />
                 )}
-              </div>
+              </Link>
             ))}
           </div>
         </div>
@@ -197,14 +190,6 @@ export function BotCard({ bot, tickets, onEdit, onDelete }: BotCardProps) {
             Token set
           </Badge>
         )}
-        <Link
-          href={`/bots/${bot.id}`}
-          className="text-primary ml-auto flex items-center gap-1 text-xs hover:underline"
-          onClick={(e) => e.stopPropagation()}
-        >
-          View Details
-          <ArrowRight className="size-3" />
-        </Link>
       </div>
     </div>
   );

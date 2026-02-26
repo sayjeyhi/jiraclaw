@@ -1,13 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Mail, Shield, User, Calendar, Save } from "lucide-react";
+import { useTheme } from "next-themes";
+import { ArrowLeft, Mail, Shield, User, Calendar, Save, Sun, Moon, Monitor } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useAuth } from "@/lib/auth-context";
 import { formatFullDate } from "@/lib/utils";
 
@@ -20,11 +22,21 @@ function getInitials(name: string): string {
     .slice(0, 2);
 }
 
+const themeOptions = [
+  { value: "light", label: "Light", icon: Sun },
+  { value: "dark", label: "Dark", icon: Moon },
+  { value: "system", label: "System", icon: Monitor },
+] as const;
+
 export default function ProfilePage() {
   const { user, updateUser } = useAuth();
   const router = useRouter();
+  const { theme, setTheme, resolvedTheme } = useTheme();
   const [name, setName] = useState(user?.name ?? "");
   const [saved, setSaved] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
 
   if (!user) {
     router.push("/sign-in");
@@ -138,6 +150,38 @@ export default function ProfilePage() {
               Save Changes
             </Button>
           </div>
+        </div>
+
+        {/* Appearance / Color preference */}
+        <div className="border-border bg-card flex flex-col gap-6 rounded-lg border p-6 md:col-span-3">
+          <div>
+            <h3 className="text-foreground text-sm font-semibold">Appearance</h3>
+            <p className="text-muted-foreground mt-1 text-xs">
+              Choose how JiraClaw looks. System follows your device settings.
+            </p>
+          </div>
+
+          {mounted && (
+            <RadioGroup
+              value={theme ?? "system"}
+              onValueChange={(value) => setTheme(value)}
+              className="flex flex-wrap gap-4"
+            >
+              {themeOptions.map(({ value, label, icon: Icon }) => (
+                <label
+                  key={value}
+                  className="border-border hover:border-primary/50 has-checked:border-primary has-checked:bg-primary/5 flex cursor-pointer items-center gap-3 rounded-lg border px-4 py-3 transition-colors"
+                >
+                  <RadioGroupItem value={value} id={`theme-${value}`} />
+                  <Icon className="text-muted-foreground size-4 shrink-0" />
+                  <span className="text-sm font-medium">{label}</span>
+                  {value === "system" && resolvedTheme && (
+                    <span className="text-muted-foreground text-xs">({resolvedTheme})</span>
+                  )}
+                </label>
+              ))}
+            </RadioGroup>
+          )}
         </div>
       </div>
     </div>

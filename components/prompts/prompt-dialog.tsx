@@ -75,7 +75,7 @@ export function PromptDialog({ open, onOpenChange, prompt, onSave }: PromptDialo
                 rows={8}
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
-                className="font-mono text-xs"
+                className="min-h-40 font-mono text-xs"
                 required
               />
             </div>

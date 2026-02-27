@@ -1,0 +1,205 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String            @id
+  name          String
+  email         String            @unique
+  role          String // "admin" | "user"
+  permissions   Json // UserPermissions
+  avatarUrl     String?
+  createdAt     DateTime          @default(now())
+  memberships   WorkspaceMember[]
+  emailVerified Boolean           @default(false)
+  image         String?
+  updatedAt     DateTime          @updatedAt
+  sessions      Session[]
+  accounts      Account[]
+
+}
+
+model Workspace {
+  id           String            @id
+  name         String
+  slug         String            @unique
+  createdAt    DateTime          @default(now())
+  members      WorkspaceMember[]
+  bots         BotConfig[]
+  jiraProjects JiraProject[]
+  providers    AIProvider[]
+  prompts      SystemPrompt[]
+  channels     ChannelConfig[]
+  tickets      BotTicket[]
+  logs         LogEntry[]
+}
+
+model WorkspaceMember {
+  id          String    @id
+  userId      String
+  workspaceId String
+  role        String // "owner" | "admin" | "member"
+  joinedAt    DateTime  @default(now())
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, workspaceId])
+}
+
+model BotConfig {
+  id                  String    @id
+  workspaceId         String
+  title               String
+  email               String
+  botSkillDescription String
+  status              String // "active" | "idle" | "working" | "error"
+  defaultProvider     String?
+  defaultModel        String?
+  githubToken         String?
+  spendingLimit       Int?
+  autonomyLevel       String // "autonomous" | "supervised"
+  supervisedSettings  Json // SupervisedSettings
+  systemPromptId      String?
+  enabledChannels     String[] // array of channel ids
+  createdAt           DateTime  @default(now())
+  workspace           Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+}
+
+model JiraProject {
+  id            String    @id
+  workspaceId   String
+  name          String
+  key           String
+  url           String
+  apiKey        String?
+  repositories  Json // Repository[]
+  labelMappings Json // LabelMapping[]
+  botId         String?
+  status        String // "connected" | "syncing" | "error"
+  workspace     Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, key])
+}
+
+model AIProvider {
+  id          String    @id
+  workspaceId String
+  name        String
+  slug        String
+  apiKey      String?
+  enabled     Boolean   @default(true)
+  models      Json // AIModel[]
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, slug])
+}
+
+model SystemPrompt {
+  id           String    @id
+  workspaceId  String
+  name         String
+  content      String
+  isGlobal     Boolean   @default(false)
+  botOverrides Json      @default("{}") // Record<string, string>
+  updatedAt    DateTime  @updatedAt
+  createdAt    DateTime  @default(now())
+  workspace    Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+}
+
+model ChannelConfig {
+  id           String    @id
+  workspaceId  String
+  name         String
+  slug         String
+  icon         String
+  enabled      Boolean   @default(false)
+  credentials  Json      @default("{}") // Record<string, string>
+  botOverrides Json      @default("{}") // Record<string, { enabled, credentials }>
+  workspace    Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, slug])
+}
+
+model BotTicket {
+  id              String    @id
+  workspaceId     String
+  key             String
+  summary         String
+  status          String // "open" | "in_progress" | "in_review" | "done" | "failed"
+  priority        String // "critical" | "high" | "medium" | "low"
+  botId           String
+  assignedAt      DateTime
+  completedAt     DateTime?
+  branch          String?
+  repoName        String?
+  channelMessages Json // ChannelMessage[]
+  actions         Json // TicketAction[]
+  workspace       Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+}
+
+model LogEntry {
+  id          String    @id
+  workspaceId String
+  service     String // "jira" | "git" | "ai" | "channels"
+  level       String // "info" | "warning" | "error" | "debug"
+  message     String
+  timestamp   DateTime
+  botId       String?
+  projectId   String?
+  repoName    String?
+  metadata    Json?
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([token])
+  @@index([userId])
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+}

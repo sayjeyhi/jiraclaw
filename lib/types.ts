@@ -66,6 +66,7 @@ export interface SupervisedSettings {
 
 export interface BotConfig {
   id: string;
+  workspaceId: string;
   title: string;
   email: string;
   botSkillDescription: string;
@@ -83,6 +84,7 @@ export interface BotConfig {
 
 export interface JiraProject {
   id: string;
+  workspaceId: string;
   name: string;
   key: string;
   url: string;
@@ -110,6 +112,7 @@ export interface LabelMapping {
 
 export interface AIProvider {
   id: string;
+  workspaceId: string;
   name: string;
   slug: string;
   apiKey?: string;
@@ -125,6 +128,7 @@ export interface AIModel {
 
 export interface SystemPrompt {
   id: string;
+  workspaceId: string;
   name: string;
   content: string;
   isGlobal: boolean;
@@ -135,6 +139,7 @@ export interface SystemPrompt {
 
 export interface ChannelConfig {
   id: string;
+  workspaceId: string;
   name: string;
   slug: string;
   icon: string;
@@ -145,6 +150,7 @@ export interface ChannelConfig {
 
 export interface BotTicket {
   id: string;
+  workspaceId: string;
   key: string;
   summary: string;
   status: "open" | "in_progress" | "in_review" | "done" | "failed";
@@ -186,6 +192,7 @@ export type LogService = "jira" | "git" | "ai" | "channels";
 
 export interface LogEntry {
   id: string;
+  workspaceId: string;
   service: LogService;
   level: LogLevel;
   message: string;

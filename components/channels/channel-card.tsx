@@ -1,54 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import {
-  ChevronDown,
-  ChevronUp,
-  Eye,
-  EyeOff,
-  Terminal,
-  Send,
-  Shield,
-  Headphones,
-  Hash,
-  MessageCircle,
-  MessageSquare,
-  Feather,
-  Bot,
-  MessagesSquare,
-  Grid3X3,
-  Smartphone,
-  Mail,
-  Bell,
-  Camera,
-  Webhook,
-} from "lucide-react";
+import { ChevronDown, ChevronUp, Eye, EyeOff } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { iconMap } from "./channel-icons";
 import type { ChannelConfig } from "@/lib/types";
 import { cn } from "@/lib/utils";
-
-const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
-  Terminal,
-  Send,
-  Shield,
-  Headphones,
-  Hash,
-  MessageCircle,
-  MessageSquare,
-  Feather,
-  Bot,
-  MessagesSquare,
-  Grid3x3: Grid3X3,
-  Smartphone,
-  Mail,
-  Bell,
-  Camera,
-  Webhook,
-};
 
 interface ChannelCardProps {
   channel: ChannelConfig;

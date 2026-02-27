@@ -1,9 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { useAuth } from "@/lib/auth-context";
+import { authClient } from "@/lib/auth-client";
 import { Logo } from "@/components/logo";
 
 function GitHubIcon({ className }: { className?: string }) {
@@ -38,12 +37,12 @@ function GoogleIcon({ className }: { className?: string }) {
 }
 
 export default function SignUpPage() {
-  const router = useRouter();
-  const { signIn } = useAuth();
+  async function handleGoogleSignUp() {
+    await authClient.signIn.social({ provider: "google", callbackURL: "/auth/callback" });
+  }
 
-  function handleOAuthSignUp() {
-    signIn("sarah.chen@jiraclaw.ai");
-    router.push("/bots");
+  async function handleGitHubSignUp() {
+    await authClient.signIn.social({ provider: "github", callbackURL: "/auth/callback" });
   }
 
   return (
@@ -60,11 +59,19 @@ export default function SignUpPage() {
       </div>
 
       <div className="flex flex-col gap-3">
-        <Button variant="outline" className="h-11 w-full gap-3 text-sm" onClick={handleOAuthSignUp}>
+        <Button
+          variant="outline"
+          className="h-11 w-full gap-3 text-sm"
+          onClick={handleGoogleSignUp}
+        >
           <GoogleIcon className="size-4" />
           Sign up with Google
         </Button>
-        <Button variant="outline" className="h-11 w-full gap-3 text-sm" onClick={handleOAuthSignUp}>
+        <Button
+          variant="outline"
+          className="h-11 w-full gap-3 text-sm"
+          onClick={handleGitHubSignUp}
+        >
           <GitHubIcon className="size-4" />
           Sign up with GitHub
         </Button>

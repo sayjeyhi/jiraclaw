@@ -20,19 +20,26 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { UserMenu } from "@/components/user-menu";
 import { Logo } from "@/components/logo";
+import { WorkspaceSwitcher } from "@/components/workspace-switcher";
 
-const navigation = [
-  { name: "Bots", href: "/bots", icon: Bot },
-  { name: "Ticket Integration", href: "/jira", icon: Kanban },
-  { name: "AI Models", href: "/ai-models", icon: BrainCircuit },
-  { name: "Prompts", href: "/prompts", icon: FileText },
-  { name: "Channels", href: "/channels", icon: Radio },
-  { name: "Logs", href: "/logs", icon: ScrollText },
+const navItems = [
+  { name: "Bots", path: "bots", icon: Bot },
+  { name: "Ticket Integration", path: "jira", icon: Kanban },
+  { name: "AI Models", path: "ai-models", icon: BrainCircuit },
+  { name: "Prompts", path: "prompts", icon: FileText },
+  { name: "Channels", path: "channels", icon: Radio },
+  { name: "Logs", path: "logs", icon: ScrollText },
 ];
+
+function getWorkspaceBase(pathname: string): string | null {
+  const match = pathname.match(/^(\/w\/[^/]+)/);
+  return match ? match[1] : null;
+}
 
 function SidebarContent({ onNavClick }: { onNavClick?: () => void }) {
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
+  const base = getWorkspaceBase(pathname);
 
   return (
     <>
@@ -45,12 +52,13 @@ function SidebarContent({ onNavClick }: { onNavClick?: () => void }) {
 
       <nav className="flex-1 px-3 py-3">
         <ul className="flex flex-col gap-1">
-          {navigation.map((item) => {
-            const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
+          {navItems.map((item) => {
+            const href = base ? `${base}/${item.path}` : "/";
+            const isActive = pathname === href || pathname.startsWith(href + "/");
             return (
               <li key={item.name}>
                 <Link
-                  href={item.href}
+                  href={href}
                   onClick={onNavClick}
                   className={cn(
                     "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
@@ -90,8 +98,8 @@ export function MobileHeader() {
 
   return (
     <>
-      <div className="border-border bg-sidebar flex h-14 items-center justify-between border-b px-4 md:hidden">
-        <div className="flex items-center gap-3">
+      <div className="border-border bg-sidebar flex h-14 items-center justify-between gap-2 border-b px-4 md:hidden">
+        <div className="flex min-w-0 flex-1 items-center gap-2">
           <Button
             variant="ghost"
             size="icon"
@@ -105,6 +113,7 @@ export function MobileHeader() {
             <Logo className="size-6" />
             <span className="text-foreground text-sm font-semibold tracking-tight">JiraClaw</span>
           </div>
+          <WorkspaceSwitcher />
         </div>
         <UserMenu />
       </div>

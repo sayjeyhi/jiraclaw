@@ -1,31 +1,32 @@
 import { Elysia, t } from "elysia";
-import { db } from "../db";
+import { prisma } from "../db";
 
 export const logsService = new Elysia({ prefix: "/logs", aot: false }).get(
   "/",
-  ({ query }) => {
-    let entries = [...db.logs];
-
-    if (query.service) {
-      entries = entries.filter((e) => e.service === query.service);
-    }
-    if (query.level) {
-      entries = entries.filter((e) => e.level === query.level);
-    }
-    if (query.repo) {
-      entries = entries.filter((e) => e.repoName === query.repo);
-    }
+  async ({ params, query }) => {
+    const where: Record<string, unknown> = { workspaceId: params.workspaceId };
+    if (query.service) where.service = query.service;
+    if (query.level) where.level = query.level;
+    if (query.repo) where.repoName = query.repo;
     if (query.search) {
-      const s = query.search.toLowerCase();
-      entries = entries.filter((e) => e.message.toLowerCase().includes(s));
+      where.message = { contains: query.search, mode: "insensitive" };
     }
 
     const page = Number(query.page ?? 1);
     const perPage = Number(query.perPage ?? 25);
-    const total = entries.length;
-    const paged = entries.slice((page - 1) * perPage, page * perPage);
+    const skip = (page - 1) * perPage;
 
-    return { data: paged, total, page, perPage };
+    const [data, total] = await Promise.all([
+      prisma.logEntry.findMany({
+        where,
+        orderBy: { timestamp: "desc" },
+        skip,
+        take: perPage,
+      }),
+      prisma.logEntry.count({ where }),
+    ]);
+
+    return { data, total, page, perPage };
   },
   {
     query: t.Object({

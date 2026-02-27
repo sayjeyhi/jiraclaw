@@ -14,73 +14,102 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   return res.json();
 }
 
-// ---- Auth / Users ----
+const w = (workspaceId: string) => `/w/${workspaceId}`;
+
+// ---- Auth / Users (not workspace-scoped) ----
 export const api = {
   auth: {
-    me: () => request("/auth/me"),
-    getUsers: () => request("/auth/users"),
+    getUsers: () => request("/admin/users"),
     createUser: (body: Record<string, unknown>) =>
-      request("/auth/users", { method: "POST", body: JSON.stringify(body) }),
+      request("/admin/users", { method: "POST", body: JSON.stringify(body) }),
     updateUser: (id: string, body: Record<string, unknown>) =>
-      request(`/auth/users/${id}`, { method: "PUT", body: JSON.stringify(body) }),
-    deleteUser: (id: string) => request(`/auth/users/${id}`, { method: "DELETE" }),
+      request(`/admin/users/${id}`, { method: "PUT", body: JSON.stringify(body) }),
+    deleteUser: (id: string) => request(`/admin/users/${id}`, { method: "DELETE" }),
   },
 
-  // ---- Bots ----
-  bots: {
-    list: () => request("/bots"),
-    get: (id: string) => request(`/bots/${id}`),
-    tickets: (id: string) => request(`/bots/${id}/tickets`),
-    create: (body: Record<string, unknown>) =>
-      request("/bots", { method: "POST", body: JSON.stringify(body) }),
-    update: (id: string, body: Record<string, unknown>) =>
-      request(`/bots/${id}`, { method: "PUT", body: JSON.stringify(body) }),
-    delete: (id: string) => request(`/bots/${id}`, { method: "DELETE" }),
+  workspaces: {
+    list: () => request("/workspaces"),
+    get: (id: string) => request(`/workspaces/${id}`),
+    create: (body: { name: string; slug: string }) =>
+      request("/workspaces", { method: "POST", body: JSON.stringify(body) }),
   },
 
-  // ---- Jira ----
-  jira: {
-    list: () => request("/jira"),
-    get: (id: string) => request(`/jira/${id}`),
-    create: (body: Record<string, unknown>) =>
-      request("/jira", { method: "POST", body: JSON.stringify(body) }),
-    update: (id: string, body: Record<string, unknown>) =>
-      request(`/jira/${id}`, { method: "PUT", body: JSON.stringify(body) }),
-    delete: (id: string) => request(`/jira/${id}`, { method: "DELETE" }),
-  },
-
-  // ---- AI Models / Providers ----
-  aiModels: {
-    list: () => request("/ai-models"),
-    get: (id: string) => request(`/ai-models/${id}`),
-    update: (id: string, body: Record<string, unknown>) =>
-      request(`/ai-models/${id}`, { method: "PUT", body: JSON.stringify(body) }),
-  },
-
-  // ---- Prompts ----
-  prompts: {
-    list: () => request("/prompts"),
-    get: (id: string) => request(`/prompts/${id}`),
-    create: (body: Record<string, unknown>) =>
-      request("/prompts", { method: "POST", body: JSON.stringify(body) }),
-    update: (id: string, body: Record<string, unknown>) =>
-      request(`/prompts/${id}`, { method: "PUT", body: JSON.stringify(body) }),
-    delete: (id: string) => request(`/prompts/${id}`, { method: "DELETE" }),
-  },
-
-  // ---- Channels ----
-  channels: {
-    list: () => request("/channels"),
-    get: (id: string) => request(`/channels/${id}`),
-    update: (id: string, body: Record<string, unknown>) =>
-      request(`/channels/${id}`, { method: "PUT", body: JSON.stringify(body) }),
-  },
-
-  // ---- Logs ----
-  logs: {
-    list: (params?: Record<string, string>) => {
-      const qs = params ? "?" + new URLSearchParams(params).toString() : "";
-      return request(`/logs${qs}`);
+  // Workspace-scoped API - pass workspaceId
+  forWorkspace: (workspaceId: string) => ({
+    bots: {
+      list: () => request(`${w(workspaceId)}/bots`),
+      get: (id: string) => request(`${w(workspaceId)}/bots/${id}`),
+      tickets: (id: string) => request(`${w(workspaceId)}/bots/${id}/tickets`),
+      create: (body: Record<string, unknown>) =>
+        request(`${w(workspaceId)}/bots`, {
+          method: "POST",
+          body: JSON.stringify(body),
+        }),
+      update: (id: string, body: Record<string, unknown>) =>
+        request(`${w(workspaceId)}/bots/${id}`, {
+          method: "PUT",
+          body: JSON.stringify(body),
+        }),
+      delete: (id: string) => request(`${w(workspaceId)}/bots/${id}`, { method: "DELETE" }),
     },
-  },
+    jira: {
+      list: () => request(`${w(workspaceId)}/jira`),
+      get: (id: string) => request(`${w(workspaceId)}/jira/${id}`),
+      create: (body: Record<string, unknown>) =>
+        request(`${w(workspaceId)}/jira`, {
+          method: "POST",
+          body: JSON.stringify(body),
+        }),
+      update: (id: string, body: Record<string, unknown>) =>
+        request(`${w(workspaceId)}/jira/${id}`, {
+          method: "PUT",
+          body: JSON.stringify(body),
+        }),
+      delete: (id: string) => request(`${w(workspaceId)}/jira/${id}`, { method: "DELETE" }),
+    },
+    aiModels: {
+      list: () => request(`${w(workspaceId)}/ai-models`),
+      get: (id: string) => request(`${w(workspaceId)}/ai-models/${id}`),
+      update: (id: string, body: Record<string, unknown>) =>
+        request(`${w(workspaceId)}/ai-models/${id}`, {
+          method: "PUT",
+          body: JSON.stringify(body),
+        }),
+    },
+    prompts: {
+      list: () => request(`${w(workspaceId)}/prompts`),
+      get: (id: string) => request(`${w(workspaceId)}/prompts/${id}`),
+      create: (body: Record<string, unknown>) =>
+        request(`${w(workspaceId)}/prompts`, {
+          method: "POST",
+          body: JSON.stringify(body),
+        }),
+      update: (id: string, body: Record<string, unknown>) =>
+        request(`${w(workspaceId)}/prompts/${id}`, {
+          method: "PUT",
+          body: JSON.stringify(body),
+        }),
+      delete: (id: string) => request(`${w(workspaceId)}/prompts/${id}`, { method: "DELETE" }),
+    },
+    channels: {
+      list: () => request(`${w(workspaceId)}/channels`),
+      get: (id: string) => request(`${w(workspaceId)}/channels/${id}`),
+      create: (body: Record<string, unknown>) =>
+        request(`${w(workspaceId)}/channels`, {
+          method: "POST",
+          body: JSON.stringify(body),
+        }),
+      update: (id: string, body: Record<string, unknown>) =>
+        request(`${w(workspaceId)}/channels/${id}`, {
+          method: "PUT",
+          body: JSON.stringify(body),
+        }),
+    },
+    logs: {
+      list: (params?: Record<string, string>) => {
+        const qs = params ? "?" + new URLSearchParams(params).toString() : "";
+        return request(`${w(workspaceId)}/logs${qs}`);
+      },
+    },
+  }),
 };

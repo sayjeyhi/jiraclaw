@@ -1,5 +1,5 @@
 import { Elysia, t } from "elysia";
-import { db } from "../db";
+import { prisma } from "../db";
 
 const promptBody = t.Object({
   name: t.String(),
@@ -9,45 +9,54 @@ const promptBody = t.Object({
 });
 
 export const promptsService = new Elysia({ prefix: "/prompts", aot: false })
-  .get("/", () => db.prompts)
-  .get("/:id", ({ params }) => {
-    const p = db.prompts.find((p) => p.id === params.id);
+  .get("/", async ({ params }) =>
+    prisma.systemPrompt.findMany({ where: { workspaceId: params.workspaceId } }),
+  )
+  .get("/:id", async ({ params }) => {
+    const p = await prisma.systemPrompt.findFirst({
+      where: { id: params.id, workspaceId: params.workspaceId },
+    });
     if (!p) throw new Error("Prompt not found");
     return p;
   })
   .post(
     "/",
-    ({ body }) => {
-      const now = new Date().toISOString();
-      const prompt = {
-        ...body,
-        id: `prompt-${Date.now()}`,
-        botOverrides: body.botOverrides ?? {},
-        updatedAt: now,
-        createdAt: now,
-      };
-      db.prompts.push(prompt);
+    async ({ params, body }) => {
+      const prompt = await prisma.systemPrompt.create({
+        data: {
+          id: `prompt-${Date.now()}`,
+          workspaceId: params.workspaceId,
+          ...body,
+          botOverrides: (body.botOverrides ?? {}) as object,
+        },
+      });
       return prompt;
     },
     { body: promptBody },
   )
   .put(
     "/:id",
-    ({ params, body }) => {
-      const idx = db.prompts.findIndex((p) => p.id === params.id);
-      if (idx === -1) throw new Error("Prompt not found");
-      db.prompts[idx] = {
-        ...db.prompts[idx],
-        ...body,
-        updatedAt: new Date().toISOString(),
-      };
-      return db.prompts[idx];
+    async ({ params, body }) => {
+      const existing = await prisma.systemPrompt.findFirst({
+        where: { id: params.id, workspaceId: params.workspaceId },
+      });
+      if (!existing) throw new Error("Prompt not found");
+      const prompt = await prisma.systemPrompt.update({
+        where: { id: params.id },
+        data: {
+          ...body,
+          botOverrides: body.botOverrides as object | undefined,
+        },
+      });
+      return prompt;
     },
     { body: t.Partial(promptBody) },
   )
-  .delete("/:id", ({ params }) => {
-    const idx = db.prompts.findIndex((p) => p.id === params.id);
-    if (idx === -1) throw new Error("Prompt not found");
-    db.prompts.splice(idx, 1);
+  .delete("/:id", async ({ params }) => {
+    const existing = await prisma.systemPrompt.findFirst({
+      where: { id: params.id, workspaceId: params.workspaceId },
+    });
+    if (!existing) throw new Error("Prompt not found");
+    await prisma.systemPrompt.delete({ where: { id: params.id } });
     return { success: true };
   });

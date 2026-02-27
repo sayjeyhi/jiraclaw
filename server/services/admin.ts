@@ -1,5 +1,5 @@
 import { Elysia, t } from "elysia";
-import { db } from "../db";
+import { prisma } from "../db";
 
 const PermissionsSchema = t.Object({
   bots: t.Object({
@@ -25,20 +25,23 @@ const PermissionsSchema = t.Object({
   logs: t.Object({ view: t.Boolean() }),
 });
 
-export const authService = new Elysia({ prefix: "/auth", aot: false })
-  .get("/me", () => {
-    return db.users[0] ?? null;
-  })
-  .get("/users", () => db.users)
+export const adminService = new Elysia({ prefix: "/admin", aot: false })
+  .get("/users", async () => prisma.user.findMany())
   .post(
     "/users",
-    ({ body }) => {
-      const user = {
-        ...body,
-        id: `user-${Date.now()}`,
-        createdAt: new Date().toISOString(),
-      };
-      db.users.push(user);
+    async ({ body }) => {
+      const user = await prisma.user.create({
+        data: {
+          id: `user-${Date.now()}`,
+          name: body.name,
+          email: body.email,
+          role: body.role,
+          permissions: body.permissions as object,
+          avatarUrl: body.avatarUrl,
+          emailVerified: false,
+          updatedAt: new Date(),
+        },
+      });
       return user;
     },
     {
@@ -53,11 +56,15 @@ export const authService = new Elysia({ prefix: "/auth", aot: false })
   )
   .put(
     "/users/:id",
-    ({ params, body }) => {
-      const idx = db.users.findIndex((u) => u.id === params.id);
-      if (idx === -1) throw new Error("User not found");
-      db.users[idx] = { ...db.users[idx], ...body };
-      return db.users[idx];
+    async ({ params, body }) => {
+      const user = await prisma.user.update({
+        where: { id: params.id },
+        data: {
+          ...body,
+          permissions: body.permissions as object | undefined,
+        },
+      });
+      return user;
     },
     {
       body: t.Object({
@@ -69,9 +76,7 @@ export const authService = new Elysia({ prefix: "/auth", aot: false })
       }),
     },
   )
-  .delete("/users/:id", ({ params }) => {
-    const idx = db.users.findIndex((u) => u.id === params.id);
-    if (idx === -1) throw new Error("User not found");
-    db.users.splice(idx, 1);
+  .delete("/users/:id", async ({ params }) => {
+    await prisma.user.delete({ where: { id: params.id } });
     return { success: true };
   });

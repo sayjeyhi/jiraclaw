@@ -1,5 +1,5 @@
 import { Elysia, t } from "elysia";
-import { db } from "../db";
+import { prisma } from "../db";
 
 const repoSchema = t.Object({
   id: t.String(),
@@ -28,38 +28,57 @@ const projectBody = t.Object({
 });
 
 export const jiraService = new Elysia({ prefix: "/jira", aot: false })
-  .get("/", () => db.jiraProjects)
-  .get("/:id", ({ params }) => {
-    const proj = db.jiraProjects.find((p) => p.id === params.id);
+  .get("/", async ({ params }) =>
+    prisma.jiraProject.findMany({ where: { workspaceId: params.workspaceId } }),
+  )
+  .get("/:id", async ({ params }) => {
+    const proj = await prisma.jiraProject.findFirst({
+      where: { id: params.id, workspaceId: params.workspaceId },
+    });
     if (!proj) throw new Error("Project not found");
     return proj;
   })
   .post(
     "/",
-    ({ body }) => {
-      const project = {
-        ...body,
-        id: `proj-${Date.now()}`,
-        status: body.status ?? ("connected" as const),
-      };
-      db.jiraProjects.push(project);
+    async ({ params, body }) => {
+      const project = await prisma.jiraProject.create({
+        data: {
+          id: `proj-${Date.now()}`,
+          workspaceId: params.workspaceId,
+          ...body,
+          status: body.status ?? "connected",
+          repositories: body.repositories as object,
+          labelMappings: body.labelMappings as object,
+        },
+      });
       return project;
     },
     { body: projectBody },
   )
   .put(
     "/:id",
-    ({ params, body }) => {
-      const idx = db.jiraProjects.findIndex((p) => p.id === params.id);
-      if (idx === -1) throw new Error("Project not found");
-      db.jiraProjects[idx] = { ...db.jiraProjects[idx], ...body };
-      return db.jiraProjects[idx];
+    async ({ params, body }) => {
+      const proj = await prisma.jiraProject.findFirst({
+        where: { id: params.id, workspaceId: params.workspaceId },
+      });
+      if (!proj) throw new Error("Project not found");
+      const project = await prisma.jiraProject.update({
+        where: { id: params.id },
+        data: {
+          ...body,
+          repositories: body.repositories as object | undefined,
+          labelMappings: body.labelMappings as object | undefined,
+        },
+      });
+      return project;
     },
     { body: t.Partial(projectBody) },
   )
-  .delete("/:id", ({ params }) => {
-    const idx = db.jiraProjects.findIndex((p) => p.id === params.id);
-    if (idx === -1) throw new Error("Project not found");
-    db.jiraProjects.splice(idx, 1);
+  .delete("/:id", async ({ params }) => {
+    const proj = await prisma.jiraProject.findFirst({
+      where: { id: params.id, workspaceId: params.workspaceId },
+    });
+    if (!proj) throw new Error("Project not found");
+    await prisma.jiraProject.delete({ where: { id: params.id } });
     return { success: true };
   });

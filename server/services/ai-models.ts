@@ -1,20 +1,32 @@
 import { Elysia, t } from "elysia";
-import { db } from "../db";
+import { prisma } from "../db";
 
 export const aiModelsService = new Elysia({ prefix: "/ai-models", aot: false })
-  .get("/", () => db.providers)
-  .get("/:id", ({ params }) => {
-    const p = db.providers.find((p) => p.id === params.id);
+  .get("/", async ({ params }) =>
+    prisma.aIProvider.findMany({ where: { workspaceId: params.workspaceId } }),
+  )
+  .get("/:id", async ({ params }) => {
+    const p = await prisma.aIProvider.findFirst({
+      where: { id: params.id, workspaceId: params.workspaceId },
+    });
     if (!p) throw new Error("Provider not found");
     return p;
   })
   .put(
     "/:id",
-    ({ params, body }) => {
-      const idx = db.providers.findIndex((p) => p.id === params.id);
-      if (idx === -1) throw new Error("Provider not found");
-      db.providers[idx] = { ...db.providers[idx], ...body };
-      return db.providers[idx];
+    async ({ params, body }) => {
+      const existing = await prisma.aIProvider.findFirst({
+        where: { id: params.id, workspaceId: params.workspaceId },
+      });
+      if (!existing) throw new Error("Provider not found");
+      const p = await prisma.aIProvider.update({
+        where: { id: params.id },
+        data: {
+          ...body,
+          models: body.models as object | undefined,
+        },
+      });
+      return p;
     },
     {
       body: t.Object({

@@ -26,6 +26,7 @@ interface BotCardProps {
   tickets: BotTicket[];
   onEdit: (bot: BotConfig) => void;
   onDelete: (id: string) => void;
+  workspaceId?: string;
 }
 
 const statusConfig = {
@@ -50,9 +51,14 @@ const priorityColor: Record<string, string> = {
   low: "text-muted-foreground",
 };
 
-export function BotCard({ bot, tickets, onEdit, onDelete }: BotCardProps) {
+export function BotCard({ bot, tickets, onEdit, onDelete, workspaceId }: BotCardProps) {
   const status = statusConfig[bot.status];
   const recentTickets = tickets.slice(0, 3);
+  const botHref = workspaceId ? `/w/${workspaceId}/bots/${bot.id}` : `/bots/${bot.id}`;
+  const ticketHref = (t: BotTicket) =>
+    workspaceId
+      ? `/w/${workspaceId}/bots/${bot.id}?ticket=${t.id}`
+      : `/bots/${bot.id}?ticket=${t.id}`;
 
   return (
     <div className="group border-border bg-card hover:border-primary/30 relative flex flex-col gap-4 rounded-lg border p-5 transition-colors">
@@ -63,7 +69,7 @@ export function BotCard({ bot, tickets, onEdit, onDelete }: BotCardProps) {
           </div>
           <div>
             <Link
-              href={`/bots/${bot.id}`}
+              href={botHref}
               className="text-card-foreground hover:text-primary text-sm font-semibold transition-colors"
             >
               {bot.title}
@@ -131,7 +137,7 @@ export function BotCard({ bot, tickets, onEdit, onDelete }: BotCardProps) {
             {recentTickets.map((ticket) => (
               <Link
                 key={ticket.id}
-                href={`/bots/${bot.id}?ticket=${ticket.id}`}
+                href={ticketHref(ticket)}
                 className="bg-muted/50 hover:bg-muted flex items-center gap-2 rounded-md px-2.5 py-1.5 transition-colors"
                 onClick={(e) => e.stopPropagation()}
               >

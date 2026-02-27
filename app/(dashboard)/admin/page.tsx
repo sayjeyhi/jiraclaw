@@ -9,8 +9,6 @@ import {
   Search,
   MoreVertical,
   Trash2,
-  ChevronDown,
-  Check,
   UserPlus,
   Lock,
   Loader2,
@@ -456,7 +454,7 @@ export default function ManageUsersPage() {
     data: users,
     isLoading,
     mutate: mutateUsers,
-  } = useSWR<User[]>("/api/auth/users", fetcher);
+  } = useSWR<User[]>("/api/admin/users", fetcher);
 
   if (!user || user.role !== "admin") {
     router.push("/bots");

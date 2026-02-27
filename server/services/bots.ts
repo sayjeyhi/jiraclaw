@@ -1,5 +1,5 @@
 import { Elysia, t } from "elysia";
-import { db } from "../db";
+import { prisma } from "../db";
 
 const supervisedSettingsSchema = t.Object({
   confirmPrCreation: t.Boolean(),
@@ -26,40 +26,60 @@ const botBody = t.Object({
 });
 
 export const botsService = new Elysia({ prefix: "/bots", aot: false })
-  .get("/", () => db.bots)
-  .get("/:id", ({ params }) => {
-    const bot = db.bots.find((b) => b.id === params.id);
+  .get("/", async ({ params }) =>
+    prisma.botConfig.findMany({ where: { workspaceId: params.workspaceId } }),
+  )
+  .get("/:id", async ({ params }) => {
+    const bot = await prisma.botConfig.findFirst({
+      where: { id: params.id, workspaceId: params.workspaceId },
+    });
     if (!bot) throw new Error("Bot not found");
     return bot;
   })
-  .get("/:id/tickets", ({ params }) => db.tickets.filter((t) => t.botId === params.id))
+  .get("/:id/tickets", async ({ params }) =>
+    prisma.botTicket.findMany({
+      where: { botId: params.id, workspaceId: params.workspaceId },
+    }),
+  )
   .post(
     "/",
-    ({ body }) => {
-      const bot = {
-        ...body,
-        id: `bot-${Date.now()}`,
-        status: body.status ?? ("idle" as const),
-        createdAt: new Date().toISOString(),
-      };
-      db.bots.push(bot);
+    async ({ params, body }) => {
+      const bot = await prisma.botConfig.create({
+        data: {
+          id: `bot-${Date.now()}`,
+          workspaceId: params.workspaceId,
+          ...body,
+          status: body.status ?? "idle",
+          supervisedSettings: body.supervisedSettings as object,
+        },
+      });
       return bot;
     },
     { body: botBody },
   )
   .put(
     "/:id",
-    ({ params, body }) => {
-      const idx = db.bots.findIndex((b) => b.id === params.id);
-      if (idx === -1) throw new Error("Bot not found");
-      db.bots[idx] = { ...db.bots[idx], ...body };
-      return db.bots[idx];
+    async ({ params, body }) => {
+      const existing = await prisma.botConfig.findFirst({
+        where: { id: params.id, workspaceId: params.workspaceId },
+      });
+      if (!existing) throw new Error("Bot not found");
+      const bot = await prisma.botConfig.update({
+        where: { id: params.id },
+        data: {
+          ...body,
+          supervisedSettings: body.supervisedSettings as object | undefined,
+        },
+      });
+      return bot;
     },
     { body: t.Partial(botBody) },
   )
-  .delete("/:id", ({ params }) => {
-    const idx = db.bots.findIndex((b) => b.id === params.id);
-    if (idx === -1) throw new Error("Bot not found");
-    db.bots.splice(idx, 1);
+  .delete("/:id", async ({ params }) => {
+    const bot = await prisma.botConfig.findFirst({
+      where: { id: params.id, workspaceId: params.workspaceId },
+    });
+    if (!bot) throw new Error("Bot not found");
+    await prisma.botConfig.delete({ where: { id: params.id } });
     return { success: true };
   });

@@ -3,8 +3,9 @@
 import { useParams } from "next/navigation";
 import { useState } from "react";
 import useSWR from "swr";
-import { Bot, Plus } from "lucide-react";
+import { Bot, Plus, TriangleAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { PageHeader } from "@/components/page-header";
 import { EmptyStatePlaceholder } from "@/components/empty-state-placeholder";
 import { BotCard } from "@/components/bots/bot-card";
@@ -44,6 +45,8 @@ export default function BotsPage() {
   const [editingBot, setEditingBot] = useState<BotConfig | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<BotConfig | null>(null);
 
+  const hasConfiguredProvider = providers.some((p) => p.enabled);
+
   const handleCreate = async (data: Omit<BotConfig, "id" | "createdAt" | "status">) => {
     await apiForWorkspace.bots.create(data as unknown as Record<string, unknown>);
     mutateBots();
@@ -65,6 +68,7 @@ export default function BotsPage() {
         description="Create and manage AI-powered bots that monitor Jira and interact with repositories."
       >
         <Button
+          disabled={!hasConfiguredProvider}
           onClick={() => {
             setEditingBot(null);
             setDialogOpen(true);
@@ -75,16 +79,42 @@ export default function BotsPage() {
         </Button>
       </PageHeader>
 
+      {!hasConfiguredProvider && (
+        <Alert className="border-amber-500/50 bg-amber-50/50 text-amber-800 dark:bg-amber-950/20 dark:text-amber-400">
+          <TriangleAlert className="size-4" />
+          <AlertTitle>No AI provider configured</AlertTitle>
+          <AlertDescription className="flex">
+            You need at least one enabled AI provider before you can create bots.{" "}
+            <a
+              href={`/w/${workspaceId}/ai-models`}
+              className="font-medium underline underline-offset-2"
+            >
+              Go to AI Providers
+            </a>{" "}
+            to configure one.
+          </AlertDescription>
+        </Alert>
+      )}
+
       {(bots ?? []).length === 0 ? (
         <EmptyStatePlaceholder
           icon={Bot}
           title="No bots yet"
-          description="Create your first AI-powered bot to monitor Jira and interact with repositories."
-          actionLabel="Create Bot"
-          onAction={() => {
-            setEditingBot(null);
-            setDialogOpen(true);
-          }}
+          description={
+            hasConfiguredProvider
+              ? "Create your first AI-powered bot to monitor Jira and interact with repositories."
+              : "Configure an AI provider first, then come back to create your first bot."
+          }
+          actionLabel={hasConfiguredProvider ? "Create Bot" : "Go to AI Providers"}
+          actionHref={hasConfiguredProvider ? undefined : `/w/${workspaceId}/ai-models`}
+          onAction={
+            hasConfiguredProvider
+              ? () => {
+                  setEditingBot(null);
+                  setDialogOpen(true);
+                }
+              : undefined
+          }
         />
       ) : (
         <div className="grid gap-4 md:grid-cols-2">

@@ -119,6 +119,7 @@ export interface AIProvider {
   enabled: boolean;
   models: AIModel[];
 }
+export type AllowedAIProvider = Omit<AIProvider, "workspaceId">;
 
 export interface AIModel {
   id: string;

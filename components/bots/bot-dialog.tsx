@@ -317,7 +317,7 @@ export function BotDialog({ open, onOpenChange, bot, providers, onSave }: BotDia
                 <Label htmlFor="title">Title</Label>
                 <Input
                   id="title"
-                  placeholder="e.g. Backend Engineer"
+                  placeholder="e.g. Backend, Frontend, DevOps Bot"
                   value={form.title}
                   onChange={(e) => {
                     setState((prev) => ({

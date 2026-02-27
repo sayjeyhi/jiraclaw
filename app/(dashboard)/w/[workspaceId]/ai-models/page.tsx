@@ -105,11 +105,13 @@ export default function AIModelsPage() {
         onOpenChange={setConfigureOpen}
         providers={allowedProviders}
         workspaceId={workspaceId}
-        onSuccess={(id, apiKey) =>
+        existingProviderIds={allProviders.map((p) => p.id)}
+        onSuccess={(id, apiKey) => {
           setAllowedProviders((prev) =>
             prev.map((p) => (p.id === id ? { ...p, apiKey, enabled: true } : p)),
-          )
-        }
+          );
+          mutate();
+        }}
       />
     </div>
   );

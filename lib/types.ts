@@ -21,7 +21,7 @@ export type ServiceAction =
 
 export interface UserPermissions {
   bots: { view: boolean; create: boolean; edit: boolean; delete: boolean };
-  jira: { view: boolean; create: boolean; edit: boolean; delete: boolean };
+  ticket: { view: boolean; create: boolean; edit: boolean; delete: boolean };
   ai_providers: { view: boolean; edit: boolean };
   prompts: { view: boolean; create: boolean; edit: boolean; delete: boolean };
   channels: { view: boolean; edit: boolean };
@@ -30,7 +30,7 @@ export interface UserPermissions {
 
 export const ADMIN_PERMISSIONS: UserPermissions = {
   bots: { view: true, create: true, edit: true, delete: true },
-  jira: { view: true, create: true, edit: true, delete: true },
+  ticket: { view: true, create: true, edit: true, delete: true },
   ai_providers: { view: true, edit: true },
   prompts: { view: true, create: true, edit: true, delete: true },
   channels: { view: true, edit: true },
@@ -39,7 +39,7 @@ export const ADMIN_PERMISSIONS: UserPermissions = {
 
 export const DEFAULT_USER_PERMISSIONS: UserPermissions = {
   bots: { view: true, create: false, edit: false, delete: false },
-  jira: { view: true, create: false, edit: false, delete: false },
+  ticket: { view: true, create: false, edit: false, delete: false },
   ai_providers: { view: true, edit: false },
   prompts: { view: true, create: false, edit: false, delete: false },
   channels: { view: true, edit: false },
@@ -70,6 +70,7 @@ export interface BotConfig {
   title: string;
   email: string;
   botSkillDescription: string;
+  skills: string[]; // skills.sh ids: owner/repo/skill-name
   status: "active" | "idle" | "working" | "error";
   defaultProvider?: string;
   defaultModel?: string;
@@ -77,7 +78,7 @@ export interface BotConfig {
   spendingLimit?: number;
   autonomyLevel: "autonomous" | "supervised";
   supervisedSettings: SupervisedSettings;
-  systemPromptId?: string;
+  systemPromptId?: string | null;
   enabledChannels: string[];
   createdAt: string;
 }

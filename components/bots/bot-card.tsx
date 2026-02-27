@@ -15,6 +15,11 @@ import {
   Zap,
   Eye,
   DollarSign,
+  BrainCircuit,
+  Key,
+  Ticket,
+  Calendar,
+  MessageSquare,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -24,7 +29,8 @@ import { cn } from "@/lib/utils";
 interface BotCardProps {
   bot: BotConfig;
   tickets: BotTicket[];
-  onEdit: (bot: BotConfig) => void;
+  editHref?: string;
+  onEdit?: (bot: BotConfig) => void;
   onDelete: (id: string) => void;
   workspaceId?: string;
 }
@@ -51,9 +57,24 @@ const priorityColor: Record<string, string> = {
   low: "text-muted-foreground",
 };
 
-export function BotCard({ bot, tickets, onEdit, onDelete, workspaceId }: BotCardProps) {
+function formatDate(iso: string) {
+  const d = new Date(iso);
+  return d.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+}
+
+export function BotCard({ bot, tickets, editHref, onEdit, onDelete, workspaceId }: BotCardProps) {
   const status = statusConfig[bot.status];
-  const recentTickets = tickets.slice(0, 3);
+  const recentTickets = tickets.slice(0, 5);
+
+  const ticketStats = {
+    total: tickets.length,
+    open: tickets.filter((t) => t.status === "open").length,
+    inProgress: tickets.filter((t) => t.status === "in_progress").length,
+    inReview: tickets.filter((t) => t.status === "in_review").length,
+    done: tickets.filter((t) => t.status === "done").length,
+    failed: tickets.filter((t) => t.status === "failed").length,
+  };
+
   const botHref = workspaceId ? `/w/${workspaceId}/bots/${bot.id}` : `/bots/${bot.id}`;
   const ticketHref = (t: BotTicket) =>
     workspaceId
@@ -61,23 +82,30 @@ export function BotCard({ bot, tickets, onEdit, onDelete, workspaceId }: BotCard
       : `/bots/${bot.id}?ticket=${t.id}`;
 
   return (
-    <div className="group border-border bg-card hover:border-primary/30 relative flex flex-col gap-4 rounded-lg border p-5 transition-colors">
-      <div className="flex items-start justify-between">
-        <div className="flex items-center gap-3">
-          <div className="bg-primary/10 flex size-10 items-center justify-center rounded-lg">
-            <Bot className="text-primary size-5" />
+    <div className="group border-border bg-card hover:border-primary/30 relative flex flex-col gap-5 rounded-lg border p-6 transition-colors">
+      {/* Header row */}
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <div className="bg-primary/10 flex size-12 shrink-0 items-center justify-center rounded-lg">
+            <Bot className="text-primary size-6" />
           </div>
           <div>
             <Link
               href={botHref}
-              className="text-card-foreground hover:text-primary text-sm font-semibold transition-colors"
+              className="text-card-foreground hover:text-primary text-base font-semibold transition-colors"
             >
               {bot.title}
             </Link>
-            <div className="text-muted-foreground mt-0.5 flex items-center gap-1.5 text-xs">
-              <Mail className="size-3" />
+            <div className="text-muted-foreground mt-1 flex items-center gap-1.5 text-sm">
+              <Mail className="size-3.5" />
               <span>{bot.email}</span>
             </div>
+            {bot.createdAt && (
+              <div className="text-muted-foreground mt-0.5 flex items-center gap-1 text-xs">
+                <Calendar className="size-3" />
+                <span>Created {formatDate(bot.createdAt)}</span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -96,18 +124,32 @@ export function BotCard({ bot, tickets, onEdit, onDelete, workspaceId }: BotCard
           </Badge>
 
           <div className="flex items-center gap-0.5">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="text-muted-foreground hover:text-foreground size-6"
-              onClick={(e) => {
-                e.stopPropagation();
-                onEdit(bot);
-              }}
-            >
-              <Pencil className="size-3.5" />
-              <span className="sr-only">Edit</span>
-            </Button>
+            {editHref ? (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-muted-foreground hover:text-foreground size-6"
+                asChild
+              >
+                <Link href={editHref}>
+                  <Pencil className="size-3.5" />
+                  <span className="sr-only">Edit</span>
+                </Link>
+              </Button>
+            ) : onEdit ? (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-muted-foreground hover:text-foreground size-6"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEdit(bot);
+                }}
+              >
+                <Pencil className="size-3.5" />
+                <span className="sr-only">Edit</span>
+              </Button>
+            ) : null}
             <Button
               variant="ghost"
               size="icon"
@@ -124,78 +166,153 @@ export function BotCard({ bot, tickets, onEdit, onDelete, workspaceId }: BotCard
         </div>
       </div>
 
-      <p className="text-muted-foreground line-clamp-2 text-xs leading-relaxed">
-        {bot.botSkillDescription}
+      <p className="text-muted-foreground line-clamp-2 text-sm leading-relaxed">
+        {bot.skills?.length
+          ? `${bot.skills.length} skill${bot.skills.length !== 1 ? "s" : ""} from skills.sh`
+          : bot.botSkillDescription || "No skills configured"}
       </p>
 
-      {recentTickets.length > 0 && (
-        <div className="border-border flex flex-col gap-2 border-t pt-3">
+      {/* Stats grid */}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6">
+        <div className="border-border bg-muted/30 flex items-center gap-3 rounded-lg border px-4 py-3">
+          <Ticket className="text-primary size-4 shrink-0" />
+          <div>
+            <p className="text-muted-foreground text-[10px] font-medium tracking-wider uppercase">
+              Total Tickets
+            </p>
+            <p className="text-foreground text-sm font-semibold">{ticketStats.total}</p>
+          </div>
+        </div>
+        <div className="border-border bg-muted/30 flex items-center gap-3 rounded-lg border px-4 py-3">
+          <Circle className="text-muted-foreground size-4 shrink-0" />
+          <div>
+            <p className="text-muted-foreground text-[10px] font-medium tracking-wider uppercase">
+              Open
+            </p>
+            <p className="text-foreground text-sm font-semibold">{ticketStats.open}</p>
+          </div>
+        </div>
+        <div className="border-border bg-muted/30 flex items-center gap-3 rounded-lg border px-4 py-3">
+          <Loader2 className="text-warning size-4 shrink-0" />
+          <div>
+            <p className="text-muted-foreground text-[10px] font-medium tracking-wider uppercase">
+              In Progress
+            </p>
+            <p className="text-foreground text-sm font-semibold">{ticketStats.inProgress}</p>
+          </div>
+        </div>
+        <div className="border-border bg-muted/30 flex items-center gap-3 rounded-lg border px-4 py-3">
+          <Search className="text-chart-1 size-4 shrink-0" />
+          <div>
+            <p className="text-muted-foreground text-[10px] font-medium tracking-wider uppercase">
+              In Review
+            </p>
+            <p className="text-foreground text-sm font-semibold">{ticketStats.inReview}</p>
+          </div>
+        </div>
+        <div className="border-border bg-muted/30 flex items-center gap-3 rounded-lg border px-4 py-3">
+          <CheckCircle2 className="text-success size-4 shrink-0" />
+          <div>
+            <p className="text-muted-foreground text-[10px] font-medium tracking-wider uppercase">
+              Done
+            </p>
+            <p className="text-foreground text-sm font-semibold">{ticketStats.done}</p>
+          </div>
+        </div>
+        <div className="border-border bg-muted/30 flex items-center gap-3 rounded-lg border px-4 py-3">
+          <XCircle className="text-destructive size-4 shrink-0" />
+          <div>
+            <p className="text-muted-foreground text-[10px] font-medium tracking-wider uppercase">
+              Failed
+            </p>
+            <p className="text-foreground text-sm font-semibold">{ticketStats.failed}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Config & recent tickets row */}
+      <div className="grid gap-5 lg:grid-cols-2">
+        {/* Config info */}
+        <div className="border-border flex flex-col gap-3 rounded-lg border p-4">
+          <span className="text-muted-foreground text-[10px] font-medium tracking-wider uppercase">
+            Configuration
+          </span>
+          <div className="flex flex-wrap gap-3">
+            <div className="flex items-center gap-2">
+              <BrainCircuit className="text-primary size-4 shrink-0" />
+              <span className="text-muted-foreground text-xs">
+                {bot.defaultModel ? `${bot.defaultProvider}/${bot.defaultModel}` : "No model set"}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Key className="text-chart-2 size-4 shrink-0" />
+              <span className="text-muted-foreground text-xs">
+                {bot.githubToken ? "Token configured" : "No token"}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <DollarSign className="text-chart-3 size-4 shrink-0" />
+              <span className="text-muted-foreground text-xs">
+                {bot.spendingLimit ? `$${bot.spendingLimit}/mo` : "Unlimited"}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              {bot.autonomyLevel === "autonomous" ? (
+                <Zap className="text-primary size-4 shrink-0" />
+              ) : (
+                <Eye className="text-warning size-4 shrink-0" />
+              )}
+              <span className="text-muted-foreground text-xs">
+                {bot.autonomyLevel === "autonomous" ? "Autonomous" : "Supervised"}
+              </span>
+            </div>
+            {bot.enabledChannels?.length > 0 && (
+              <div className="flex items-center gap-2">
+                <MessageSquare className="text-chart-4 size-4 shrink-0" />
+                <span className="text-muted-foreground text-xs">
+                  {bot.enabledChannels.length} channel{bot.enabledChannels.length !== 1 ? "s" : ""}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Recent tickets */}
+        <div className="border-border flex flex-col gap-2 rounded-lg border p-4">
           <span className="text-muted-foreground text-[10px] font-medium tracking-wider uppercase">
             Recent Tickets
           </span>
-          <div className="flex min-h-24 flex-col gap-1.5">
-            {recentTickets.map((ticket) => (
-              <Link
-                key={ticket.id}
-                href={ticketHref(ticket)}
-                className="bg-muted/50 hover:bg-muted flex items-center gap-2 rounded-md px-2.5 py-1.5 transition-colors"
-                onClick={(e) => e.stopPropagation()}
-              >
-                {ticketStatusIcon[ticket.status]}
-                <span
-                  className={cn(
-                    "shrink-0 text-[10px] font-semibold",
-                    priorityColor[ticket.priority],
-                  )}
+          {recentTickets.length > 0 ? (
+            <div className="flex flex-col gap-1.5">
+              {recentTickets.map((ticket) => (
+                <Link
+                  key={ticket.id}
+                  href={ticketHref(ticket)}
+                  className="bg-muted/50 hover:bg-muted flex items-center gap-2 rounded-md px-2.5 py-1.5 transition-colors"
+                  onClick={(e) => e.stopPropagation()}
                 >
-                  {ticket.key}
-                </span>
-                <span className="text-muted-foreground min-w-0 flex-1 truncate text-xs">
-                  {ticket.summary}
-                </span>
-                {ticket.branch && (
-                  <GitBranch className="text-muted-foreground/50 ml-auto size-3 shrink-0" />
-                )}
-              </Link>
-            ))}
-          </div>
-        </div>
-      )}
-
-      <div className="border-border flex flex-wrap items-center gap-2 border-t pt-3">
-        {bot.defaultModel && (
-          <Badge variant="secondary" className="gap-1 text-[10px]">
-            {bot.defaultProvider}/{bot.defaultModel}
-          </Badge>
-        )}
-        <Badge
-          variant="outline"
-          className={cn(
-            "gap-1 text-[10px]",
-            bot.autonomyLevel === "autonomous"
-              ? "text-primary border-primary/25"
-              : "text-warning border-warning/25",
-          )}
-        >
-          {bot.autonomyLevel === "autonomous" ? (
-            <Zap className="size-2.5" />
+                  {ticketStatusIcon[ticket.status]}
+                  <span
+                    className={cn(
+                      "shrink-0 text-[10px] font-semibold",
+                      priorityColor[ticket.priority],
+                    )}
+                  >
+                    {ticket.key}
+                  </span>
+                  <span className="text-muted-foreground min-w-0 flex-1 truncate text-xs">
+                    {ticket.summary}
+                  </span>
+                  {ticket.branch && (
+                    <GitBranch className="text-muted-foreground/50 ml-auto size-3 shrink-0" />
+                  )}
+                </Link>
+              ))}
+            </div>
           ) : (
-            <Eye className="size-2.5" />
+            <p className="text-muted-foreground py-4 text-center text-xs">No tickets yet</p>
           )}
-          {bot.autonomyLevel === "autonomous" ? "Autonomous" : "Supervised"}
-        </Badge>
-        {bot.spendingLimit && (
-          <Badge variant="outline" className="text-muted-foreground gap-1 text-[10px]">
-            <DollarSign className="size-2.5" />
-            {bot.spendingLimit}/mo
-          </Badge>
-        )}
-        {bot.githubToken && (
-          <Badge variant="outline" className="text-muted-foreground gap-1 text-[10px]">
-            <GitBranch className="size-2.5" />
-            Token set
-          </Badge>
-        )}
+        </div>
       </div>
     </div>
   );

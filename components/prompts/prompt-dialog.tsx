@@ -14,36 +14,66 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
 import type { SystemPrompt } from "@/lib/types";
+
+interface BotOption {
+  id: string;
+  title: string;
+  systemPromptId?: string | null;
+}
+
+export interface PromptSaveData {
+  name: string;
+  content: string;
+  isGlobal: boolean;
+  botIds?: string[];
+}
 
 interface PromptDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   prompt?: SystemPrompt | null;
-  onSave: (data: Pick<SystemPrompt, "name" | "content" | "isGlobal">) => void;
+  bots: BotOption[];
+  onSave: (data: PromptSaveData) => void;
 }
 
-export function PromptDialog({ open, onOpenChange, prompt, onSave }: PromptDialogProps) {
+export function PromptDialog({ open, onOpenChange, prompt, bots, onSave }: PromptDialogProps) {
   const [name, setName] = useState("");
   const [content, setContent] = useState("");
-  const [isGlobal, setIsGlobal] = useState(false);
+  const [isGlobal, setIsGlobal] = useState(true);
+  const [selectedBotIds, setSelectedBotIds] = useState<string[]>([]);
 
   useEffect(() => {
     if (prompt) {
       setName(prompt.name);
       setContent(prompt.content);
       setIsGlobal(prompt.isGlobal);
+      const ids = bots.filter((b) => b.systemPromptId === prompt.id).map((b) => b.id);
+      setSelectedBotIds(ids);
     } else {
       setName("");
       setContent("");
-      setIsGlobal(false);
+      setIsGlobal(true);
+      setSelectedBotIds([]);
     }
-  }, [prompt, open]);
+  }, [prompt, bots, open]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave({ name, content, isGlobal });
+    onSave({
+      name,
+      content,
+      isGlobal,
+      ...(isGlobal ? {} : { botIds: selectedBotIds }),
+    });
     onOpenChange(false);
+  };
+
+  const toggleBot = (botId: string) => {
+    setSelectedBotIds((prev) =>
+      prev.includes(botId) ? prev.filter((id) => id !== botId) : [...prev, botId],
+    );
   };
 
   return (
@@ -60,7 +90,7 @@ export function PromptDialog({ open, onOpenChange, prompt, onSave }: PromptDialo
               <Label htmlFor="promptName">Name</Label>
               <Input
                 id="promptName"
-                placeholder="e.g. Code Review Expert"
+                placeholder="e.g. Expert In Software Development"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
@@ -91,6 +121,37 @@ export function PromptDialog({ open, onOpenChange, prompt, onSave }: PromptDialo
               </div>
               <Switch id="isGlobal" checked={isGlobal} onCheckedChange={setIsGlobal} />
             </div>
+
+            {!isGlobal && (
+              <div className="flex flex-col gap-2">
+                <Label className="text-sm font-medium">Assign to bots</Label>
+                <p className="text-muted-foreground text-xs">
+                  Select which bots should use this prompt
+                </p>
+                {bots.length === 0 ? (
+                  <p className="text-muted-foreground rounded-md border border-dashed px-3 py-4 text-center text-sm">
+                    No bots in this workspace. Create a bot first.
+                  </p>
+                ) : (
+                  <div className="border-border max-h-40 overflow-y-auto rounded-md border p-2">
+                    <div className="flex flex-col gap-2">
+                      {bots.map((bot) => (
+                        <label
+                          key={bot.id}
+                          className="hover:bg-muted flex cursor-pointer items-center gap-3 rounded-md px-2 py-2"
+                        >
+                          <Checkbox
+                            checked={selectedBotIds.includes(bot.id)}
+                            onCheckedChange={() => toggleBot(bot.id)}
+                          />
+                          <span className="text-sm">{bot.title}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           <DialogFooter className="mt-6">

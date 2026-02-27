@@ -1,6 +1,16 @@
 const BASE = "/api";
 
-export const fetcher = (url: string) => fetch(url).then((r) => r.json());
+export const fetcher = (url: string) =>
+  fetch(url).then(async (r) => {
+    if (!r.ok) throw new Error((await r.text()) || r.statusText);
+    const text = await r.text();
+    if (!text?.trim()) return undefined;
+    try {
+      return JSON.parse(text);
+    } catch {
+      return undefined;
+    }
+  });
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
@@ -11,7 +21,13 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
     const err = await res.text();
     throw new Error(err || res.statusText);
   }
-  return res.json();
+  const text = await res.text();
+  if (!text?.trim()) return undefined as T;
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    return undefined as T;
+  }
 }
 
 const w = (workspaceId: string) => `/w/${workspaceId}`;
@@ -25,6 +41,10 @@ export const api = {
     updateUser: (id: string, body: Record<string, unknown>) =>
       request(`/admin/users/${id}`, { method: "PUT", body: JSON.stringify(body) }),
     deleteUser: (id: string) => request(`/admin/users/${id}`, { method: "DELETE" }),
+  },
+
+  skills: {
+    search: (q?: string) => request(`/skills${q ? `?q=${encodeURIComponent(q)}` : ""}`),
   },
 
   workspaces: {
@@ -70,6 +90,11 @@ export const api = {
     aiModels: {
       list: () => request(`${w(workspaceId)}/ai-models`),
       get: (id: string) => request(`${w(workspaceId)}/ai-models/${id}`),
+      create: (body: Record<string, unknown>) =>
+        request(`${w(workspaceId)}/ai-models`, {
+          method: "POST",
+          body: JSON.stringify(body),
+        }),
       update: (id: string, body: Record<string, unknown>) =>
         request(`${w(workspaceId)}/ai-models/${id}`, {
           method: "PUT",

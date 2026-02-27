@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, ChevronUp, Eye, EyeOff } from "lucide-react";
+import { ChevronDown, ChevronUp, Eye, EyeOff, TerminalIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,7 +22,7 @@ export function ChannelCard({ channel, onToggle, onUpdateCredentials }: ChannelC
   const [showSecrets, setShowSecrets] = useState(false);
   const [credentials, setCredentials] = useState(channel.credentials);
 
-  const Icon = iconMap[channel.icon] ?? Terminal;
+  const Icon = iconMap[channel.icon] ?? TerminalIcon;
   const credentialKeys = Object.keys(credentials);
   const hasCredentials = credentialKeys.length > 0;
 

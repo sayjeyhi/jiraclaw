@@ -1,7 +1,9 @@
 import { app } from "@/server/app";
 
-export const GET = (request: Request) => app.handle(request);
-export const POST = (request: Request) => app.handle(request);
-export const PUT = (request: Request) => app.handle(request);
-export const DELETE = (request: Request) => app.handle(request);
-export const PATCH = (request: Request) => app.handle(request);
+const handle = (request: Request) => app.fetch(request);
+
+export const GET = handle;
+export const POST = handle;
+export const PUT = handle;
+export const DELETE = handle;
+export const PATCH = handle;

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { Radio, KeyRound } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -29,8 +30,8 @@ interface ChannelDialogProps {
 }
 
 const STEPS = [
-  { id: 1, label: "Select provider" },
-  { id: 2, label: "Configure" },
+  { id: 1, label: "Select provider", icon: Radio },
+  { id: 2, label: "Configure", icon: KeyRound },
 ] as const;
 
 export function ChannelDialog({ open, onOpenChange, existingSlugs, onSave }: ChannelDialogProps) {
@@ -145,26 +146,53 @@ export function ChannelDialog({ open, onOpenChange, existingSlugs, onSave }: Cha
           </DialogDescription>
         </DialogHeader>
 
-        {/* Step indicator */}
+        {/* Step indicator - same design as bot dialog */}
         <div className="flex items-center gap-1">
-          {STEPS.map((s) => (
-            <div
-              key={s.id}
-              className={cn(
-                "flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium",
-                step === s.id
-                  ? "bg-primary/10 text-primary"
-                  : step > s.id
-                    ? "bg-muted text-muted-foreground"
-                    : "text-muted-foreground",
-              )}
-            >
-              <span className="flex size-5 items-center justify-center rounded-full bg-current/20">
-                {step > s.id ? "✓" : s.id}
-              </span>
-              {s.label}
-            </div>
-          ))}
+          {STEPS.map((s, i) => {
+            const Icon = s.icon;
+            const isCompleted = step > s.id;
+            const isCurrent = step === s.id;
+            return (
+              <div key={s.id} className="flex flex-1 flex-col items-center gap-1">
+                <div className="flex w-full items-center gap-1">
+                  {i > 0 && (
+                    <div
+                      className={cn(
+                        "h-px flex-1 transition-colors",
+                        isCompleted || isCurrent ? "bg-primary" : "bg-border",
+                      )}
+                    />
+                  )}
+                  <div
+                    className={cn(
+                      "flex size-7 items-center justify-center rounded-full border-2 transition-all",
+                      isCurrent && "border-primary bg-primary text-primary-foreground",
+                      isCompleted && "border-primary bg-primary/10 text-primary",
+                      !isCurrent && !isCompleted && "border-border text-muted-foreground",
+                    )}
+                  >
+                    <Icon className="size-3.5" />
+                  </div>
+                  {i < STEPS.length - 1 && (
+                    <div
+                      className={cn(
+                        "h-px flex-1 transition-colors",
+                        isCompleted ? "bg-primary" : "bg-border",
+                      )}
+                    />
+                  )}
+                </div>
+                <span
+                  className={cn(
+                    "text-[10px] font-medium",
+                    isCurrent ? "text-primary" : "text-muted-foreground",
+                  )}
+                >
+                  {s.label}
+                </span>
+              </div>
+            );
+          })}
         </div>
 
         {step === 1 && (

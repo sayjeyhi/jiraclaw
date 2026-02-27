@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Eye, EyeOff, CheckCircle2, ChevronLeft } from "lucide-react";
+import { BrainCircuit, Eye, EyeOff, KeyRound, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,6 +22,7 @@ interface ConfigureProviderDialogProps {
   onOpenChange: (open: boolean) => void;
   providers: AllowedAIProvider[];
   workspaceId: string;
+  existingProviderIds: string[];
   onSuccess: (id: string, apiKey: string) => void;
 }
 
@@ -30,6 +31,7 @@ export function ConfigureProviderDialog({
   onOpenChange,
   providers,
   workspaceId,
+  existingProviderIds,
   onSuccess,
 }: ConfigureProviderDialogProps) {
   const [step, setStep] = useState<1 | 2>(1);
@@ -67,10 +69,22 @@ export function ConfigureProviderDialog({
     setError("");
     setLoading(true);
     try {
-      await apiForWorkspace.aiModels.update(selected.id, {
-        apiKey: apiKey.trim(),
-        enabled: true,
-      });
+      const exists = existingProviderIds.includes(selected.id);
+      if (exists) {
+        await apiForWorkspace.aiModels.update(selected.id, {
+          apiKey: apiKey.trim(),
+          enabled: true,
+        });
+      } else {
+        await apiForWorkspace.aiModels.create({
+          id: selected.id,
+          name: selected.name,
+          slug: selected.slug,
+          apiKey: apiKey.trim() || undefined,
+          enabled: true,
+          models: selected.models,
+        });
+      }
       onSuccess(selected.id, apiKey.trim());
       handleOpenChange(false);
     } catch (err: unknown) {
@@ -79,79 +93,116 @@ export function ConfigureProviderDialog({
     }
   };
 
+  const STEPS = [
+    { id: 1, label: "Select provider", icon: BrainCircuit },
+    { id: 2, label: "Configure API key", icon: KeyRound },
+  ] as const;
+
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-lg">
-        {/* Step indicator */}
-        <div className="mb-1 flex items-center gap-1.5 text-xs">
-          <span
-            className={cn("font-medium", step === 1 ? "text-foreground" : "text-muted-foreground")}
-          >
-            1. Select provider
-          </span>
-          <span className="text-muted-foreground/40">→</span>
-          <span
-            className={cn("font-medium", step === 2 ? "text-foreground" : "text-muted-foreground")}
-          >
-            2. Configure API key
-          </span>
+        <DialogHeader>
+          <DialogTitle>Configure AI provider</DialogTitle>
+          <DialogDescription>
+            {step === 1
+              ? "Choose an AI provider to configure for your workspace."
+              : "Enter your API key to enable this provider."}
+          </DialogDescription>
+        </DialogHeader>
+
+        {/* Step indicator - same design as bot dialog */}
+        <div className="flex items-center gap-1">
+          {STEPS.map((s, i) => {
+            const Icon = s.icon;
+            const isCompleted = step > s.id;
+            const isCurrent = step === s.id;
+            return (
+              <div key={s.id} className="flex flex-1 flex-col items-center gap-1">
+                <div className="flex w-full items-center gap-1">
+                  {i > 0 && (
+                    <div
+                      className={cn(
+                        "h-px flex-1 transition-colors",
+                        isCompleted || isCurrent ? "bg-primary" : "bg-border",
+                      )}
+                    />
+                  )}
+                  <div
+                    className={cn(
+                      "flex size-7 items-center justify-center rounded-full border-2 transition-all",
+                      isCurrent && "border-primary bg-primary text-primary-foreground",
+                      isCompleted && "border-primary bg-primary/10 text-primary",
+                      !isCurrent && !isCompleted && "border-border text-muted-foreground",
+                    )}
+                  >
+                    <Icon className="size-3.5" />
+                  </div>
+                  {i < STEPS.length - 1 && (
+                    <div
+                      className={cn(
+                        "h-px flex-1 transition-colors",
+                        isCompleted ? "bg-primary" : "bg-border",
+                      )}
+                    />
+                  )}
+                </div>
+                <span
+                  className={cn(
+                    "text-[10px] font-medium",
+                    isCurrent ? "text-primary" : "text-muted-foreground",
+                  )}
+                >
+                  {s.label}
+                </span>
+              </div>
+            );
+          })}
         </div>
 
         {step === 1 && (
-          <>
-            <DialogHeader>
-              <DialogTitle>Select a provider</DialogTitle>
-              <DialogDescription>
-                Choose an AI provider to configure for your workspace.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid max-h-80 grid-cols-2 gap-2 overflow-y-auto py-1 pr-1">
-              {providers.map((provider) => (
-                <button
-                  key={provider.id}
-                  type="button"
-                  onClick={() => handlePick(provider)}
+          <div className="grid max-h-80 grid-cols-2 gap-2 overflow-y-auto py-1 pr-1">
+            {providers.map((provider) => (
+              <button
+                key={provider.id}
+                type="button"
+                onClick={() => handlePick(provider)}
+                className={cn(
+                  "hover:bg-accent flex items-center gap-3 rounded-lg border p-3 text-left transition-colors",
+                  "border-border",
+                )}
+              >
+                <div
                   className={cn(
-                    "hover:bg-accent flex items-center gap-3 rounded-lg border p-3 text-left transition-colors",
-                    "border-border",
+                    "flex size-8 shrink-0 items-center justify-center rounded-md text-xs font-bold",
+                    "bg-muted text-muted-foreground",
                   )}
                 >
-                  <div
-                    className={cn(
-                      "flex size-8 shrink-0 items-center justify-center rounded-md text-xs font-bold",
-                      "bg-muted text-muted-foreground",
-                    )}
-                  >
-                    {provider.name.slice(0, 2).toUpperCase()}
-                  </div>
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium">{provider.name}</p>
-                    <p className="text-muted-foreground text-[11px]">
-                      {provider.models.length} model{provider.models.length !== 1 ? "s" : ""}
-                    </p>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </>
+                  {provider.name.slice(0, 2).toUpperCase()}
+                </div>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium">{provider.name}</p>
+                  <p className="text-muted-foreground text-[11px]">
+                    {provider.models.length} model{provider.models.length !== 1 ? "s" : ""}
+                  </p>
+                </div>
+              </button>
+            ))}
+          </div>
         )}
 
         {step === 2 && selected && (
           <>
-            <DialogHeader>
-              <div className="mb-1 flex items-center gap-3">
-                <div className="bg-primary/15 text-primary flex size-9 items-center justify-center rounded-md text-sm font-bold">
-                  {selected.name.slice(0, 2).toUpperCase()}
-                </div>
-                <div>
-                  <DialogTitle>{selected.name}</DialogTitle>
-                  <DialogDescription className="mt-0.5">
-                    {selected.models.length} model{selected.models.length !== 1 ? "s" : ""}{" "}
-                    available
-                  </DialogDescription>
-                </div>
+            <div className="mb-1 flex items-center gap-3">
+              <div className="bg-primary/15 text-primary flex size-9 items-center justify-center rounded-md text-sm font-bold">
+                {selected.name.slice(0, 2).toUpperCase()}
               </div>
-            </DialogHeader>
+              <div>
+                <DialogTitle>{selected.name}</DialogTitle>
+                <DialogDescription className="mt-0.5">
+                  {selected.models.length} model{selected.models.length !== 1 ? "s" : ""} available
+                </DialogDescription>
+              </div>
+            </div>
 
             <div className="flex flex-col gap-4 py-1">
               <div className="flex flex-col gap-2">

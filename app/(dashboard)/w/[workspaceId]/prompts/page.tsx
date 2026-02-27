@@ -12,7 +12,8 @@ import { PromptDialog } from "@/components/prompts/prompt-dialog";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { PageSkeleton } from "@/components/loading-skeletons";
 import { fetcher, api } from "@/lib/api";
-import type { SystemPrompt } from "@/lib/types";
+import type { BotConfig, SystemPrompt } from "@/lib/types";
+import type { PromptSaveData } from "@/components/prompts/prompt-dialog";
 
 export default function PromptsPage() {
   const params = useParams();
@@ -24,19 +25,25 @@ export default function PromptsPage() {
     isLoading,
     mutate,
   } = useSWR<SystemPrompt[]>(workspaceId ? `/api/w/${workspaceId}/prompts` : null, fetcher);
+  const { data: bots = [], mutate: mutateBots } = useSWR<BotConfig[]>(
+    workspaceId ? `/api/w/${workspaceId}/bots` : null,
+    fetcher,
+  );
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingPrompt, setEditingPrompt] = useState<SystemPrompt | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<SystemPrompt | null>(null);
 
-  const handleCreate = async (data: Pick<SystemPrompt, "name" | "content" | "isGlobal">) => {
+  const handleCreate = async (data: PromptSaveData) => {
     await apiForWorkspace.prompts.create(data);
     mutate();
+    mutateBots();
   };
 
-  const handleEdit = async (data: Pick<SystemPrompt, "name" | "content" | "isGlobal">) => {
+  const handleEdit = async (data: PromptSaveData) => {
     if (!editingPrompt) return;
     await apiForWorkspace.prompts.update(editingPrompt.id, data);
     mutate();
+    mutateBots();
     setEditingPrompt(null);
   };
 
@@ -77,6 +84,7 @@ export default function PromptsPage() {
           open={dialogOpen}
           onOpenChange={setDialogOpen}
           prompt={editingPrompt}
+          bots={bots.map((b) => ({ id: b.id, title: b.title, systemPromptId: b.systemPromptId }))}
           onSave={editingPrompt ? handleEdit : handleCreate}
         />
       </div>
@@ -152,6 +160,7 @@ export default function PromptsPage() {
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         prompt={editingPrompt}
+        bots={bots.map((b) => ({ id: b.id, title: b.title, systemPromptId: b.systemPromptId }))}
         onSave={editingPrompt ? handleEdit : handleCreate}
       />
 

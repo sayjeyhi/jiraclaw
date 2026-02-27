@@ -3,6 +3,7 @@ import { prisma } from "./db";
 import { adminService } from "./services/admin";
 import { workspacesService } from "./services/workspaces";
 import { botsService } from "./services/bots";
+import { skillsService } from "./services/skills";
 import { jiraService } from "./services/jira";
 import { aiModelsService } from "./services/ai-models";
 import { promptsService } from "./services/prompts";
@@ -12,6 +13,7 @@ import { logsService } from "./services/logs";
 export const app = new Elysia({ prefix: "/api", aot: false })
   .use(adminService)
   .use(workspacesService)
+  .use(skillsService)
   .group("/w/:workspaceId", (app) =>
     app
       .derive(async ({ params }) => {

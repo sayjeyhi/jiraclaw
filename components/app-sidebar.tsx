@@ -18,23 +18,19 @@ import {
   X,
   Sun,
   Moon,
-  ChevronRight,
-  Settings,
+  ListTreeIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { UserMenu } from "@/components/user-menu";
 import { Logo } from "@/components/logo";
 import { WorkspaceSwitcher } from "@/components/workspace-switcher";
 
-const mainNavItems = [
-  { name: "Ticket Integration", path: "jira", icon: Kanban },
-  { name: "Logs", path: "logs", icon: ScrollText },
-];
+const mainNavItems = [{ name: "Logs", path: "logs", icon: ScrollText }];
 
 const settingsNavItems = [
   { name: "AI Providers", path: "ai-models", icon: BrainCircuit },
+  { name: "Tickets", path: "jira", icon: Kanban },
   { name: "Prompts", path: "prompts", icon: FileText },
   { name: "Channels", path: "channels", icon: Radio },
 ];
@@ -54,7 +50,6 @@ function SidebarContent({ onNavClick }: { onNavClick?: () => void }) {
     fetcher,
   );
   const hasBots = bots.length > 0;
-  const isOnBotsPage = pathname?.includes("/bots");
 
   return (
     <>
@@ -67,80 +62,73 @@ function SidebarContent({ onNavClick }: { onNavClick?: () => void }) {
 
       <nav className="flex-1 px-3 py-3">
         <ul className="flex flex-col gap-1">
-          {hasBots ? (
-            <li>
-              <Collapsible defaultOpen={isOnBotsPage} className="group/collapsible">
-                <CollapsibleTrigger
-                  className={cn(
-                    "flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                    isOnBotsPage
-                      ? "bg-sidebar-accent text-sidebar-primary"
-                      : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground",
-                  )}
-                >
-                  <Bot className="size-4 shrink-0" />
-                  Bots
-                  <ChevronRight className="ml-auto size-4 shrink-0 transition-transform group-data-[state=open]/collapsible:rotate-90" />
-                </CollapsibleTrigger>
-                <CollapsibleContent>
-                  <ul className="mt-1 flex flex-col gap-0.5 pl-4">
-                    <li>
-                      <Link
-                        href={base ? `${base}/bots` : "/"}
-                        onClick={onNavClick}
-                        className={cn(
-                          "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                          pathname === (base ? `${base}/bots` : "/")
-                            ? "bg-sidebar-accent text-sidebar-primary"
-                            : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground",
-                        )}
-                      >
-                        All Bots
-                      </Link>
-                    </li>
-                    {bots.map((bot) => {
-                      const href = base ? `${base}/bots/${bot.id}` : "/";
-                      const isActive = pathname === href || pathname.startsWith(href + "/");
-                      return (
-                        <li key={bot.id}>
-                          <Link
-                            href={href}
-                            onClick={onNavClick}
-                            className={cn(
-                              "flex items-center gap-3 truncate rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                              isActive
-                                ? "bg-sidebar-accent text-sidebar-primary"
-                                : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground",
-                            )}
-                          >
-                            <Bot className="size-4 shrink-0" />
-                            <span className="truncate">{bot.title}</span>
-                          </Link>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                </CollapsibleContent>
-              </Collapsible>
-            </li>
-          ) : (
-            <li>
-              <Link
-                href={base ? `${base}/bots` : "/"}
-                onClick={onNavClick}
-                className={cn(
-                  "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                  pathname === (base ? `${base}/bots` : "/") ||
-                    pathname?.startsWith((base ? `${base}/bots` : "/") + "/")
-                    ? "bg-sidebar-accent text-sidebar-primary"
-                    : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground",
-                )}
-              >
-                <Bot className="size-4 shrink-0" />
-                Bots
-              </Link>
-            </li>
-          )}
+          <li>
+            <Link
+              href={base ? `${base}/bots` : "/"}
+              onClick={onNavClick}
+              className={cn(
+                "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium",
+                pathname === (base ? `${base}/bots` : "/")
+                  ? "bg-sidebar-accent text-sidebar-primary"
+                  : "text-muted-foreground/90 hover:bg-sidebar-accent hover:text-sidebar-foreground",
+              )}
+            >
+              Bots
+            </Link>
+          </li>
+
+          {hasBots &&
+            bots.map((bot) => {
+              const href = base ? `${base}/bots/${bot.id}` : "/";
+              const isActive = pathname === href || pathname.startsWith(href + "/");
+              return (
+                <li key={bot.id}>
+                  <Link
+                    href={href}
+                    onClick={onNavClick}
+                    className={cn(
+                      "flex items-center gap-3 truncate rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                      isActive
+                        ? "bg-sidebar-accent text-sidebar-primary"
+                        : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground",
+                    )}
+                  >
+                    <Bot className="size-4 shrink-0" />
+                    <span className="truncate">{bot.title}</span>
+                  </Link>
+                </li>
+              );
+            })}
+
+          <li className="mb-5">
+            <span className="mt-5 flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium opacity-50">
+              Settings
+            </span>
+            <ul className="mt-1 flex flex-col gap-0.5">
+              {settingsNavItems.map((item) => {
+                const href = base ? `${base}/${item.path}` : "/";
+                const isActive = pathname === href || pathname.startsWith(href + "/");
+                return (
+                  <li key={item.name}>
+                    <Link
+                      href={href}
+                      onClick={onNavClick}
+                      className={cn(
+                        "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                        isActive
+                          ? "bg-sidebar-accent text-sidebar-primary"
+                          : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground",
+                      )}
+                    >
+                      <item.icon className="size-4 shrink-0" />
+                      {item.name}
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </li>
+
           {mainNavItems.map((item) => {
             const href = base ? `${base}/${item.path}` : "/";
             const isActive = pathname === href || pathname.startsWith(href + "/");
@@ -162,56 +150,6 @@ function SidebarContent({ onNavClick }: { onNavClick?: () => void }) {
               </li>
             );
           })}
-          <li>
-            <Collapsible
-              defaultOpen={settingsNavItems.some((item) => {
-                const href = base ? `${base}/${item.path}` : "/";
-                return pathname === href || pathname.startsWith(href + "/");
-              })}
-              className="group/collapsible"
-            >
-              <CollapsibleTrigger
-                className={cn(
-                  "flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                  settingsNavItems.some((item) => {
-                    const href = base ? `${base}/${item.path}` : "/";
-                    return pathname === href || pathname.startsWith(href + "/");
-                  })
-                    ? "bg-sidebar-accent text-sidebar-primary"
-                    : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground",
-                )}
-              >
-                <Settings className="size-4 shrink-0" />
-                Settings
-                <ChevronRight className="ml-auto size-4 shrink-0 transition-transform group-data-[state=open]/collapsible:rotate-90" />
-              </CollapsibleTrigger>
-              <CollapsibleContent>
-                <ul className="mt-1 flex flex-col gap-0.5 pl-4">
-                  {settingsNavItems.map((item) => {
-                    const href = base ? `${base}/${item.path}` : "/";
-                    const isActive = pathname === href || pathname.startsWith(href + "/");
-                    return (
-                      <li key={item.name}>
-                        <Link
-                          href={href}
-                          onClick={onNavClick}
-                          className={cn(
-                            "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                            isActive
-                              ? "bg-sidebar-accent text-sidebar-primary"
-                              : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground",
-                          )}
-                        >
-                          <item.icon className="size-4 shrink-0" />
-                          {item.name}
-                        </Link>
-                      </li>
-                    );
-                  })}
-                </ul>
-              </CollapsibleContent>
-            </Collapsible>
-          </li>
         </ul>
       </nav>
 

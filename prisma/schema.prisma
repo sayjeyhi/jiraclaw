@@ -59,7 +59,8 @@ model BotConfig {
   workspaceId         String
   title               String
   email               String
-  botSkillDescription String
+  botSkillDescription String    @default("")
+  skills              String[]  @default([]) // skills.sh skill ids (owner/repo/skill-name)
   status              String // "active" | "idle" | "working" | "error"
   defaultProvider     String?
   defaultModel        String?

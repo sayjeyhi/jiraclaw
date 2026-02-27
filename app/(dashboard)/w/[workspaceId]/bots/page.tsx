@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState } from "react";
 import useSWR from "swr";
@@ -9,7 +10,6 @@ import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { PageHeader } from "@/components/page-header";
 import { EmptyStatePlaceholder } from "@/components/empty-state-placeholder";
 import { BotCard } from "@/components/bots/bot-card";
-import { BotDialog } from "@/components/bots/bot-dialog";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { PageSkeleton } from "@/components/loading-skeletons";
 import { fetcher, api } from "@/lib/api";
@@ -41,23 +41,9 @@ export default function BotsPage() {
       return results.flat();
     },
   );
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingBot, setEditingBot] = useState<BotConfig | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<BotConfig | null>(null);
 
   const hasConfiguredProvider = providers.some((p) => p.enabled);
-
-  const handleCreate = async (data: Omit<BotConfig, "id" | "createdAt" | "status">) => {
-    await apiForWorkspace.bots.create(data as unknown as Record<string, unknown>);
-    mutateBots();
-  };
-
-  const handleEdit = async (data: Omit<BotConfig, "id" | "createdAt" | "status">) => {
-    if (!editingBot) return;
-    await apiForWorkspace.bots.update(editingBot.id, data as unknown as Record<string, unknown>);
-    mutateBots();
-    setEditingBot(null);
-  };
 
   if (isLoading) return <PageSkeleton />;
 
@@ -67,15 +53,11 @@ export default function BotsPage() {
         title="Bots"
         description="Create and manage AI-powered bots that monitor Jira and interact with repositories."
       >
-        <Button
-          disabled={!hasConfiguredProvider}
-          onClick={() => {
-            setEditingBot(null);
-            setDialogOpen(true);
-          }}
-        >
-          <Plus className="mr-2 size-4" />
-          Create Bot
+        <Button disabled={!hasConfiguredProvider} asChild>
+          <Link href={`/w/${workspaceId}/bots/new`}>
+            <Plus className="mr-2 size-4" />
+            Create Bot
+          </Link>
         </Button>
       </PageHeader>
 
@@ -106,28 +88,19 @@ export default function BotsPage() {
               : "Configure an AI provider first, then come back to create your first bot."
           }
           actionLabel={hasConfiguredProvider ? "Create Bot" : "Go to AI Providers"}
-          actionHref={hasConfiguredProvider ? undefined : `/w/${workspaceId}/ai-models`}
-          onAction={
-            hasConfiguredProvider
-              ? () => {
-                  setEditingBot(null);
-                  setDialogOpen(true);
-                }
-              : undefined
+          actionHref={
+            hasConfiguredProvider ? `/w/${workspaceId}/bots/new` : `/w/${workspaceId}/ai-models`
           }
         />
       ) : (
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="flex flex-col gap-4">
           {(bots ?? []).map((bot) => (
             <BotCard
               key={bot.id}
               bot={bot}
               tickets={allTickets.filter((t) => t.botId === bot.id)}
+              editHref={`/w/${workspaceId}/bots/${bot.id}/edit`}
               workspaceId={workspaceId}
-              onEdit={(b) => {
-                setEditingBot(b);
-                setDialogOpen(true);
-              }}
               onDelete={(id) => {
                 const target = (bots ?? []).find((b) => b.id === id);
                 if (target) setDeleteTarget(target);
@@ -136,14 +109,6 @@ export default function BotsPage() {
           ))}
         </div>
       )}
-
-      <BotDialog
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
-        bot={editingBot}
-        providers={providers}
-        onSave={editingBot ? handleEdit : handleCreate}
-      />
 
       <ConfirmDialog
         open={!!deleteTarget}

@@ -14,7 +14,7 @@ const PermissionsSchema = t.Object({
     edit: t.Boolean(),
     delete: t.Boolean(),
   }),
-  ai_models: t.Object({ view: t.Boolean(), edit: t.Boolean() }),
+  ai_providers: t.Object({ view: t.Boolean(), edit: t.Boolean() }),
   prompts: t.Object({
     view: t.Boolean(),
     create: t.Boolean(),

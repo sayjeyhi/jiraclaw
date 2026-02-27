@@ -76,8 +76,8 @@ const SERVICE_SECTIONS: {
     ],
   },
   {
-    key: "ai_models",
-    label: "AI Models",
+    key: "ai_providers",
+    label: "AI Providers",
     actions: [
       { key: "view", label: "View" },
       { key: "edit", label: "Edit / Toggle" },

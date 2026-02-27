@@ -66,15 +66,21 @@ export function WorkspaceSwitcher() {
   const atLimit = workspaces.length >= WORKSPACE_LIMIT;
 
   return (
-    <>
+    <div className="flex items-center gap-2 text-xs">
+      Workspace:{" "}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" role="combobox" className="min-w-[180px] justify-between gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            role="combobox"
+            className="min-w-40 justify-between gap-2"
+          >
             <span className="truncate">{currentWorkspace?.name ?? "Select workspace"}</span>
             <ChevronsUpDown className="size-4 shrink-0 opacity-50" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="min-w-[180px]">
+        <DropdownMenuContent align="start" className="min-w-40">
           {workspaces.map((ws) => (
             <DropdownMenuItem
               key={ws.id}
@@ -105,7 +111,6 @@ export function WorkspaceSwitcher() {
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
-
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -125,6 +130,6 @@ export function WorkspaceSwitcher() {
           />
         </DialogContent>
       </Dialog>
-    </>
+    </div>
   );
 }

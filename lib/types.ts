@@ -9,8 +9,8 @@ export type ServiceAction =
   | "jira.create"
   | "jira.edit"
   | "jira.delete"
-  | "ai_models.view"
-  | "ai_models.edit"
+  | "ai_providers.view"
+  | "ai_providers.edit"
   | "prompts.view"
   | "prompts.create"
   | "prompts.edit"
@@ -22,7 +22,7 @@ export type ServiceAction =
 export interface UserPermissions {
   bots: { view: boolean; create: boolean; edit: boolean; delete: boolean };
   jira: { view: boolean; create: boolean; edit: boolean; delete: boolean };
-  ai_models: { view: boolean; edit: boolean };
+  ai_providers: { view: boolean; edit: boolean };
   prompts: { view: boolean; create: boolean; edit: boolean; delete: boolean };
   channels: { view: boolean; edit: boolean };
   logs: { view: boolean };
@@ -31,7 +31,7 @@ export interface UserPermissions {
 export const ADMIN_PERMISSIONS: UserPermissions = {
   bots: { view: true, create: true, edit: true, delete: true },
   jira: { view: true, create: true, edit: true, delete: true },
-  ai_models: { view: true, edit: true },
+  ai_providers: { view: true, edit: true },
   prompts: { view: true, create: true, edit: true, delete: true },
   channels: { view: true, edit: true },
   logs: { view: true },
@@ -40,7 +40,7 @@ export const ADMIN_PERMISSIONS: UserPermissions = {
 export const DEFAULT_USER_PERMISSIONS: UserPermissions = {
   bots: { view: true, create: false, edit: false, delete: false },
   jira: { view: true, create: false, edit: false, delete: false },
-  ai_models: { view: true, edit: false },
+  ai_providers: { view: true, edit: false },
   prompts: { view: true, create: false, edit: false, delete: false },
   channels: { view: true, edit: false },
   logs: { view: true },

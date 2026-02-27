@@ -44,7 +44,7 @@ export default function AIModelsPage() {
 
   return (
     <div className="flex flex-col gap-6 pb-2">
-      <PageHeader title="AI Model Configuration" description="Configure AI providers, API keys">
+      <PageHeader title="AI Providers" description="Configure AI providers, API keys">
         <div className="flex items-center gap-3">
           <Button onClick={() => setConfigureOpen(true)}>Configure AI provider</Button>
         </div>

@@ -11,11 +11,11 @@ export const defaultSupervisedSettings: SupervisedSettings = {
 };
 
 export const STEPS = [
-  { id: 1, label: "Autonomy", icon: ShieldCheck, optional: false },
-  { id: 2, label: "Identity", icon: Bot, optional: false },
-  { id: 3, label: "Skill", icon: Sparkles, optional: false },
-  { id: 4, label: "AI Model", icon: Cpu, optional: true },
-  { id: 5, label: "Credentials", icon: KeyRound, optional: true },
+  { id: 1, label: "1.Autonomy", icon: ShieldCheck, optional: false },
+  { id: 2, label: "2.Identity", icon: Bot, optional: false },
+  { id: 3, label: "3.Skill", icon: Sparkles, optional: false },
+  { id: 4, label: "4.AI Model", icon: Cpu, optional: true },
+  { id: 5, label: "5.Credentials", icon: KeyRound, optional: true },
 ] as const;
 
 // ── Zod schemas ──────────────────────────────────────────────────────────────

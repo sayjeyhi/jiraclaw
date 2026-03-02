@@ -28,7 +28,7 @@ export async function createWorkspace(name: string, slug: string) {
         create: {
           id: `wm-${Date.now()}`,
           userId: session.user.id,
-          role: "owner",
+          role: "admin",
         },
       },
     },

@@ -40,7 +40,13 @@ export const api = {
       request("/admin/users", { method: "POST", body: JSON.stringify(body) }),
     updateUser: (id: string, body: Record<string, unknown>) =>
       request(`/admin/users/${id}`, { method: "PUT", body: JSON.stringify(body) }),
-    deleteUser: (id: string) => request(`/admin/users/${id}`, { method: "DELETE" }),
+    deleteUser: (id: string) =>
+      request(`/admin/users/${id}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/octet-stream",
+        },
+      }),
   },
 
   skills: {
@@ -70,7 +76,18 @@ export const api = {
           method: "PUT",
           body: JSON.stringify(body),
         }),
-      delete: (id: string) => request(`${w(workspaceId)}/bots/${id}`, { method: "DELETE" }),
+      updateSkills: (id: string, skills: string[]) =>
+        request(`${w(workspaceId)}/bots/${id}/skills`, {
+          method: "PATCH",
+          body: JSON.stringify({ skills }),
+        }),
+      delete: (id: string) =>
+        request(`${w(workspaceId)}/bots/${id}`, {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/octet-stream",
+          },
+        }),
     },
     jira: {
       list: () => request(`${w(workspaceId)}/jira`),
@@ -85,7 +102,13 @@ export const api = {
           method: "PUT",
           body: JSON.stringify(body),
         }),
-      delete: (id: string) => request(`${w(workspaceId)}/jira/${id}`, { method: "DELETE" }),
+      delete: (id: string) =>
+        request(`${w(workspaceId)}/jira/${id}`, {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/octet-stream",
+          },
+        }),
     },
     aiModels: {
       list: () => request(`${w(workspaceId)}/ai-models`),
@@ -114,7 +137,13 @@ export const api = {
           method: "PUT",
           body: JSON.stringify(body),
         }),
-      delete: (id: string) => request(`${w(workspaceId)}/prompts/${id}`, { method: "DELETE" }),
+      delete: (id: string) =>
+        request(`${w(workspaceId)}/prompts/${id}`, {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/octet-stream",
+          },
+        }),
     },
     channels: {
       list: () => request(`${w(workspaceId)}/channels`),
@@ -135,6 +164,9 @@ export const api = {
         const qs = params ? "?" + new URLSearchParams(params).toString() : "";
         return request(`${w(workspaceId)}/logs${qs}`);
       },
+    },
+    memberships: {
+      list: () => request(`${w(workspaceId)}/memberships`),
     },
   }),
 };

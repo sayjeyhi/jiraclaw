@@ -1,8 +1,11 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Sparkles, ExternalLink } from "lucide-react";
+import { Sparkles, ExternalLink, Pencil, Check, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { SkillsPicker } from "@/components/bots/skills-picker";
 import type { BotConfig } from "@/lib/types";
 
 const SKILLS_URL = "https://skills.sh";
@@ -10,10 +13,32 @@ const SKILLS_URL = "https://skills.sh";
 interface BotDetailSkillsProps {
   bot: BotConfig;
   workspaceId: string;
+  onSkillsSave: (skills: string[]) => Promise<void>;
 }
 
-export function BotDetailSkills({ bot, workspaceId }: BotDetailSkillsProps) {
-  const skills = bot.skills ?? [];
+export function BotDetailSkills({ bot, workspaceId, onSkillsSave }: BotDetailSkillsProps) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [skills, setSkills] = useState<string[]>(bot.skills ?? []);
+  const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    if (!isEditing) setSkills(bot.skills ?? []);
+  }, [bot.skills, isEditing]);
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      await onSkillsSave(skills);
+      setIsEditing(false);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleCancel = () => {
+    setSkills(bot.skills ?? []);
+    setIsEditing(false);
+  };
 
   return (
     <div className="border-border flex flex-col gap-3 rounded-lg border p-4">
@@ -29,17 +54,45 @@ export function BotDetailSkills({ bot, workspaceId }: BotDetailSkillsProps) {
           From skills.sh
           <ExternalLink className="size-3" />
         </a>
+        {!isEditing ? (
+          <Button variant="ghost" size="sm" onClick={() => setIsEditing(true)}>
+            <Pencil className="mr-1 size-3.5" />
+            Edit
+          </Button>
+        ) : (
+          <div className="ml-auto flex gap-1">
+            <Button variant="ghost" size="sm" onClick={handleCancel} disabled={isSaving}>
+              <X className="mr-1 size-3.5" />
+              Cancel
+            </Button>
+            <Button size="sm" onClick={handleSave} disabled={isSaving}>
+              {isSaving ? (
+                "Saving..."
+              ) : (
+                <>
+                  <Check className="mr-1 size-3.5" />
+                  Save
+                </>
+              )}
+            </Button>
+          </div>
+        )}
       </div>
-      {skills.length === 0 ? (
+
+      {isEditing ? (
+        <SkillsPicker value={skills} onChange={setSkills} />
+      ) : skills.length === 0 ? (
         <p className="text-muted-foreground text-sm">
-          No skills added.{" "}
-          <Link
-            href={`/w/${workspaceId}/bots/${bot.id}/edit`}
+          No skills added. Click Edit to add skills from{" "}
+          <a
+            href={SKILLS_URL}
+            target="_blank"
+            rel="noopener noreferrer"
             className="text-primary hover:underline"
           >
-            Edit bot
-          </Link>{" "}
-          to add skills from skills.sh.
+            skills.sh
+          </a>
+          .
         </p>
       ) : (
         <div className="flex flex-wrap gap-2">

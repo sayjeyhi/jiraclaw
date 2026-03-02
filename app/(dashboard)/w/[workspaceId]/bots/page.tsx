@@ -53,12 +53,19 @@ export default function BotsPage() {
         title="Bots"
         description="Create and manage AI-powered bots that monitor Jira and interact with repositories."
       >
-        <Button disabled={!hasConfiguredProvider} asChild>
-          <Link href={`/w/${workspaceId}/bots/new`}>
+        {hasConfiguredProvider ? (
+          <Button asChild>
+            <Link href={`/w/${workspaceId}/bots/new`}>
+              <Plus className="mr-2 size-4" />
+              Create Bot
+            </Link>
+          </Button>
+        ) : (
+          <Button disabled title="Configure an AI provider first">
             <Plus className="mr-2 size-4" />
             Create Bot
-          </Link>
-        </Button>
+          </Button>
+        )}
       </PageHeader>
 
       {!hasConfiguredProvider && (

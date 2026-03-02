@@ -1,6 +1,18 @@
 import { Elysia, t } from "elysia";
 import { prisma } from "../db";
 
+const MAX_SKILLS = 10;
+// skills.sh format: owner/repo/skill-name
+const SKILL_ID_REGEX = /^[^/]+\/[^/]+\/[^/]+$/;
+
+function normalizeSkills(skills: unknown): string[] {
+  if (!Array.isArray(skills)) return [];
+  return skills
+    .filter((s): s is string => typeof s === "string")
+    .filter((id) => SKILL_ID_REGEX.test(id))
+    .slice(0, MAX_SKILLS);
+}
+
 const supervisedSettingsSchema = t.Object({
   confirmSolutionBeforeStart: t.Boolean(),
   allowPrCreation: t.Boolean(),
@@ -44,10 +56,29 @@ export const botsService = new Elysia({ prefix: "/bots", aot: false })
       where: { botId: params.id, workspaceId: params.workspaceId },
     }),
   )
+  .patch(
+    "/:id/skills",
+    async ({ params, body }) => {
+      const existing = await prisma.botConfig.findFirst({
+        where: { id: params.id, workspaceId: params.workspaceId },
+      });
+      if (!existing) throw new Error("Bot not found");
+      const skills = normalizeSkills(body.skills);
+      const botSkillDescription =
+        skills.length > 0
+          ? `Skills from skills.sh: ${skills.join(", ")}`
+          : existing.botSkillDescription;
+      return prisma.botConfig.update({
+        where: { id: params.id },
+        data: { skills, botSkillDescription },
+      });
+    },
+    { body: t.Object({ skills: t.Array(t.String()) }) },
+  )
   .post(
     "/",
     async ({ params, body }) => {
-      const skills = body.skills ?? [];
+      const skills = normalizeSkills(body.skills ?? []);
       const botSkillDescription =
         body.botSkillDescription ??
         (skills.length > 0 ? `Skills from skills.sh: ${skills.join(", ")}` : "");
@@ -73,12 +104,14 @@ export const botsService = new Elysia({ prefix: "/bots", aot: false })
         where: { id: params.id, workspaceId: params.workspaceId },
       });
       if (!existing) throw new Error("Bot not found");
-      const skills = body.skills ?? existing.skills ?? [];
+      const skills =
+        body.skills !== undefined ? normalizeSkills(body.skills) : (existing.skills ?? []);
       const botSkillDescription =
-        body.botSkillDescription ??
-        (skills.length > 0
-          ? `Skills from skills.sh: ${skills.join(", ")}`
-          : existing.botSkillDescription);
+        body.botSkillDescription !== undefined
+          ? body.botSkillDescription
+          : skills.length > 0
+            ? `Skills from skills.sh: ${skills.join(", ")}`
+            : existing.botSkillDescription;
       const updateData: Record<string, unknown> = {
         ...body,
         skills,

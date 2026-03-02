@@ -184,7 +184,7 @@ export function ChannelDialog({ open, onOpenChange, existingSlugs, onSave }: Cha
                 </div>
                 <span
                   className={cn(
-                    "text-[10px] font-medium",
+                    "w-full text-[10px] font-medium",
                     isCurrent ? "text-primary" : "text-muted-foreground",
                   )}
                 >

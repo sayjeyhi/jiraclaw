@@ -204,7 +204,7 @@ export function MobileHeader() {
             onClick={() => setOpen(false)}
             aria-hidden
           />
-          <aside className="bg-sidebar fixed inset-y-0 left-0 z-50 flex w-64 flex-col md:hidden">
+          <aside className="bg-sidebar fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r md:hidden">
             <div className="absolute top-3.5 right-3 z-10">
               <Button
                 variant="ghost"

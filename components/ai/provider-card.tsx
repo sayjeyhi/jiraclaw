@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, ChevronUp, Eye, EyeOff, Key } from "lucide-react";
+import { Eye, EyeOff, Key } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,7 +17,6 @@ interface ProviderCardProps {
 }
 
 export function ProviderCard({ provider, onToggle, onUpdateApiKey }: ProviderCardProps) {
-  const [expanded, setExpanded] = useState(false);
   const [showKey, setShowKey] = useState(false);
   const [apiKey, setApiKey] = useState(provider.apiKey ?? "");
 
@@ -59,74 +58,62 @@ export function ProviderCard({ provider, onToggle, onUpdateApiKey }: ProviderCar
             checked={provider.enabled}
             onCheckedChange={(checked) => onToggle(provider.id, checked)}
           />
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="text-muted-foreground size-7"
-            onClick={() => setExpanded(!expanded)}
-          >
-            {expanded ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
-            <span className="sr-only">Toggle details</span>
-          </Button>
         </div>
       </div>
 
-      {expanded && (
-        <div className="border-border border-t px-4 py-3">
-          <div className="flex flex-col gap-4">
+      <div className="border-border border-t px-4 py-3">
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-2">
+            <Label className="text-xs">API Key</Label>
+            <div className="flex items-center gap-2">
+              <Input
+                type={showKey ? "text" : "password"}
+                placeholder="Enter API key..."
+                value={apiKey}
+                onChange={(e) => setApiKey(e.target.value)}
+                className="font-mono text-xs"
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="size-8 shrink-0"
+                onClick={() => setShowKey(!showKey)}
+              >
+                {showKey ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                <span className="sr-only">{showKey ? "Hide" : "Show"} API key</span>
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                onClick={() => onUpdateApiKey(provider.id, apiKey)}
+              >
+                Save
+              </Button>
+            </div>
+          </div>
+
+          {provider.models.length > 0 && (
             <div className="flex flex-col gap-2">
-              <Label className="text-xs">API Key</Label>
-              <div className="flex items-center gap-2">
-                <Input
-                  type={showKey ? "text" : "password"}
-                  placeholder="Enter API key..."
-                  value={apiKey}
-                  onChange={(e) => setApiKey(e.target.value)}
-                  className="font-mono text-xs"
-                />
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="size-8 shrink-0"
-                  onClick={() => setShowKey(!showKey)}
-                >
-                  {showKey ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-                  <span className="sr-only">{showKey ? "Hide" : "Show"} API key</span>
-                </Button>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  onClick={() => onUpdateApiKey(provider.id, apiKey)}
-                >
-                  Save
-                </Button>
+              <Label className="text-xs">Available Models</Label>
+              <div className="flex max-h-40 flex-wrap gap-2 overflow-y-auto">
+                {provider.models.map((model) => (
+                  <div
+                    key={model.id}
+                    className="border-border bg-muted/50 flex items-center gap-2 rounded-md border px-3 py-1.5"
+                  >
+                    <span className="text-foreground font-mono text-xs">{model.name}</span>
+                    <span className="text-muted-foreground text-[10px]">
+                      {(model.maxTokens / 1000).toFixed(0)}k tokens
+                    </span>
+                  </div>
+                ))}
               </div>
             </div>
-
-            {provider.models.length > 0 && (
-              <div className="flex flex-col gap-2">
-                <Label className="text-xs">Available Models</Label>
-                <div className="flex max-h-40 flex-wrap gap-2 overflow-y-auto">
-                  {provider.models.map((model) => (
-                    <div
-                      key={model.id}
-                      className="border-border bg-muted/50 flex items-center gap-2 rounded-md border px-3 py-1.5"
-                    >
-                      <span className="text-foreground font-mono text-xs">{model.name}</span>
-                      <span className="text-muted-foreground text-[10px]">
-                        {(model.maxTokens / 1000).toFixed(0)}k tokens
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }

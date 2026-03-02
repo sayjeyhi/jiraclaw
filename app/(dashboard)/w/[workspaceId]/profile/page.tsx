@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "next-themes";
-import { ArrowLeft, Mail, Shield, User, Calendar, Save, Sun, Moon, Monitor } from "lucide-react";
+import { Mail, Shield, User, Calendar, Save, Sun, Moon, Monitor } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -50,11 +50,11 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" className="size-8" onClick={() => router.back()}>
-          <ArrowLeft className="size-4" />
-        </Button>
+        <div className="bg-primary/5 text-primary flex size-8 items-center justify-center rounded">
+          <User className="text-primary size-5" />
+        </div>
         <h1 className="text-foreground text-2xl font-semibold tracking-tight">Profile</h1>
       </div>
 

@@ -17,15 +17,7 @@ export function StepIndicator({ currentStep }: StepIndicatorProps) {
           const isCurrent = currentStep === s.id;
           return (
             <div key={s.id} className="flex flex-1 flex-col items-center gap-1">
-              <div className="flex w-full items-center gap-1">
-                {i > 0 && (
-                  <div
-                    className={cn(
-                      "h-px flex-1 transition-colors",
-                      isCompleted || isCurrent ? "bg-primary" : "bg-border",
-                    )}
-                  />
-                )}
+              <div className="flex w-full items-center justify-start gap-1">
                 <div
                   className={cn(
                     "flex size-8 items-center justify-center rounded-full border-2 transition-all",
@@ -36,18 +28,16 @@ export function StepIndicator({ currentStep }: StepIndicatorProps) {
                 >
                   <Icon className="size-4" />
                 </div>
-                {i < STEPS.length - 1 && (
-                  <div
-                    className={cn(
-                      "h-px flex-1 transition-colors",
-                      isCompleted ? "bg-primary" : "bg-border",
-                    )}
-                  />
-                )}
+                <div
+                  className={cn(
+                    "h-px flex-1 transition-colors",
+                    isCompleted ? "bg-primary" : "bg-border",
+                  )}
+                />
               </div>
               <span
                 className={cn(
-                  "text-[10px] font-medium",
+                  "w-full text-[10px] font-medium",
                   isCurrent ? "text-primary" : "text-muted-foreground",
                 )}
               >

@@ -1,3 +1,5 @@
+# Only for development and testing environments.
+# For production, use a managed database service or a separate database container with proper security and backup strategies.
 services:
   # Database (Postgres)
   postgres:
@@ -16,6 +18,38 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+  # Queue and background worker (Inngest)
+  inngest:
+    image: inngest/inngest:latest
+    restart: always
+    command: >
+      inngest dev
+      -u http://host.docker.internal:3000/api/inngest
+    ports:
+      - "8288:8288"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+#  jiraclaw_redis:
+#    image: redis:7-alpine
+#    container_name: jiraclaw_redis
+#    restart: always
+#    ports:
+#      - "${REDIS_PORT}:6379"
+#    volumes:
+#      - redis_data:/data
+#    networks:
+#      - jiraclaw_network
+#    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru --requirepass ${REDIS_PASSWORD}
+#    healthcheck:
+#      test: [ "CMD", "redis-cli", "ping" ]
+#      interval: 10s
+#      timeout: 3s
+#      retries: 3
+
+networks:
+  jiraclaw_network:
 
 volumes:
   postgres_data:
+  redis_data:

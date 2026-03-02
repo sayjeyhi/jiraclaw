@@ -9,7 +9,7 @@ import { BotDetailSkills } from "@/components/bots/bot-detail-skills";
 import { BotDetailStats } from "@/components/bots/bot-detail-stats";
 import { BotDetailSummary } from "@/components/bots/bot-detail-summary";
 import { BotTicketsList } from "@/components/bots/bot-tickets-list";
-import { fetcher } from "@/lib/api";
+import { fetcher, api } from "@/lib/api";
 import type { BotConfig, BotTicket } from "@/lib/types";
 
 export default function BotDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -19,7 +19,7 @@ export default function BotDetailPage({ params }: { params: Promise<{ id: string
   const searchParams = useSearchParams();
   const ticketIdFromUrl = searchParams.get("ticket");
 
-  const { data: bot } = useSWR<BotConfig>(
+  const { data: bot, mutate: mutateBot } = useSWR<BotConfig>(
     workspaceId ? `/api/w/${workspaceId}/bots/${id}` : null,
     fetcher,
   );
@@ -27,6 +27,12 @@ export default function BotDetailPage({ params }: { params: Promise<{ id: string
     workspaceId ? `/api/w/${workspaceId}/bots/${id}/tickets` : null,
     fetcher,
   );
+
+  const handleSkillsSave = async (skills: string[]) => {
+    if (!bot) return;
+    await api.forWorkspace(workspaceId).bots.updateSkills(id, skills);
+    mutateBot();
+  };
 
   if (!bot) {
     return <BotDetailSkeleton />;
@@ -37,8 +43,8 @@ export default function BotDetailPage({ params }: { params: Promise<{ id: string
       <BotDetailHeader bot={bot} workspaceId={workspaceId} />
       <BotDetailStats bot={bot} />
       <BotDetailSummary tickets={tickets} />
+      <BotDetailSkills bot={bot} workspaceId={workspaceId} onSkillsSave={handleSkillsSave} />
       <BotTicketsList tickets={tickets} expandedTicketId={ticketIdFromUrl} />
-      <BotDetailSkills bot={bot} workspaceId={workspaceId} />
     </div>
   );
 }

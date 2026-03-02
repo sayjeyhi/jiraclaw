@@ -94,8 +94,8 @@ export function ConfigureProviderDialog({
   };
 
   const STEPS = [
-    { id: 1, label: "Select provider", icon: BrainCircuit },
-    { id: 2, label: "Configure API key", icon: KeyRound },
+    { id: 1, label: "1.Select provider", icon: BrainCircuit },
+    { id: 2, label: "2.Configure API key", icon: KeyRound },
   ] as const;
 
   return (
@@ -119,14 +119,6 @@ export function ConfigureProviderDialog({
             return (
               <div key={s.id} className="flex flex-1 flex-col items-center gap-1">
                 <div className="flex w-full items-center gap-1">
-                  {i > 0 && (
-                    <div
-                      className={cn(
-                        "h-px flex-1 transition-colors",
-                        isCompleted || isCurrent ? "bg-primary" : "bg-border",
-                      )}
-                    />
-                  )}
                   <div
                     className={cn(
                       "flex size-7 items-center justify-center rounded-full border-2 transition-all",
@@ -137,18 +129,16 @@ export function ConfigureProviderDialog({
                   >
                     <Icon className="size-3.5" />
                   </div>
-                  {i < STEPS.length - 1 && (
-                    <div
-                      className={cn(
-                        "h-px flex-1 transition-colors",
-                        isCompleted ? "bg-primary" : "bg-border",
-                      )}
-                    />
-                  )}
+                  <div
+                    className={cn(
+                      "h-px flex-1 transition-colors",
+                      isCompleted ? "bg-primary" : "bg-border",
+                    )}
+                  />
                 </div>
                 <span
                   className={cn(
-                    "text-[10px] font-medium",
+                    "w-full text-[10px] font-medium",
                     isCurrent ? "text-primary" : "text-muted-foreground",
                   )}
                 >

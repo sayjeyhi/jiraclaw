@@ -20,12 +20,22 @@ export const workspacesService = new Elysia({ prefix: "/workspaces", aot: false 
   })
   .post(
     "/",
-    async ({ body }) => {
+    async ({ body, headers }) => {
+      const session = await auth.api.getSession({ headers });
+      if (!session) throw new Error("Unauthorized");
+      const workspaceId = `ws-${Date.now()}`;
       const ws = await prisma.workspace.create({
         data: {
-          id: `ws-${Date.now()}`,
+          id: workspaceId,
           name: body.name,
           slug: body.slug,
+          members: {
+            create: {
+              id: `wm-${Date.now()}`,
+              userId: session.user.id,
+              role: "admin",
+            },
+          },
         },
       });
       return ws;

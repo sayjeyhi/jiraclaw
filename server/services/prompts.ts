@@ -9,17 +9,33 @@ const promptBody = t.Object({
   botIds: t.Optional(t.Array(t.String())),
 });
 
+const paramsBody = t.Object({
+  workspaceId: t.String(),
+  id: t.Optional(t.String()),
+});
+
+const paramsType = {
+  params: paramsBody,
+};
+
 export const promptsService = new Elysia({ prefix: "/prompts", aot: false })
-  .get("/", async ({ params }) =>
-    prisma.systemPrompt.findMany({ where: { workspaceId: params.workspaceId } }),
+  .get(
+    "/",
+    async ({ params }) =>
+      prisma.systemPrompt.findMany({ where: { workspaceId: params.workspaceId } }),
+    paramsType,
   )
-  .get("/:id", async ({ params }) => {
-    const p = await prisma.systemPrompt.findFirst({
-      where: { id: params.id, workspaceId: params.workspaceId },
-    });
-    if (!p) throw new Error("Prompt not found");
-    return p;
-  })
+  .get(
+    "/:id",
+    async ({ params }) => {
+      const p = await prisma.systemPrompt.findFirst({
+        where: { id: params.id, workspaceId: params.workspaceId },
+      });
+      if (!p) throw new Error("Prompt not found");
+      return p;
+    },
+    paramsType,
+  )
   .post(
     "/",
     async ({ params, body }) => {
@@ -43,7 +59,7 @@ export const promptsService = new Elysia({ prefix: "/prompts", aot: false })
       }
       return prompt;
     },
-    { body: promptBody },
+    { body: promptBody, params: paramsBody },
   )
   .put(
     "/:id",
@@ -89,13 +105,17 @@ export const promptsService = new Elysia({ prefix: "/prompts", aot: false })
       }
       return prompt;
     },
-    { body: t.Partial(promptBody) },
+    { body: t.Partial(promptBody), params: paramsBody },
   )
-  .delete("/:id", async ({ params }) => {
-    const existing = await prisma.systemPrompt.findFirst({
-      where: { id: params.id, workspaceId: params.workspaceId },
-    });
-    if (!existing) throw new Error("Prompt not found");
-    await prisma.systemPrompt.delete({ where: { id: params.id } });
-    return { success: true };
-  });
+  .delete(
+    "/:id",
+    async ({ params }) => {
+      const existing = await prisma.systemPrompt.findFirst({
+        where: { id: params.id, workspaceId: params.workspaceId },
+      });
+      if (!existing) throw new Error("Prompt not found");
+      await prisma.systemPrompt.delete({ where: { id: params.id } });
+      return { success: true };
+    },
+    paramsType,
+  );

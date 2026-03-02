@@ -18,7 +18,6 @@ interface ChannelCardProps {
 }
 
 export function ChannelCard({ channel, onToggle, onUpdateCredentials }: ChannelCardProps) {
-  const [expanded, setExpanded] = useState(false);
   const [showSecrets, setShowSecrets] = useState(false);
   const [credentials, setCredentials] = useState(channel.credentials);
 
@@ -68,65 +67,54 @@ export function ChannelCard({ channel, onToggle, onUpdateCredentials }: ChannelC
             checked={channel.enabled}
             onCheckedChange={(checked) => onToggle(channel.id, checked)}
           />
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-muted-foreground size-7"
-            onClick={() => setExpanded(!expanded)}
-          >
-            {expanded ? <ChevronUp className="size-4" /> : <ChevronDown className="size-4" />}
-            <span className="sr-only">Toggle details</span>
-          </Button>
         </div>
       </div>
 
-      {expanded && (
-        <div className="border-border border-t px-4 py-3">
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center justify-between">
-              <Label className="text-xs">Credentials</Label>
+      <div className="border-border border-t px-4 py-3">
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center justify-between">
+            <Label className="text-xs">Credentials</Label>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="h-6 text-xs"
+              onClick={() => setShowSecrets(!showSecrets)}
+            >
+              {showSecrets ? <EyeOff className="mr-1 size-3" /> : <Eye className="mr-1 size-3" />}
+              {showSecrets ? "Hide" : "Show"}
+            </Button>
+          </div>
+
+          {credentialKeys.length > 0 ? (
+            <div className="flex flex-col gap-2">
+              {credentialKeys.map((key) => (
+                <div key={key} className="flex items-center gap-2">
+                  <Label className="text-muted-foreground w-28 shrink-0 text-xs">{key}</Label>
+                  <Input
+                    type={showSecrets ? "text" : "password"}
+                    value={credentials[key]}
+                    onChange={(e) => updateCredential(key, e.target.value)}
+                    className="font-mono text-xs"
+                  />
+                </div>
+              ))}
               <Button
-                type="button"
-                variant="ghost"
                 size="sm"
-                className="h-6 text-xs"
-                onClick={() => setShowSecrets(!showSecrets)}
+                variant="outline"
+                className="self-end"
+                onClick={() => onUpdateCredentials(channel.id, credentials)}
               >
-                {showSecrets ? <EyeOff className="mr-1 size-3" /> : <Eye className="mr-1 size-3" />}
-                {showSecrets ? "Hide" : "Show"}
+                Save Credentials
               </Button>
             </div>
-
-            {credentialKeys.length > 0 ? (
-              <div className="flex flex-col gap-2">
-                {credentialKeys.map((key) => (
-                  <div key={key} className="flex items-center gap-2">
-                    <Label className="text-muted-foreground w-28 shrink-0 text-xs">{key}</Label>
-                    <Input
-                      type={showSecrets ? "text" : "password"}
-                      value={credentials[key]}
-                      onChange={(e) => updateCredential(key, e.target.value)}
-                      className="font-mono text-xs"
-                    />
-                  </div>
-                ))}
-                <Button
-                  size="sm"
-                  variant="outline"
-                  className="self-end"
-                  onClick={() => onUpdateCredentials(channel.id, credentials)}
-                >
-                  Save Credentials
-                </Button>
-              </div>
-            ) : (
-              <p className="text-muted-foreground text-xs">
-                No credentials required for this channel.
-              </p>
-            )}
-          </div>
+          ) : (
+            <p className="text-muted-foreground text-xs">
+              No credentials required for this channel.
+            </p>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }

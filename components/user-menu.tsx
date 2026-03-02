@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { LogOut, Shield, Settings, CreditCard } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -14,6 +14,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/lib/auth-context";
 import { Badge } from "@/components/ui/badge";
+import useSWR from "swr";
+import { fetcher } from "@/lib/api";
 
 function getInitials(name: string): string {
   return name
@@ -26,7 +28,16 @@ function getInitials(name: string): string {
 
 export function UserMenu() {
   const { user, signOut } = useAuth();
+  const params = useParams();
+  const workspaceId = params.workspaceId as string;
   const router = useRouter();
+
+  const { data: membership } = useSWR<{ role: string } | null>(
+    workspaceId ? `/api/w/${workspaceId}/membership/${user?.id}` : null,
+    fetcher,
+  );
+  console.log({ membership });
+  const isWorkspaceAdmin = membership?.role === "admin" || membership?.role === "owner";
 
   if (!user) return null;
 
@@ -62,17 +73,17 @@ export function UserMenu() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          {user.role === "admin" && (
-            <DropdownMenuItem onClick={() => router.push("/admin")}>
+          {isWorkspaceAdmin && (
+            <DropdownMenuItem onClick={() => router.push(`/w/${workspaceId}/admin`)}>
               <Shield className="mr-2 size-4" />
               Manage Users
             </DropdownMenuItem>
           )}
-          <DropdownMenuItem onClick={() => router.push("/profile")}>
+          <DropdownMenuItem onClick={() => router.push(`/w/${workspaceId}/profile`)}>
             <Settings className="mr-2 size-4" />
             Profile
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => router.push("/billing")}>
+          <DropdownMenuItem onClick={() => router.push(`/w/${workspaceId}/billing`)}>
             <CreditCard className="mr-2 size-4" />
             Billing
           </DropdownMenuItem>

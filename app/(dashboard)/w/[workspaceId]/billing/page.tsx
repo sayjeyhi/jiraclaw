@@ -1,9 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import {
-  ArrowLeft,
   CreditCard,
   Check,
   Users,
@@ -134,7 +132,6 @@ const serviceIcons = [
 ];
 
 export default function BillingPage() {
-  const router = useRouter();
   const [currentPlan] = useState("free");
   const [upgrading, setUpgrading] = useState<string | null>(null);
 
@@ -147,14 +144,28 @@ export default function BillingPage() {
   }
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-6">
       <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" className="size-8" onClick={() => router.back()}>
-          <ArrowLeft className="size-4" />
-        </Button>
-        <div className="flex items-center gap-2">
-          <CreditCard className="text-primary size-5" />
+        <div className="flex items-center gap-3">
+          <div className="bg-primary/5 text-primary flex size-8 items-center justify-center rounded">
+            <CreditCard className="text-primary size-5" />
+          </div>
           <h1 className="text-foreground text-2xl font-semibold tracking-tight">Billing</h1>
+        </div>
+      </div>
+
+      {/* Current plan summary */}
+      <div className="border-border bg-card rounded-lg border p-5">
+        <div className="flex items-center justify-between">
+          <div className="flex flex-col gap-1">
+            <h3 className="text-foreground text-sm font-semibold">Current Plan: Free</h3>
+            <p className="text-muted-foreground text-xs">
+              You are on the free plan. Upgrade to unlock more bots, team members, and features.
+            </p>
+          </div>
+          <Badge variant="secondary" className="text-xs">
+            Free
+          </Badge>
         </div>
       </div>
 
@@ -166,7 +177,7 @@ export default function BillingPage() {
       </div>
 
       {/* Plan cards */}
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="mb-4 grid gap-4 lg:grid-cols-3">
         {plans.map((plan) => {
           const isCurrent = currentPlan === plan.id;
           const isUpgrading = upgrading === plan.id;
@@ -269,21 +280,6 @@ export default function BillingPage() {
             </div>
           );
         })}
-      </div>
-
-      {/* Current plan summary */}
-      <div className="border-border bg-card rounded-lg border p-5">
-        <div className="flex items-center justify-between">
-          <div className="flex flex-col gap-1">
-            <h3 className="text-foreground text-sm font-semibold">Current Plan: Free</h3>
-            <p className="text-muted-foreground text-xs">
-              You are on the free plan. Upgrade to unlock more bots, team members, and features.
-            </p>
-          </div>
-          <Badge variant="secondary" className="text-xs">
-            Free
-          </Badge>
-        </div>
       </div>
     </div>
   );

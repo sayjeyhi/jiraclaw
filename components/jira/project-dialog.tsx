@@ -151,7 +151,7 @@ export function ProjectDialog({ open, onOpenChange, project, onSave }: ProjectDi
                 />
               </div>
               <div className="flex flex-col gap-2">
-                <Label htmlFor="projectKey">Project Key</Label>
+                <Label htmlFor="projectKey">Project ID</Label>
                 <Input
                   id="projectKey"
                   placeholder="PLAT"

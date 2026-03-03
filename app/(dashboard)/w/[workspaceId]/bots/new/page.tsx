@@ -62,8 +62,9 @@ export default function NewBotPage() {
     isGlobal: boolean;
     botIds?: string[];
   }) => {
-    await apiForWorkspace.prompts.create(data);
+    const created = (await apiForWorkspace.prompts.create(data)) as { id: string };
     mutatePrompts();
+    return created;
   };
 
   const handleCreateJiraProject = async (
@@ -91,6 +92,32 @@ export default function NewBotPage() {
     return created;
   };
 
+  const handleEditJiraProject = async (
+    project: JiraProject,
+    data: Pick<JiraProject, "name" | "key" | "url"> & { apiKey?: string; repos: RepoRow[] },
+  ) => {
+    await apiForWorkspace.jira.update(project.id, {
+      name: data.name,
+      key: data.key,
+      url: data.url,
+      ...(data.apiKey !== undefined && { apiKey: data.apiKey }),
+      repositories: data.repos.map((repo, i) => {
+        const existing = project.repositories.find((r) => r.url === repo.url);
+        return existing
+          ? { ...existing, label: repo.label }
+          : {
+              id: `repo-${Date.now()}-${i}`,
+              name: repo.url.split("/").pop() ?? "repo",
+              url: repo.url,
+              branch: "main",
+              label: repo.label,
+              status: "cloning",
+            };
+      }),
+    });
+    mutateJira();
+  };
+
   const handleSave = async (
     data: Omit<BotConfig, "id" | "createdAt" | "status"> & { jiraProjectId?: string },
   ) => {
@@ -113,6 +140,7 @@ export default function NewBotPage() {
       onPromptsChange={() => mutatePrompts()}
       jiraProjects={jiraProjects}
       onCreateJiraProject={handleCreateJiraProject}
+      onEditJiraProject={handleEditJiraProject}
       onJiraProjectsChange={() => mutateJira()}
       onAiSave={handleAiSave}
       onAiProvidersChange={() => mutateProviders()}

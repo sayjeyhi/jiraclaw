@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/page-header";
-import { ArrowLeft } from "lucide-react";
 import { useParams } from "next/navigation";
 import type { BotConfig, AIProvider, SystemPrompt } from "@/lib/types";
 import {
@@ -14,7 +13,6 @@ import {
   stepSkillSchema,
   stepTicketProviderSchema,
   stepAIModelSchema,
-  stepCredentialsSchema,
 } from "./constants";
 import { resetState } from "./utils";
 import type { FormState, FormComponentState } from "./types";
@@ -23,7 +21,6 @@ import { StepAutonomy } from "./step-autonomy";
 import { StepSkill } from "./step-skill";
 import { StepTicketProvider } from "./step-ticket-provider";
 import { StepAIModel } from "./step-ai-model";
-import { StepCredentials } from "./step-credentials";
 import type { JiraProject } from "@/lib/types";
 
 interface RepoRow {
@@ -41,12 +38,16 @@ interface BotFormProps {
     content: string;
     isGlobal: boolean;
     botIds?: string[];
-  }) => Promise<void>;
+  }) => Promise<{ id: string } | void>;
   onPromptsChange?: () => void;
   jiraProjects?: JiraProject[];
   onCreateJiraProject?: (
     data: Pick<JiraProject, "name" | "key" | "url"> & { apiKey?: string; repos: RepoRow[] },
   ) => Promise<JiraProject>;
+  onEditJiraProject?: (
+    project: JiraProject,
+    data: Pick<JiraProject, "name" | "key" | "url"> & { apiKey?: string; repos: RepoRow[] },
+  ) => Promise<void>;
   onJiraProjectsChange?: () => void;
   onAiSave?: (slug: string, apiKey: string, enabled: boolean) => Promise<void>;
   onAiProvidersChange?: () => void;
@@ -62,6 +63,7 @@ export function BotForm({
   onPromptsChange = () => {},
   jiraProjects = [],
   onCreateJiraProject,
+  onEditJiraProject,
   onJiraProjectsChange = () => {},
   onAiSave,
   onAiProvidersChange = () => {},
@@ -71,7 +73,6 @@ export function BotForm({
   const [state, setState] = useState<FormComponentState>(() =>
     resetState(bot, linkedJiraProjectId),
   );
-  const [showToken, setShowToken] = useState(false);
   const params = useParams();
   const workspaceId = params.workspaceId as string;
 
@@ -79,7 +80,6 @@ export function BotForm({
 
   useEffect(() => {
     setState(resetState(bot, linkedJiraProjectId));
-    setShowToken(false);
   }, [bot, bot?.id, linkedJiraProjectId]);
 
   const clearError = (field: string) =>
@@ -125,14 +125,13 @@ export function BotForm({
           skills: form.skills,
           botSkillDescription: form.botSkillDescription,
         });
-      if (step === 3) return stepTicketProviderSchema.safeParse({});
+      if (step === 3) return stepTicketProviderSchema.safeParse({ githubToken: form.githubToken });
       if (step === 4)
         return stepAIModelSchema.safeParse({
           selectedProvider: form.selectedProvider,
           selectedModel: form.selectedModel,
           spendingLimit: form.spendingLimit,
         });
-      if (step === 5) return stepCredentialsSchema.safeParse({ githubToken: form.githubToken });
       return { success: true as const };
     })();
 
@@ -154,9 +153,6 @@ export function BotForm({
   };
   const handleBack = () => {
     setState((prev) => ({ ...prev, step: Math.max(prev.step - 1, 1), errors: {} }));
-  };
-  const handleSkip = () => {
-    setState((prev) => ({ ...prev, step: Math.min(prev.step + 1, STEPS.length), errors: {} }));
   };
 
   const handleSubmit = async () => {
@@ -185,24 +181,17 @@ export function BotForm({
     }
   };
 
-  const currentStepMeta = STEPS[step - 1];
   const isLastStep = step === STEPS.length;
   const isFirstStep = step === 1;
   const botsListHref = `/w/${workspaceId}/bots`;
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4">
       <PageHeader
-        title={bot ? "Edit Bot" : "Create Bot"}
+        title={bot ? "Edit Bot" : "Create Bot Wizard"}
         description={bot ? "Update the bot's configuration." : "Set up a new bot in a few steps."}
-      >
-        <Button variant="ghost" size="sm" asChild>
-          <Link href={botsListHref}>
-            <ArrowLeft className="mr-2 size-4" />
-            Back
-          </Link>
-        </Button>
-      </PageHeader>
+        backHref={botsListHref}
+      />
 
       <StepIndicator currentStep={step} />
 
@@ -236,12 +225,14 @@ export function BotForm({
             errors={errors}
             projects={jiraProjects}
             onFormChange={setForm}
+            onClearError={clearError}
             onCreateProject={
               onCreateJiraProject ??
               (async () => {
                 throw new Error("Project creation not available");
               })
             }
+            onEditProject={onEditJiraProject}
             onProjectsChange={onJiraProjectsChange}
           />
         )}
@@ -259,28 +250,9 @@ export function BotForm({
             onAiProvidersChange={onAiProvidersChange}
           />
         )}
-
-        {step === 5 && (
-          <StepCredentials
-            form={form}
-            errors={errors}
-            showToken={showToken}
-            onFormChange={setForm}
-            onToggleShowToken={() => setShowToken((v) => !v)}
-            onClearError={clearError}
-          />
-        )}
       </div>
 
       <div className="flex items-center justify-between">
-        <div>
-          {currentStepMeta.optional && !isLastStep && (
-            <Button type="button" variant="ghost" onClick={handleSkip}>
-              Skip
-            </Button>
-          )}
-        </div>
-
         <div className="flex gap-2">
           {isFirstStep ? (
             <Button type="button" variant="outline" asChild>

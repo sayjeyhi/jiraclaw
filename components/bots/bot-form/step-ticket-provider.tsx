@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Plus } from "lucide-react";
+import { Check, Eye, EyeOff, Pencil, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { ProjectDialog } from "@/components/jira/project-dialog";
 import { TICKET_INTEGRATIONS } from "./constants";
 import type { FormState, FieldErrors } from "./types";
@@ -19,20 +21,30 @@ interface StepTicketProviderProps {
   errors: FieldErrors;
   projects: JiraProject[];
   onFormChange: (updater: (prev: FormState) => FormState) => void;
+  onClearError: (field: string) => void;
   onCreateProject: (
     data: Pick<JiraProject, "name" | "key" | "url"> & { apiKey?: string; repos: RepoRow[] },
   ) => Promise<JiraProject>;
+  onEditProject?: (
+    project: JiraProject,
+    data: Pick<JiraProject, "name" | "key" | "url"> & { apiKey?: string; repos: RepoRow[] },
+  ) => Promise<void>;
   onProjectsChange: () => void;
 }
 
 export function StepTicketProvider({
   form,
+  errors,
   projects,
   onFormChange,
+  onClearError,
   onCreateProject,
+  onEditProject,
   onProjectsChange,
 }: StepTicketProviderProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingProject, setEditingProject] = useState<JiraProject | null>(null);
+  const [showToken, setShowToken] = useState(false);
 
   const handleSelectIntegration = (id: string) => {
     onFormChange((prev) => ({
@@ -49,23 +61,42 @@ export function StepTicketProvider({
     }));
   };
 
-  const handleCreateProject = async (
+  const handleSaveProject = async (
     data: Pick<JiraProject, "name" | "key" | "url"> & { apiKey?: string; repos: RepoRow[] },
   ) => {
-    const created = await onCreateProject(data);
-    onProjectsChange();
-    setDialogOpen(false);
-    onFormChange((prev) => ({
-      ...prev,
-      selectedTicketIntegration: "jira",
-      selectedJiraProjectId: created.id,
-    }));
+    if (editingProject && onEditProject) {
+      await onEditProject(editingProject, data);
+      onProjectsChange();
+      setDialogOpen(false);
+      setEditingProject(null);
+    } else {
+      const created = await onCreateProject(data);
+      onProjectsChange();
+      setDialogOpen(false);
+      setEditingProject(null);
+      onFormChange((prev) => ({
+        ...prev,
+        selectedTicketIntegration: "jira",
+        selectedJiraProjectId: created.id,
+      }));
+    }
+  };
+
+  const openCreateDialog = () => {
+    setEditingProject(null);
+    setDialogOpen(true);
+  };
+
+  const openEditDialog = (project: JiraProject) => {
+    setEditingProject(project);
+    setDialogOpen(true);
   };
 
   return (
     <>
       <p className="text-muted-foreground text-xs">
-        Connect a ticket provider (e.g. Jira) and link a project for this bot to monitor. Optional.
+        Connect a ticket provider (e.g. Jira) and link a project for this bot to monitor. Optionally
+        add a GitHub token for repository access.
       </p>
 
       <div className="flex flex-col gap-6">
@@ -122,7 +153,7 @@ export function StepTicketProvider({
               <h4 className="text-muted-foreground text-xs font-medium tracking-wider uppercase">
                 Jira projects
               </h4>
-              <Button type="button" variant="outline" size="sm" onClick={() => setDialogOpen(true)}>
+              <Button type="button" variant="outline" size="sm" onClick={openCreateDialog}>
                 <Plus className="mr-1.5 size-3.5" />
                 Connect Project
               </Button>
@@ -136,17 +167,19 @@ export function StepTicketProvider({
                 {projects.map((project) => {
                   const isSelected = form.selectedJiraProjectId === project.id;
                   return (
-                    <button
+                    <div
                       key={project.id}
-                      type="button"
-                      onClick={() => handleSelectProject(project.id)}
                       className={cn(
-                        "border-border bg-card hover:border-primary/40 flex items-start justify-between gap-3 rounded-lg border p-4 text-left transition-all",
+                        "border-border bg-card flex items-start justify-between gap-3 rounded-lg border p-4 transition-all",
                         isSelected &&
                           "border-primary bg-primary/5 ring-primary/20 shadow-sm ring-2",
                       )}
                     >
-                      <div className="min-w-0 flex-1">
+                      <button
+                        type="button"
+                        className="min-w-0 flex-1 text-left"
+                        onClick={() => handleSelectProject(project.id)}
+                      >
                         <div className="flex items-center gap-2">
                           <h3 className="text-card-foreground text-sm font-medium">
                             {project.name}
@@ -161,21 +194,85 @@ export function StepTicketProvider({
                         <p className="text-muted-foreground mt-0.5 truncate text-xs">
                           {project.url}
                         </p>
-                      </div>
-                    </button>
+                      </button>
+                      {onEditProject && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="text-muted-foreground hover:text-foreground size-8 shrink-0"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openEditDialog(project);
+                          }}
+                          aria-label="Edit project"
+                        >
+                          <Pencil className="size-4" />
+                        </Button>
+                      )}
+                    </div>
                   );
                 })}
               </div>
             )}
           </div>
         )}
+
+        {/* GitHub token */}
+        <div>
+          <h4 className="text-muted-foreground mb-2 text-xs font-medium tracking-wider uppercase">
+            GitHub Token
+          </h4>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="github-token">Token</Label>
+            <div className="flex items-center gap-2">
+              <Input
+                id="github-token"
+                type={showToken ? "text" : "password"}
+                placeholder="ghp_..."
+                value={form.githubToken}
+                onChange={(e) => {
+                  onFormChange((prev) => ({ ...prev, githubToken: e.target.value }));
+                  onClearError("githubToken");
+                }}
+                aria-invalid={!!errors.githubToken}
+                className={cn(
+                  errors.githubToken && "border-destructive focus-visible:ring-destructive",
+                )}
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="size-9 shrink-0"
+                onClick={() => setShowToken((v) => !v)}
+              >
+                {showToken ? (
+                  <EyeOff className="size-4" aria-label="Hide token" />
+                ) : (
+                  <Eye className="size-4" aria-label="Show token" />
+                )}
+              </Button>
+            </div>
+            {errors.githubToken ? (
+              <p className="text-destructive text-[10px]">{errors.githubToken}</p>
+            ) : (
+              <p className="text-muted-foreground text-[10px]">
+                Optional. Dedicated token for this bot to access repositories.
+              </p>
+            )}
+          </div>
+        </div>
       </div>
 
       <ProjectDialog
         open={dialogOpen}
-        onOpenChange={setDialogOpen}
-        project={null}
-        onSave={handleCreateProject}
+        onOpenChange={(open) => {
+          if (!open) setEditingProject(null);
+          setDialogOpen(open);
+        }}
+        project={editingProject}
+        onSave={handleSaveProject}
       />
     </>
   );

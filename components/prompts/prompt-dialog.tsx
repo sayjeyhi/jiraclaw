@@ -36,13 +36,25 @@ interface PromptDialogProps {
   prompt?: SystemPrompt | null;
   bots: BotOption[];
   onSave: (data: PromptSaveData) => void;
+  /** When set, forces prompt type and hides the selector. Bot prompts created this way have no bot IDs (assign later in Settings). */
+  isGlobal?: boolean;
 }
 
-export function PromptDialog({ open, onOpenChange, prompt, bots, onSave }: PromptDialogProps) {
+export function PromptDialog({
+  open,
+  onOpenChange,
+  prompt,
+  bots,
+  onSave,
+  isGlobal: isGlobalForced,
+}: PromptDialogProps) {
   const [name, setName] = useState("");
   const [content, setContent] = useState("");
   const [isGlobal, setIsGlobal] = useState(true);
   const [selectedBotIds, setSelectedBotIds] = useState<string[]>([]);
+
+  const showIsGlobalSelector = isGlobalForced === undefined;
+  const effectiveIsGlobal = isGlobalForced ?? isGlobal;
 
   useEffect(() => {
     if (prompt) {
@@ -54,18 +66,19 @@ export function PromptDialog({ open, onOpenChange, prompt, bots, onSave }: Promp
     } else {
       setName("");
       setContent("");
-      setIsGlobal(true);
+      setIsGlobal(isGlobalForced ?? true);
       setSelectedBotIds([]);
     }
-  }, [prompt, bots, open]);
+  }, [prompt, bots, open, isGlobalForced]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const useIsGlobal = showIsGlobalSelector ? isGlobal : (isGlobalForced ?? true);
     onSave({
       name,
       content,
-      isGlobal,
-      ...(isGlobal ? {} : { botIds: selectedBotIds }),
+      isGlobal: useIsGlobal,
+      ...(useIsGlobal ? {} : { botIds: showIsGlobalSelector ? selectedBotIds : [] }),
     });
     onOpenChange(false);
   };
@@ -81,7 +94,15 @@ export function PromptDialog({ open, onOpenChange, prompt, bots, onSave }: Promp
       <DialogContent className="sm:max-w-lg">
         <form onSubmit={handleSubmit}>
           <DialogHeader>
-            <DialogTitle>{prompt ? "Edit Prompt" : "Create Prompt"}</DialogTitle>
+            <DialogTitle>
+              {prompt
+                ? "Edit Prompt"
+                : isGlobalForced !== undefined
+                  ? isGlobalForced
+                    ? "Create Global Prompt"
+                    : "Create Bot Prompt"
+                  : "Create Prompt"}
+            </DialogTitle>
             <DialogDescription>Define a reusable system prompt for your AI bots.</DialogDescription>
           </DialogHeader>
 
@@ -110,19 +131,21 @@ export function PromptDialog({ open, onOpenChange, prompt, bots, onSave }: Promp
               />
             </div>
 
-            <div className="border-border flex items-center justify-between rounded-md border px-3 py-2">
-              <div>
-                <Label htmlFor="isGlobal" className="text-sm font-medium">
-                  Global Prompt
-                </Label>
-                <p className="text-muted-foreground text-xs">
-                  Apply this prompt as a base for all bots
-                </p>
+            {showIsGlobalSelector && (
+              <div className="border-border flex items-center justify-between rounded-md border px-3 py-2">
+                <div>
+                  <Label htmlFor="isGlobal" className="text-sm font-medium">
+                    Global Prompt
+                  </Label>
+                  <p className="text-muted-foreground text-xs">
+                    Apply this prompt as a base for all bots
+                  </p>
+                </div>
+                <Switch id="isGlobal" checked={isGlobal} onCheckedChange={setIsGlobal} />
               </div>
-              <Switch id="isGlobal" checked={isGlobal} onCheckedChange={setIsGlobal} />
-            </div>
+            )}
 
-            {!isGlobal && (
+            {!effectiveIsGlobal && showIsGlobalSelector && (
               <div className="flex flex-col gap-2">
                 <Label className="text-sm font-medium">Assign to bots</Label>
                 <p className="text-muted-foreground text-xs">

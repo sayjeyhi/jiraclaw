@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { Cpu, KeyRound, Kanban, ShieldCheck, Sparkles } from "lucide-react";
+import { Cpu, Kanban, ShieldCheck, Sparkles } from "lucide-react";
 import type { SupervisedSettings } from "@/lib/types";
 
 export const defaultSupervisedSettings: SupervisedSettings = {
@@ -11,11 +11,10 @@ export const defaultSupervisedSettings: SupervisedSettings = {
 };
 
 export const STEPS = [
-  { id: 1, label: "1.Autonomy", icon: ShieldCheck, optional: false },
-  { id: 2, label: "2.Skill", icon: Sparkles, optional: false },
-  { id: 3, label: "3.Ticket Provider", icon: Kanban, optional: true },
-  { id: 4, label: "4.AI Model", icon: Cpu, optional: true },
-  { id: 5, label: "5.Credentials", icon: KeyRound, optional: true },
+  { id: 1, label: "Identity & Autonomy", icon: ShieldCheck, optional: false },
+  { id: 2, label: "Skills", icon: Sparkles, optional: false },
+  { id: 3, label: "Project", icon: Kanban, optional: true },
+  { id: 4, label: "AI Model", icon: Cpu, optional: true },
 ] as const;
 
 export const TICKET_INTEGRATIONS = [
@@ -61,9 +60,7 @@ export const stepAIModelSchema = z
     path: ["selectedModel"],
   });
 
-export const stepTicketProviderSchema = z.object({});
-
-export const stepCredentialsSchema = z.object({
+export const stepTicketProviderSchema = z.object({
   githubToken: z
     .string()
     .optional()

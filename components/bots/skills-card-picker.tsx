@@ -58,7 +58,7 @@ export function SkillsCardPicker({ value, onChange, error, disabled }: SkillsCar
           onChange={(e) => setQuery(e.target.value)}
           disabled={disabled}
           className={cn(
-            "pl-9 placeholder:text-xs placeholder:opacity-70",
+            "bg-muted/40 pl-9 placeholder:text-xs",
             error && "border-destructive focus-visible:ring-destructive",
           )}
         />
@@ -72,7 +72,7 @@ export function SkillsCardPicker({ value, onChange, error, disabled }: SkillsCar
         </div>
       ) : (
         <div className="relative max-h-64">
-          <div className="pointer-events-none absolute -top-0.5 right-3 left-0 z-10 h-4 w-full bg-linear-to-b from-white to-transparent"></div>
+          <div className="dark:from-card pointer-events-none absolute -top-0.5 right-3 left-0 z-10 h-4 w-full bg-linear-to-b from-white to-transparent"></div>
 
           <div className="grid max-h-64 gap-2 overflow-auto overflow-y-auto py-2 pr-3 sm:grid-cols-2 lg:grid-cols-3">
             {skills.map((skill) => {
@@ -108,7 +108,7 @@ export function SkillsCardPicker({ value, onChange, error, disabled }: SkillsCar
               );
             })}
           </div>
-          <div className="pointer-events-none absolute right-3 -bottom-0.5 left-0 z-10 h-5 w-full bg-linear-to-t from-white to-transparent"></div>
+          <div className="dark:from-card pointer-events-none absolute right-3 -bottom-0.5 left-0 z-10 h-5 w-full bg-linear-to-t from-white to-transparent"></div>
         </div>
       )}
 

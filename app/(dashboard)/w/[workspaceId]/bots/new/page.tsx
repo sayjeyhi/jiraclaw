@@ -1,7 +1,7 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import useSWR from "swr";
+import useSWR, { useSWRConfig } from "swr";
 import { BotForm } from "@/components/bots/bot-form";
 import { PageSkeleton } from "@/components/loading-skeletons";
 import { fetcher, api } from "@/lib/api";
@@ -17,6 +17,7 @@ interface RepoRow {
 export default function NewBotPage() {
   const params = useParams();
   const router = useRouter();
+  const { mutate } = useSWRConfig();
   const workspaceId = params.workspaceId as string;
   const apiForWorkspace = api.forWorkspace(workspaceId);
 
@@ -126,6 +127,7 @@ export default function NewBotPage() {
       ...botData,
       jiraProjectId,
     } as unknown as Record<string, unknown>)) as BotConfig;
+    await mutate(`/api/w/${workspaceId}/bots`);
     router.push(`/w/${workspaceId}/bots/${created.id}`);
   };
 

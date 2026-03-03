@@ -2,7 +2,7 @@
 
 import { use } from "react";
 import { useParams, useRouter } from "next/navigation";
-import useSWR from "swr";
+import useSWR, { useSWRConfig } from "swr";
 import { BotForm } from "@/components/bots/bot-form";
 import { BotDetailSkeleton } from "@/components/loading-skeletons";
 import { fetcher, api } from "@/lib/api";
@@ -19,6 +19,7 @@ export default function EditBotPage({ params }: { params: Promise<{ id: string }
   const { id } = use(params);
   const urlParams = useParams();
   const router = useRouter();
+  const { mutate } = useSWRConfig();
   const workspaceId = urlParams.workspaceId as string;
   const apiForWorkspace = api.forWorkspace(workspaceId);
 
@@ -127,6 +128,7 @@ export default function EditBotPage({ params }: { params: Promise<{ id: string }
     data: Omit<BotConfig, "id" | "createdAt" | "status"> & { jiraProjectId?: string },
   ) => {
     await apiForWorkspace.bots.update(id, data as unknown as Record<string, unknown>);
+    await mutate(`/api/w/${workspaceId}/bots`);
     router.push(`/w/${workspaceId}/bots/${id}`);
   };
 

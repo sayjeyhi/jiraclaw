@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Check, Eye, EyeOff, GitBranch, Pencil, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -71,6 +71,16 @@ export function StepTicketProvider({
   const [inlineRepoUrl, setInlineRepoUrl] = useState("");
   const [inlineRepoLabel, setInlineRepoLabel] = useState("any");
   const [addingRepoLoading, setAddingRepoLoading] = useState(false);
+
+  useEffect(() => {
+    if (
+      form.selectedTicketIntegration === "jira" &&
+      projects.length === 1 &&
+      !form.selectedJiraProjectId
+    ) {
+      onFormChange((prev) => ({ ...prev, selectedJiraProjectId: projects[0].id }));
+    }
+  }, [projects, form.selectedTicketIntegration, form.selectedJiraProjectId, onFormChange]);
 
   const handleSelectIntegration = (id: string) => {
     onFormChange((prev) => ({
@@ -156,8 +166,8 @@ export function StepTicketProvider({
   return (
     <>
       <p className="text-muted-foreground text-xs">
-        Connect a ticket provider (e.g. Jira) and link a project for this bot to monitor. Optionally
-        add a GitHub token for repository access.
+        Connect a ticket provider (e.g. Jira) and link a project for this bot to monitor. Add a
+        GitHub token for repository access.
       </p>
 
       <div className="flex flex-col gap-6">
@@ -339,10 +349,10 @@ export function StepTicketProvider({
                             {project.repositories.map((repo) => (
                               <div
                                 key={repo.id}
-                                className="border-border bg-muted/30 flex items-center justify-between gap-2 rounded-md border px-3 py-2"
+                                className="border-border bg-muted flex items-center justify-between gap-2 rounded-md border px-3 py-2"
                               >
                                 <div className="flex min-w-0 items-center gap-2">
-                                  <span className="text-muted-foreground shrink-0 rounded border px-1.5 py-0.5 text-[10px]">
+                                  <span className="text-muted-foreground bg-card/50 shrink-0 rounded border px-1.5 py-0.5 text-[10px]">
                                     {repo.label ?? "any"}
                                   </span>
                                   <span className="text-foreground truncate text-sm">
@@ -416,7 +426,7 @@ export function StepTicketProvider({
             GitHub Token
           </h4>
           <div className="flex flex-col gap-2">
-            <Label htmlFor="github-token">Token</Label>
+            <Label htmlFor="github-token">Token (required)</Label>
             <div className="relative max-w-120">
               <Tooltip open={inputFocused}>
                 <TooltipTrigger asChild>
@@ -449,7 +459,7 @@ export function StepTicketProvider({
                 </TooltipTrigger>
                 <TooltipContent side="bottom" className="max-w-xs">
                   <p>
-                    Your token is stored securely and never shared. Optional for repository access.
+                    Your token is stored securely and never shared. Required for repository access.
                   </p>
                 </TooltipContent>
               </Tooltip>
@@ -471,7 +481,7 @@ export function StepTicketProvider({
               <p className="text-destructive text-[10px]">{errors.githubToken}</p>
             ) : (
               <p className="text-muted-foreground text-[10px]">
-                Optional. Dedicated token for this bot to access repositories.
+                Dedicated token for this bot to access repositories.
               </p>
             )}
           </div>

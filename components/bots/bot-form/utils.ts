@@ -1,4 +1,4 @@
-import type { BotConfig } from "@/lib/types";
+import type { BotConfig, SystemPrompt } from "@/lib/types";
 import { defaultSupervisedSettings } from "./constants";
 import type { FormState, FormComponentState } from "./types";
 
@@ -9,7 +9,7 @@ export const defaultForm: FormState = {
   selectedSystemPromptId: "",
   skills: [],
   botSkillDescription: "",
-  selectedTicketIntegration: "",
+  selectedTicketIntegration: "jira", // Jira is the only enabled integration for now
   selectedJiraProjectId: "",
   selectedProvider: "",
   selectedModel: "",
@@ -19,15 +19,22 @@ export const defaultForm: FormState = {
   supervisedSettings: defaultSupervisedSettings,
 };
 
-export function botToForm(bot: BotConfig, linkedJiraProjectId?: string): FormState {
+export function botToForm(
+  bot: BotConfig,
+  linkedJiraProjectId?: string,
+  prompts?: SystemPrompt[],
+): FormState {
+  const systemPromptId = bot.systemPromptId ?? "";
+  const prompt = systemPromptId && prompts?.find((p) => p.id === systemPromptId);
+  const isGlobal = prompt?.isGlobal ?? false;
   return {
     title: bot.title,
     email: bot.email,
-    selectedGlobalPromptId: "",
-    selectedSystemPromptId: bot.systemPromptId ?? "",
+    selectedGlobalPromptId: isGlobal ? systemPromptId : "",
+    selectedSystemPromptId: !isGlobal ? systemPromptId : "",
     skills: bot.skills ?? [],
     botSkillDescription: bot.botSkillDescription ?? "",
-    selectedTicketIntegration: linkedJiraProjectId ? "jira" : "",
+    selectedTicketIntegration: "jira",
     selectedJiraProjectId: linkedJiraProjectId ?? "",
     selectedProvider: bot.defaultProvider ?? "",
     selectedModel: bot.defaultModel ?? "",
@@ -41,11 +48,12 @@ export function botToForm(bot: BotConfig, linkedJiraProjectId?: string): FormSta
 export function resetState(
   bot: BotConfig | null | undefined,
   linkedJiraProjectId?: string,
+  prompts?: SystemPrompt[],
 ): FormComponentState {
   return {
     step: 1,
     errors: {},
-    form: bot ? botToForm(bot, linkedJiraProjectId) : defaultForm,
+    form: bot ? botToForm(bot, linkedJiraProjectId, prompts) : defaultForm,
     isSubmitting: false,
   };
 }

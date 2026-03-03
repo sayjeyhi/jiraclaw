@@ -6,11 +6,12 @@ import useSWR from "swr";
 import { BotDetailSkeleton } from "@/components/loading-skeletons";
 import { BotDetailHeader } from "@/components/bots/bot-detail-header";
 import { BotDetailSkills } from "@/components/bots/bot-detail-skills";
+import { BotDetailPrompts } from "@/components/bots/bot-detail-prompts";
 import { BotDetailStats } from "@/components/bots/bot-detail-stats";
 import { BotDetailSummary } from "@/components/bots/bot-detail-summary";
 import { BotTicketsList } from "@/components/bots/bot-tickets-list";
 import { fetcher, api } from "@/lib/api";
-import type { BotConfig, BotTicket } from "@/lib/types";
+import type { BotConfig, BotTicket, SystemPrompt } from "@/lib/types";
 
 export default function BotDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -25,6 +26,10 @@ export default function BotDetailPage({ params }: { params: Promise<{ id: string
   );
   const { data: tickets = [] } = useSWR<BotTicket[]>(
     workspaceId ? `/api/w/${workspaceId}/bots/${id}/tickets` : null,
+    fetcher,
+  );
+  const { data: prompts = [] } = useSWR<SystemPrompt[]>(
+    workspaceId ? `/api/w/${workspaceId}/prompts` : null,
     fetcher,
   );
 
@@ -42,8 +47,11 @@ export default function BotDetailPage({ params }: { params: Promise<{ id: string
     <div className="flex flex-col gap-3">
       <BotDetailHeader bot={bot} workspaceId={workspaceId} />
       <BotDetailStats bot={bot} />
+      <div className="grid gap-3 sm:grid-cols-2">
+        <BotDetailSkills bot={bot} onSkillsSave={handleSkillsSave} />
+        <BotDetailPrompts bot={bot} prompts={prompts} />
+      </div>
       <BotDetailSummary tickets={tickets} />
-      <BotDetailSkills bot={bot} onSkillsSave={handleSkillsSave} />
       <BotTicketsList tickets={tickets} expandedTicketId={ticketIdFromUrl} />
     </div>
   );

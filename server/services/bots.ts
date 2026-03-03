@@ -104,15 +104,23 @@ export const botsService = new Elysia({ prefix: "/bots", aot: false })
       const rawKey = rawToken?.trim() || null;
       const encrypted = rawKey ? encrypt(rawKey) : null;
       const masked = rawKey ? maskApiKey(rawKey) : null;
+      // Explicit fields only - avoid spreading rest to prevent "Unknown argument" errors from stale Prisma client
       const bot = await prisma.botConfig.create({
         data: {
           id: `bot-${Date.now()}`,
           workspaceId: params.workspaceId,
-          ...rest,
+          title: rest.title,
+          email: rest.email,
           botSkillDescription,
           skills,
           status: rest.status ?? "idle",
+          defaultProvider: rest.defaultProvider ?? null,
+          defaultModel: rest.defaultModel ?? null,
+          spendingLimit: rest.spendingLimit ?? null,
+          autonomyLevel: rest.autonomyLevel,
           supervisedSettings: rest.supervisedSettings as object,
+          systemPromptId: rest.systemPromptId ?? null,
+          enabledChannels: rest.enabledChannels ?? [],
           encryptedGithubToken: encrypted,
           maskedGithubToken: masked,
         },
@@ -148,15 +156,23 @@ export const botsService = new Elysia({ prefix: "/bots", aot: false })
           : skills.length > 0
             ? `Skills from skills.sh: ${skills.join(", ")}`
             : existing.botSkillDescription;
-      const updateData: Record<string, unknown> = {
-        ...rest,
+
+      // Only pass known BotConfig fields to avoid "column does not exist" errors
+      const updateData: Parameters<typeof prisma.botConfig.update>[0]["data"] = {
+        title: rest.title,
+        email: rest.email,
         skills,
         botSkillDescription,
-        supervisedSettings: rest.supervisedSettings as object | undefined,
+        autonomyLevel: rest.autonomyLevel,
+        supervisedSettings: rest.supervisedSettings as object,
+        enabledChannels: rest.enabledChannels ?? existing.enabledChannels,
       };
-      if (rest.systemPromptId !== undefined) {
+      if (rest.defaultProvider !== undefined)
+        updateData.defaultProvider = rest.defaultProvider || null;
+      if (rest.defaultModel !== undefined) updateData.defaultModel = rest.defaultModel || null;
+      if (rest.spendingLimit !== undefined) updateData.spendingLimit = rest.spendingLimit ?? null;
+      if (rest.systemPromptId !== undefined)
         updateData.systemPromptId = rest.systemPromptId ?? null;
-      }
       if (rawToken !== undefined) {
         const rawKey = rawToken?.trim() || null;
         updateData.encryptedGithubToken = rawKey ? encrypt(rawKey) : null;

@@ -85,11 +85,10 @@ export const stepAIModelSchema = z
 export const stepTicketProviderSchema = z.object({
   githubToken: z
     .string()
-    .optional()
+    .min(1, "GitHub token is required")
     .refine(
       (v) =>
-        !v ||
-        v.includes("***") || // masked display value from API (skip validation)
+        v.includes("***") || // masked display value from API (already set)
         /^(ghp_|github_pat_)[A-Za-z0-9_]+$/.test(v),
       { message: "Token must start with ghp_ or github_pat_" },
     ),

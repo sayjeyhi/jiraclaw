@@ -51,7 +51,9 @@ interface BotFormProps {
   onJiraProjectsChange?: () => void;
   onAiSave?: (slug: string, apiKey: string, enabled: boolean) => Promise<void>;
   onAiProvidersChange?: () => void;
-  onSave: (data: Omit<BotConfig, "id" | "createdAt" | "status">) => Promise<void>;
+  onSave: (
+    data: Omit<BotConfig, "id" | "createdAt" | "status"> & { jiraProjectId?: string },
+  ) => Promise<void>;
 }
 
 export function BotForm({
@@ -71,7 +73,7 @@ export function BotForm({
 }: BotFormProps) {
   const linkedJiraProjectId = jiraProjects.find((p) => p.botId === bot?.id)?.id;
   const [state, setState] = useState<FormComponentState>(() =>
-    resetState(bot, linkedJiraProjectId),
+    resetState(bot, linkedJiraProjectId, prompts),
   );
   const params = useParams();
   const workspaceId = params.workspaceId as string;
@@ -79,8 +81,8 @@ export function BotForm({
   const { step, errors, form, isSubmitting } = state;
 
   useEffect(() => {
-    setState(resetState(bot, linkedJiraProjectId));
-  }, [bot, bot?.id, linkedJiraProjectId]);
+    setState(resetState(bot, linkedJiraProjectId, prompts));
+  }, [bot, bot?.id, linkedJiraProjectId, prompts]);
 
   const clearError = (field: string) =>
     setState((prev) => {

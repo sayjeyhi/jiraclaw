@@ -12,7 +12,7 @@ export const defaultSupervisedSettings: SupervisedSettings = {
 
 export const STEPS = [
   { id: 1, label: "Identity & Autonomy", icon: ShieldCheck, optional: false },
-  { id: 2, label: "Project", icon: Kanban, optional: true },
+  { id: 2, label: "Tickets & Git", icon: Kanban, optional: true },
   { id: 3, label: "Skills", icon: Sparkles, optional: false },
   { id: 4, label: "AI Model", icon: Cpu, optional: true },
 ] as const;

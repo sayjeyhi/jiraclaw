@@ -48,15 +48,15 @@ export function StepAIModel({
 
   return (
     <>
-      <p className="text-muted-foreground text-xs">
-        Select a provider and model for this bot. Configure API keys inline if needed—no need to
-        visit the AI Providers page first.
-      </p>
-
       <div className="flex flex-col gap-3">
-        <h4 className="text-muted-foreground text-xs font-medium tracking-wider uppercase">
-          Provider & model ({ALLOWED_AI_PROVIDERS.length})
-        </h4>
+        <div className="flex items-center justify-between gap-2">
+          <h4 className="text-muted-foreground text-xs font-medium tracking-wider uppercase">
+            Provider & model ({ALLOWED_AI_PROVIDERS.length})
+          </h4>
+          <p className="text-muted-foreground/70 text-xs">
+            Select a provider and model for this bot.
+          </p>
+        </div>
         <div className="grid gap-3 sm:grid-cols-1 lg:grid-cols-2">
           {ALLOWED_AI_PROVIDERS.map((template) => {
             const workspaceProvider = providerMap.get(template.slug);

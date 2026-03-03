@@ -11,7 +11,7 @@ export function StepIndicator({ currentStep }: StepIndicatorProps) {
   return (
     <>
       <div className="flex items-center gap-1">
-        {STEPS.map((s, i) => {
+        {STEPS.map((s) => {
           const Icon = s.icon;
           const isCompleted = currentStep > s.id;
           const isCurrent = currentStep === s.id;
@@ -48,7 +48,6 @@ export function StepIndicator({ currentStep }: StepIndicatorProps) {
           );
         })}
       </div>
-      <p className="text-muted-foreground -mt-1 text-right text-[10px]">* optional</p>
     </>
   );
 }

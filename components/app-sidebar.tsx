@@ -18,7 +18,8 @@ import {
   X,
   Sun,
   Moon,
-  ListTreeIcon,
+  Plus,
+  Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -26,13 +27,10 @@ import { UserMenu } from "@/components/user-menu";
 import { Logo } from "@/components/logo";
 import { WorkspaceSwitcher } from "@/components/workspace-switcher";
 
-const mainNavItems = [{ name: "Logs", path: "logs", icon: ScrollText }];
-
-const settingsNavItems = [
-  { name: "AI Providers", path: "ai-models", icon: BrainCircuit },
-  { name: "Ticket Integration", path: "jira", icon: Kanban },
-  { name: "Communication Channels", path: "channels", icon: Radio },
-  { name: "System Prompts", path: "prompts", icon: FileText },
+const mainNavItems = [
+  { name: "Channels", path: "channels", icon: Radio },
+  { name: "Logs", path: "logs", icon: ScrollText },
+  { name: "Settings", path: "settings", icon: Settings },
 ];
 
 function getWorkspaceBase(pathname: string): string | null {
@@ -77,7 +75,7 @@ function SidebarContent({ onNavClick }: { onNavClick?: () => void }) {
             </Link>
           </li>
 
-          {hasBots &&
+          {hasBots ? (
             bots.map((bot) => {
               const href = base ? `${base}/bots/${bot.id}` : "/";
               const isActive = pathname === href || pathname.startsWith(href + "/");
@@ -98,14 +96,23 @@ function SidebarContent({ onNavClick }: { onNavClick?: () => void }) {
                   </Link>
                 </li>
               );
-            })}
+            })
+          ) : (
+            <li>
+              <Link
+                href={base ? `${base}/bots/new` : "/"}
+                onClick={onNavClick}
+                className="border-border text-muted-foreground hover:text-foreground hover:bg-sidebar-accent hover:border-primary/30 flex items-center justify-center gap-3 rounded-md border border-dashed px-3 py-2 text-xs font-medium transition-colors"
+              >
+                <Plus className="size-4 shrink-0" />
+                Create a bot
+              </Link>
+            </li>
+          )}
 
-          <li className="mb-5">
-            <span className="mt-5 flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium opacity-50">
-              Settings
-            </span>
-            <ul className="mt-1 flex flex-col gap-0.5">
-              {settingsNavItems.map((item) => {
+          <li className="mt-10">
+            <ul className="flex flex-col gap-1">
+              {mainNavItems.map((item) => {
                 const href = base ? `${base}/${item.path}` : "/";
                 const isActive = pathname === href || pathname.startsWith(href + "/");
                 return (
@@ -114,7 +121,7 @@ function SidebarContent({ onNavClick }: { onNavClick?: () => void }) {
                       href={href}
                       onClick={onNavClick}
                       className={cn(
-                        "flex items-center gap-3 rounded-md px-3 py-2 text-xs font-medium transition-colors",
+                        "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
                         isActive
                           ? "bg-sidebar-accent text-sidebar-primary"
                           : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground",
@@ -128,28 +135,6 @@ function SidebarContent({ onNavClick }: { onNavClick?: () => void }) {
               })}
             </ul>
           </li>
-
-          {mainNavItems.map((item) => {
-            const href = base ? `${base}/${item.path}` : "/";
-            const isActive = pathname === href || pathname.startsWith(href + "/");
-            return (
-              <li key={item.name}>
-                <Link
-                  href={href}
-                  onClick={onNavClick}
-                  className={cn(
-                    "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-                    isActive
-                      ? "bg-sidebar-accent text-sidebar-primary"
-                      : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground",
-                  )}
-                >
-                  <item.icon className="size-4 shrink-0" />
-                  {item.name}
-                </Link>
-              </li>
-            );
-          })}
         </ul>
       </nav>
 

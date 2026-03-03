@@ -77,7 +77,7 @@ export default function BotsPage() {
           <AlertDescription className="flex">
             You need at least one enabled AI provider before you can create bots.{" "}
             <a
-              href={`/w/${workspaceId}/ai-models`}
+              href={`/w/${workspaceId}/settings/ai-providers`}
               className="font-medium underline underline-offset-2"
             >
               Go to AI Providers
@@ -98,7 +98,9 @@ export default function BotsPage() {
           }
           actionLabel={hasConfiguredProvider ? "Create Bot" : "Go to AI Providers"}
           actionHref={
-            hasConfiguredProvider ? `/w/${workspaceId}/bots/new` : `/w/${workspaceId}/ai-models`
+            hasConfiguredProvider
+              ? `/w/${workspaceId}/bots/new`
+              : `/w/${workspaceId}/settings/ai-providers`
           }
         />
       ) : (

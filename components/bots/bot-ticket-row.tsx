@@ -99,13 +99,13 @@ export function BotTicketRow({ ticket, defaultExpanded = false }: BotTicketRowPr
                         <Badge variant="secondary" className="shrink-0 text-[10px] capitalize">
                           {msg.channel}
                         </Badge>
-                        <span className="text-muted-foreground min-w-0 flex-1 text-[11px] leading-relaxed">
+                        <span className="text-muted-foreground min-w-0 flex-1 text-[10px] leading-relaxed">
                           {msg.message}
                         </span>
                         <Badge
                           variant="outline"
                           className={cn(
-                            "shrink-0 text-[9px]",
+                            "shrink-0 text-[10px]",
                             msg.status === "delivered" && "text-success border-success/25",
                             msg.status === "failed" && "text-destructive border-destructive/25",
                             msg.status === "pending" && "text-warning border-warning/25",

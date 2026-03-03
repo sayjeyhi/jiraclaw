@@ -2,19 +2,90 @@
 
 import { Eye, Zap } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
-import type { FormState } from "./types";
+import type { FormState, FieldErrors } from "./types";
 import type { SupervisedSettings } from "@/lib/types";
 
 interface StepAutonomyProps {
   form: FormState;
+  errors: FieldErrors;
   onFormChange: (updater: (prev: FormState) => FormState) => void;
   onToggleSupervisedSetting: (key: keyof SupervisedSettings) => void;
+  onClearError: (field: string) => void;
 }
 
-export function StepAutonomy({ form, onFormChange, onToggleSupervisedSetting }: StepAutonomyProps) {
+export function StepAutonomy({
+  form,
+  errors,
+  onFormChange,
+  onToggleSupervisedSetting,
+  onClearError,
+}: StepAutonomyProps) {
   return (
     <>
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="title">Title</Label>
+          <Input
+            id="title"
+            placeholder="e.g. Backend, Frontend, DevOps Bot"
+            value={form.title}
+            onChange={(e) => {
+              onFormChange((prev) => ({ ...prev, title: e.target.value }));
+              onClearError("title");
+            }}
+            aria-invalid={!!errors.title}
+            className={cn(errors.title && "border-destructive focus-visible:ring-destructive")}
+          />
+          {errors.title && <p className="text-destructive text-[10px]">{errors.title}</p>}
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="email">Email Address</Label>
+          <Input
+            id="email"
+            type="email"
+            placeholder="bot@jiraclaw.ai"
+            value={form.email}
+            onChange={(e) => {
+              onFormChange((prev) => ({ ...prev, email: e.target.value }));
+              onClearError("email");
+            }}
+            aria-invalid={!!errors.email}
+            className={cn(errors.email && "border-destructive focus-visible:ring-destructive")}
+          />
+          {errors.email ? (
+            <p className="text-destructive text-[10px]">{errors.email}</p>
+          ) : (
+            <p className="text-muted-foreground -mt-1 text-[10px]">
+              Used for Jira assignment detection
+            </p>
+          )}
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="description">Description</Label>
+          <Textarea
+            id="description"
+            placeholder="Describe the bot's role, responsibilities, and behavior..."
+            rows={3}
+            value={form.botSkillDescription}
+            onChange={(e) => {
+              onFormChange((prev) => ({ ...prev, botSkillDescription: e.target.value }));
+              onClearError("skills");
+              onClearError("botSkillDescription");
+            }}
+            className="min-h-[80px]"
+          />
+          <p className="text-muted-foreground text-[10px]">
+            Optional. Add at least one skill in the next step or a description (min 20 characters).
+          </p>
+        </div>
+      </div>
+
       <div className="grid grid-cols-2 gap-3">
         <button
           type="button"
@@ -40,7 +111,7 @@ export function StepAutonomy({ form, onFormChange, onToggleSupervisedSetting }: 
           >
             Supervised
           </span>
-          <span className="text-muted-foreground text-center text-[11px] leading-relaxed">
+          <span className="text-muted-foreground text-center text-[10px] leading-relaxed">
             Bot confirms actions before executing
           </span>
         </button>
@@ -69,7 +140,7 @@ export function StepAutonomy({ form, onFormChange, onToggleSupervisedSetting }: 
           >
             Autonomous
           </span>
-          <span className="text-muted-foreground text-center text-[11px] leading-relaxed">
+          <span className="text-muted-foreground text-center text-[10px] leading-relaxed">
             Bot acts independently without confirmation
           </span>
         </button>
@@ -77,7 +148,7 @@ export function StepAutonomy({ form, onFormChange, onToggleSupervisedSetting }: 
 
       {form.autonomyLevel === "supervised" && (
         <div className="flex flex-col gap-3 rounded-lg border p-4">
-          <p className="text-muted-foreground text-[11px] leading-relaxed">
+          <p className="text-muted-foreground text-[10px] leading-relaxed">
             The bot will confirm actions via channels before doing the activity
           </p>
           <div className="flex flex-col gap-2.5">

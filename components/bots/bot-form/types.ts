@@ -5,9 +5,12 @@ export type FieldErrors = Record<string, string>;
 export interface FormState {
   title: string;
   email: string;
-  selectedSystemPromptId: string;
+  selectedGlobalPromptId: string;
+  selectedSystemPromptId: string; // local/bot-specific prompt
   skills: string[];
   botSkillDescription: string;
+  selectedTicketIntegration: string;
+  selectedJiraProjectId: string;
   selectedProvider: string;
   selectedModel: string;
   githubToken: string;

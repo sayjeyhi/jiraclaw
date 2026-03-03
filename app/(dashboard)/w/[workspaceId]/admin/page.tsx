@@ -162,7 +162,7 @@ function PermissionEditor({
                 disabled={disabled}
                 className="size-3.5"
               />
-              <span className="text-foreground text-[11px] font-medium">{section.label}</span>
+              <span className="text-foreground text-[10px] font-medium">{section.label}</span>
             </div>
             <div className="flex flex-wrap items-center gap-3">
               {section.actions.map((action) => {
@@ -572,7 +572,7 @@ export default function ManageUsersPage() {
                     </Avatar>
                     <span className="text-foreground text-xs font-medium">{u.name}</span>
                     {u.id === user.id && (
-                      <Badge variant="outline" className="px-1 py-0 text-[9px]">
+                      <Badge variant="outline" className="px-1 py-0 text-[10px]">
                         You
                       </Badge>
                     )}

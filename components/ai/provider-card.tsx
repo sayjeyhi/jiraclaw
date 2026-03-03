@@ -158,7 +158,13 @@ export function ProviderCard({ template, workspaceProvider, onToggle, onSave }: 
                 onClick={handleSave}
                 disabled={loading || !canSave}
               >
-                {loading ? "Saving…" : "Save"}
+                {loading
+                  ? isConfigured
+                    ? "Updating…"
+                    : "Saving…"
+                  : isConfigured
+                    ? "Update"
+                    : "Save"}
               </Button>
             </div>
             {error && <p className="text-destructive text-xs">{error}</p>}

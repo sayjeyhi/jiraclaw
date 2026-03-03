@@ -81,7 +81,7 @@ export function BotDetailStats({ bot }: BotDetailStatsProps) {
               {bot.supervisedSettings.allowPrCreation && (
                 <Badge
                   variant="outline"
-                  className="text-warning border-warning/25 px-1 py-0 text-[9px]"
+                  className="text-warning border-warning/25 px-1 py-0 text-[10px]"
                 >
                   PR
                 </Badge>
@@ -89,7 +89,7 @@ export function BotDetailStats({ bot }: BotDetailStatsProps) {
               {bot.supervisedSettings.allowPush && (
                 <Badge
                   variant="outline"
-                  className="text-warning border-warning/25 px-1 py-0 text-[9px]"
+                  className="text-warning border-warning/25 px-1 py-0 text-[10px]"
                 >
                   Push
                 </Badge>
@@ -97,7 +97,7 @@ export function BotDetailStats({ bot }: BotDetailStatsProps) {
               {bot.supervisedSettings.allowJiraComment && (
                 <Badge
                   variant="outline"
-                  className="text-warning border-warning/25 px-1 py-0 text-[9px]"
+                  className="text-warning border-warning/25 px-1 py-0 text-[10px]"
                 >
                   Comment
                 </Badge>
@@ -105,7 +105,7 @@ export function BotDetailStats({ bot }: BotDetailStatsProps) {
               {bot.supervisedSettings.confirmSolutionBeforeStart && (
                 <Badge
                   variant="outline"
-                  className="text-warning border-warning/25 px-1 py-0 text-[9px]"
+                  className="text-warning border-warning/25 px-1 py-0 text-[10px]"
                 >
                   Solution
                 </Badge>

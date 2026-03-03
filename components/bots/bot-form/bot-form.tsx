@@ -11,8 +11,8 @@ import {
   STEPS,
   defaultSupervisedSettings,
   stepAutonomySchema,
-  stepIdentitySchema,
   stepSkillSchema,
+  stepTicketProviderSchema,
   stepAIModelSchema,
   stepCredentialsSchema,
 } from "./constants";
@@ -20,34 +20,67 @@ import { resetState } from "./utils";
 import type { FormState, FormComponentState } from "./types";
 import { StepIndicator } from "./step-indicator";
 import { StepAutonomy } from "./step-autonomy";
-import { StepIdentity } from "./step-identity";
 import { StepSkill } from "./step-skill";
+import { StepTicketProvider } from "./step-ticket-provider";
 import { StepAIModel } from "./step-ai-model";
 import { StepCredentials } from "./step-credentials";
+import type { JiraProject } from "@/lib/types";
+
+interface RepoRow {
+  url: string;
+  label: string;
+}
 
 interface BotFormProps {
   bot?: BotConfig | null;
   providers: AIProvider[];
   prompts: SystemPrompt[];
+  bots?: { id: string; title: string; systemPromptId?: string | null }[];
+  onCreatePrompt?: (data: {
+    name: string;
+    content: string;
+    isGlobal: boolean;
+    botIds?: string[];
+  }) => Promise<void>;
+  onPromptsChange?: () => void;
+  jiraProjects?: JiraProject[];
+  onCreateJiraProject?: (
+    data: Pick<JiraProject, "name" | "key" | "url"> & { apiKey?: string; repos: RepoRow[] },
+  ) => Promise<JiraProject>;
+  onJiraProjectsChange?: () => void;
+  onAiSave?: (slug: string, apiKey: string, enabled: boolean) => Promise<void>;
+  onAiProvidersChange?: () => void;
   onSave: (data: Omit<BotConfig, "id" | "createdAt" | "status">) => Promise<void>;
 }
 
-export function BotForm({ bot, providers, prompts, onSave }: BotFormProps) {
-  const [state, setState] = useState<FormComponentState>(() => resetState(bot));
+export function BotForm({
+  bot,
+  providers,
+  prompts,
+  bots = [],
+  onCreatePrompt,
+  onPromptsChange = () => {},
+  jiraProjects = [],
+  onCreateJiraProject,
+  onJiraProjectsChange = () => {},
+  onAiSave,
+  onAiProvidersChange = () => {},
+  onSave,
+}: BotFormProps) {
+  const linkedJiraProjectId = jiraProjects.find((p) => p.botId === bot?.id)?.id;
+  const [state, setState] = useState<FormComponentState>(() =>
+    resetState(bot, linkedJiraProjectId),
+  );
   const [showToken, setShowToken] = useState(false);
   const params = useParams();
   const workspaceId = params.workspaceId as string;
 
   const { step, errors, form, isSubmitting } = state;
 
-  const enabledProviders = providers.filter((p) => p.enabled);
-  const activeProvider = enabledProviders.find((p) => p.id === form.selectedProvider);
-  const availableModels = activeProvider?.models ?? [];
-
   useEffect(() => {
-    setState(resetState(bot));
+    setState(resetState(bot, linkedJiraProjectId));
     setShowToken(false);
-  }, [bot, bot?.id]);
+  }, [bot, bot?.id, linkedJiraProjectId]);
 
   const clearError = (field: string) =>
     setState((prev) => {
@@ -82,17 +115,17 @@ export function BotForm({ bot, providers, prompts, onSave }: BotFormProps) {
 
   function validateStep(): boolean {
     const result = (() => {
-      if (step === 1) return stepAutonomySchema.safeParse({});
-      if (step === 2)
-        return stepIdentitySchema.safeParse({
+      if (step === 1)
+        return stepAutonomySchema.safeParse({
           title: form.title,
           email: form.email,
         });
-      if (step === 3)
+      if (step === 2)
         return stepSkillSchema.safeParse({
           skills: form.skills,
           botSkillDescription: form.botSkillDescription,
         });
+      if (step === 3) return stepTicketProviderSchema.safeParse({});
       if (step === 4)
         return stepAIModelSchema.safeParse({
           selectedProvider: form.selectedProvider,
@@ -143,8 +176,9 @@ export function BotForm({ bot, providers, prompts, onSave }: BotFormProps) {
         autonomyLevel: form.autonomyLevel,
         supervisedSettings:
           form.autonomyLevel === "supervised" ? form.supervisedSettings : defaultSupervisedSettings,
-        systemPromptId: form.selectedSystemPromptId || null,
+        systemPromptId: form.selectedSystemPromptId || form.selectedGlobalPromptId || null,
         workspaceId,
+        jiraProjectId: form.selectedJiraProjectId || undefined,
       });
     } finally {
       setState((prev) => ({ ...prev, isSubmitting: false }));
@@ -176,34 +210,53 @@ export function BotForm({ bot, providers, prompts, onSave }: BotFormProps) {
         {step === 1 && (
           <StepAutonomy
             form={form}
+            errors={errors}
             onFormChange={setForm}
             onToggleSupervisedSetting={toggleSupervisedSetting}
+            onClearError={clearError}
           />
         )}
 
         {step === 2 && (
-          <StepIdentity
+          <StepSkill
             form={form}
             errors={errors}
             prompts={prompts}
             onFormChange={setForm}
             onClearError={clearError}
+            bots={bots}
+            onCreatePrompt={onCreatePrompt}
+            onPromptsChange={onPromptsChange}
           />
         )}
 
         {step === 3 && (
-          <StepSkill form={form} errors={errors} onFormChange={setForm} onClearError={clearError} />
+          <StepTicketProvider
+            form={form}
+            errors={errors}
+            projects={jiraProjects}
+            onFormChange={setForm}
+            onCreateProject={
+              onCreateJiraProject ??
+              (async () => {
+                throw new Error("Project creation not available");
+              })
+            }
+            onProjectsChange={onJiraProjectsChange}
+          />
         )}
 
         {step === 4 && (
           <StepAIModel
             form={form}
             errors={errors}
-            enabledProviders={enabledProviders}
-            availableModels={availableModels}
+            providers={providers}
+            workspaceId={workspaceId}
             onFormChange={setForm}
             onProviderChange={handleProviderChange}
             onClearError={clearError}
+            onAiSave={onAiSave}
+            onAiProvidersChange={onAiProvidersChange}
           />
         )}
 

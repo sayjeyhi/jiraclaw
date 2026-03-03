@@ -1,117 +1,100 @@
 "use client";
 
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { cn } from "@/lib/utils";
+import { ProviderModelCard } from "@/components/ai/provider-model-card";
+import { ALLOWED_AI_PROVIDERS } from "@/lib/constants/allowed-ai-providers";
 import type { FormState, FieldErrors } from "./types";
 import type { AIProvider } from "@/lib/types";
 
 interface StepAIModelProps {
   form: FormState;
   errors: FieldErrors;
-  enabledProviders: AIProvider[];
-  availableModels: { id: string; name: string }[];
+  providers: AIProvider[];
+  workspaceId: string;
   onFormChange: (updater: (prev: FormState) => FormState) => void;
   onProviderChange: (providerId: string) => void;
   onClearError: (field: string) => void;
+  onAiSave?: (slug: string, apiKey: string, enabled: boolean) => Promise<void>;
+  onAiProvidersChange?: () => void;
 }
 
 export function StepAIModel({
   form,
   errors,
-  enabledProviders,
-  availableModels,
+  providers,
+  workspaceId,
   onFormChange,
   onProviderChange,
   onClearError,
+  onAiSave,
+  onAiProvidersChange,
 }: StepAIModelProps) {
+  const providerMap = new Map(providers.map((p) => [p.slug, p]));
+
+  const handleSelect = (templateSlug: string) => {
+    const wp = providerMap.get(templateSlug);
+    const providerId = wp?.id ?? `${workspaceId}-${templateSlug}`;
+    const isCurrentlySelected = form.selectedProvider === providerId;
+    onProviderChange(isCurrentlySelected ? "" : providerId);
+    onClearError("selectedProvider");
+    onClearError("selectedModel");
+  };
+
+  const handleSave = async (slug: string, apiKey: string, enabled: boolean) => {
+    if (onAiSave) {
+      await onAiSave(slug, apiKey, enabled);
+      onAiProvidersChange?.();
+    }
+  };
+
   return (
     <>
       <p className="text-muted-foreground text-xs">
-        Choose an AI provider and model for this bot. You can skip this and configure it later.
+        Select a provider and model for this bot. Configure API keys inline if needed—no need to
+        visit the AI Providers page first.
       </p>
-      <div className="grid grid-cols-2 gap-3">
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="provider">Provider</Label>
-          <Select value={form.selectedProvider} onValueChange={onProviderChange}>
-            <SelectTrigger className="w-full" id="provider">
-              <SelectValue placeholder="Select provider" />
-            </SelectTrigger>
-            <SelectContent>
-              {enabledProviders.map((p) => (
-                <SelectItem key={p.id} value={p.id}>
-                  {p.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
 
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="model">Model</Label>
-          <Select
-            value={form.selectedModel}
-            onValueChange={(v) => {
-              onFormChange((prev) => ({ ...prev, selectedModel: v }));
-              onClearError("selectedModel");
-            }}
-            disabled={!form.selectedProvider || availableModels.length === 0}
-          >
-            <SelectTrigger
-              className={cn(
-                "w-full",
-                errors.selectedModel && "border-destructive focus-visible:ring-destructive",
-              )}
-              id="model"
-            >
-              <SelectValue
-                placeholder={availableModels.length === 0 ? "No models" : "Select model"}
+      <div className="flex flex-col gap-3">
+        <h4 className="text-muted-foreground text-xs font-medium tracking-wider uppercase">
+          Provider & model ({ALLOWED_AI_PROVIDERS.length})
+        </h4>
+        <div className="grid gap-3 sm:grid-cols-1 lg:grid-cols-2">
+          {ALLOWED_AI_PROVIDERS.map((template) => {
+            const workspaceProvider = providerMap.get(template.slug);
+            const providerId = workspaceProvider?.id ?? `${workspaceId}-${template.slug}`;
+            const isSelected = form.selectedProvider === providerId;
+            const isThisProviderSelected = form.selectedProvider === providerId;
+
+            return (
+              <ProviderModelCard
+                key={template.slug}
+                template={template}
+                workspaceProvider={workspaceProvider}
+                isSelected={isSelected}
+                selectedModel={isThisProviderSelected ? form.selectedModel : ""}
+                spendingLimit={isThisProviderSelected ? form.spendingLimit : ""}
+                onSelect={() => handleSelect(template.slug)}
+                onModelChange={(v) => {
+                  onFormChange((prev) => ({ ...prev, selectedModel: v }));
+                  onClearError("selectedModel");
+                }}
+                onSpendingLimitChange={(v) => {
+                  onFormChange((prev) => ({ ...prev, spendingLimit: v }));
+                  onClearError("spendingLimit");
+                }}
+                onSave={handleSave}
+                onSaveSuccess={onAiProvidersChange}
+                errors={
+                  isThisProviderSelected
+                    ? {
+                        selectedModel: errors.selectedModel,
+                        spendingLimit: errors.spendingLimit,
+                      }
+                    : {}
+                }
               />
-            </SelectTrigger>
-            <SelectContent>
-              {availableModels.map((m) => (
-                <SelectItem key={m.id} value={m.id}>
-                  {m.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          {errors.selectedModel && (
-            <p className="text-destructive text-[11px]">{errors.selectedModel}</p>
-          )}
+            );
+          })}
         </div>
-      </div>
-
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="spending-limit">Spending Limit (USD/mo)</Label>
-        <Input
-          id="spending-limit"
-          type="number"
-          min="0"
-          step="1"
-          placeholder="e.g. 100"
-          value={form.spendingLimit}
-          onChange={(e) => {
-            onFormChange((prev) => ({ ...prev, spendingLimit: e.target.value }));
-            onClearError("spendingLimit");
-          }}
-          aria-invalid={!!errors.spendingLimit}
-          className={cn(
-            errors.spendingLimit && "border-destructive focus-visible:ring-destructive",
-          )}
-        />
-        {errors.spendingLimit ? (
-          <p className="text-destructive text-[11px]">{errors.spendingLimit}</p>
-        ) : (
-          <p className="text-muted-foreground text-[11px]">Max AI spend per month</p>
-        )}
       </div>
     </>
   );

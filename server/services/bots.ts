@@ -38,6 +38,7 @@ const botBody = t.Object({
   systemPromptId: t.Optional(t.Union([t.String(), t.Null()])),
   enabledChannels: t.Array(t.String()),
   workspaceId: t.String(),
+  jiraProjectId: t.Optional(t.String()),
 });
 
 export const botsService = new Elysia({ prefix: "/bots", aot: false })
@@ -78,21 +79,33 @@ export const botsService = new Elysia({ prefix: "/bots", aot: false })
   .post(
     "/",
     async ({ params, body }) => {
-      const skills = normalizeSkills(body.skills ?? []);
+      const { jiraProjectId, ...rest } = body;
+      const skills = normalizeSkills(rest.skills ?? []);
       const botSkillDescription =
-        body.botSkillDescription ??
+        rest.botSkillDescription ??
         (skills.length > 0 ? `Skills from skills.sh: ${skills.join(", ")}` : "");
       const bot = await prisma.botConfig.create({
         data: {
           id: `bot-${Date.now()}`,
           workspaceId: params.workspaceId,
-          ...body,
+          ...rest,
           botSkillDescription,
           skills,
-          status: body.status ?? "idle",
-          supervisedSettings: body.supervisedSettings as object,
+          status: rest.status ?? "idle",
+          supervisedSettings: rest.supervisedSettings as object,
         },
       });
+      if (jiraProjectId) {
+        const proj = await prisma.jiraProject.findFirst({
+          where: { id: jiraProjectId, workspaceId: params.workspaceId },
+        });
+        if (proj) {
+          await prisma.jiraProject.update({
+            where: { id: jiraProjectId },
+            data: { botId: bot.id },
+          });
+        }
+      }
       return bot;
     },
     { body: botBody },
@@ -104,27 +117,45 @@ export const botsService = new Elysia({ prefix: "/bots", aot: false })
         where: { id: params.id, workspaceId: params.workspaceId },
       });
       if (!existing) throw new Error("Bot not found");
+      const { jiraProjectId, ...rest } = body;
       const skills =
-        body.skills !== undefined ? normalizeSkills(body.skills) : (existing.skills ?? []);
+        rest.skills !== undefined ? normalizeSkills(rest.skills) : (existing.skills ?? []);
       const botSkillDescription =
-        body.botSkillDescription !== undefined
-          ? body.botSkillDescription
+        rest.botSkillDescription !== undefined
+          ? rest.botSkillDescription
           : skills.length > 0
             ? `Skills from skills.sh: ${skills.join(", ")}`
             : existing.botSkillDescription;
       const updateData: Record<string, unknown> = {
-        ...body,
+        ...rest,
         skills,
         botSkillDescription,
-        supervisedSettings: body.supervisedSettings as object | undefined,
+        supervisedSettings: rest.supervisedSettings as object | undefined,
       };
-      if (body.systemPromptId !== undefined) {
-        updateData.systemPromptId = body.systemPromptId ?? null;
+      if (rest.systemPromptId !== undefined) {
+        updateData.systemPromptId = rest.systemPromptId ?? null;
       }
       const bot = await prisma.botConfig.update({
         where: { id: params.id },
         data: updateData,
       });
+      if (jiraProjectId !== undefined) {
+        await prisma.jiraProject.updateMany({
+          where: { workspaceId: params.workspaceId, botId: params.id },
+          data: { botId: null },
+        });
+        if (jiraProjectId) {
+          const proj = await prisma.jiraProject.findFirst({
+            where: { id: jiraProjectId, workspaceId: params.workspaceId },
+          });
+          if (proj) {
+            await prisma.jiraProject.update({
+              where: { id: jiraProjectId },
+              data: { botId: params.id },
+            });
+          }
+        }
+      }
       return bot;
     },
     { body: t.Partial(botBody) },

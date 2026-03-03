@@ -58,9 +58,9 @@ export function StepCredentials({
           </Button>
         </div>
         {errors.githubToken ? (
-          <p className="text-destructive text-[11px]">{errors.githubToken}</p>
+          <p className="text-destructive text-[10px]">{errors.githubToken}</p>
         ) : (
-          <p className="text-muted-foreground text-[11px]">Dedicated token for this bot</p>
+          <p className="text-muted-foreground text-[10px]">Dedicated token for this bot</p>
         )}
       </div>
     </>

@@ -95,7 +95,7 @@ export function CreateWorkspaceForm({ onSuccess }: CreateWorkspaceFormProps) {
           aria-invalid={!!errors.name}
           className={cn(errors.name && "border-destructive focus-visible:ring-destructive")}
         />
-        {errors.name && <p className="text-destructive text-[11px]">{errors.name}</p>}
+        {errors.name && <p className="text-destructive text-[10px]">{errors.name}</p>}
       </div>
 
       <div className="flex flex-col gap-2">
@@ -117,9 +117,9 @@ export function CreateWorkspaceForm({ onSuccess }: CreateWorkspaceFormProps) {
           />
         </div>
         {errors.slug ? (
-          <p className="text-destructive text-[11px]">{errors.slug}</p>
+          <p className="text-destructive text-[10px]">{errors.slug}</p>
         ) : (
-          <p className="text-muted-foreground text-[11px]">
+          <p className="text-muted-foreground text-[10px]">
             Only lowercase letters, numbers, and hyphens
           </p>
         )}

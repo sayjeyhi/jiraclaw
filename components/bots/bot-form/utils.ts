@@ -5,9 +5,12 @@ import type { FormState, FormComponentState } from "./types";
 export const defaultForm: FormState = {
   title: "",
   email: "",
+  selectedGlobalPromptId: "",
   selectedSystemPromptId: "",
   skills: [],
   botSkillDescription: "",
+  selectedTicketIntegration: "",
+  selectedJiraProjectId: "",
   selectedProvider: "",
   selectedModel: "",
   githubToken: "",
@@ -16,13 +19,16 @@ export const defaultForm: FormState = {
   supervisedSettings: defaultSupervisedSettings,
 };
 
-export function botToForm(bot: BotConfig): FormState {
+export function botToForm(bot: BotConfig, linkedJiraProjectId?: string): FormState {
   return {
     title: bot.title,
     email: bot.email,
+    selectedGlobalPromptId: "",
     selectedSystemPromptId: bot.systemPromptId ?? "",
     skills: bot.skills ?? [],
     botSkillDescription: bot.botSkillDescription ?? "",
+    selectedTicketIntegration: linkedJiraProjectId ? "jira" : "",
+    selectedJiraProjectId: linkedJiraProjectId ?? "",
     selectedProvider: bot.defaultProvider ?? "",
     selectedModel: bot.defaultModel ?? "",
     githubToken: bot.githubToken ?? "",
@@ -32,11 +38,14 @@ export function botToForm(bot: BotConfig): FormState {
   };
 }
 
-export function resetState(bot: BotConfig | null | undefined): FormComponentState {
+export function resetState(
+  bot: BotConfig | null | undefined,
+  linkedJiraProjectId?: string,
+): FormComponentState {
   return {
     step: 1,
     errors: {},
-    form: bot ? botToForm(bot) : defaultForm,
+    form: bot ? botToForm(bot, linkedJiraProjectId) : defaultForm,
     isSubmitting: false,
   };
 }

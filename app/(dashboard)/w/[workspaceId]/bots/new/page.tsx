@@ -6,7 +6,13 @@ import { BotForm } from "@/components/bots/bot-form";
 import { PageSkeleton } from "@/components/loading-skeletons";
 import { fetcher, api } from "@/lib/api";
 import { mergeProvidersWithModels } from "@/lib/merge-ai-providers";
-import type { BotConfig, AIProvider, SystemPrompt } from "@/lib/types";
+import { ALLOWED_AI_PROVIDERS } from "@/lib/constants/allowed-ai-providers";
+import type { BotConfig, AIProvider, JiraProject, SystemPrompt } from "@/lib/types";
+
+interface RepoRow {
+  url: string;
+  label: string;
+}
 
 export default function NewBotPage() {
   const params = useParams();
@@ -14,24 +20,103 @@ export default function NewBotPage() {
   const workspaceId = params.workspaceId as string;
   const apiForWorkspace = api.forWorkspace(workspaceId);
 
-  const { data: providersRaw = [], isLoading } = useSWR<AIProvider[]>(
-    workspaceId ? `/api/w/${workspaceId}/ai-models` : null,
-    fetcher,
-  );
+  const {
+    data: providersRaw = [],
+    isLoading: isLoadingProviders,
+    mutate: mutateProviders,
+  } = useSWR<AIProvider[]>(workspaceId ? `/api/w/${workspaceId}/ai-models` : null, fetcher);
   const providers = mergeProvidersWithModels(providersRaw);
-  const { data: prompts = [] } = useSWR<SystemPrompt[]>(
+  const { data: prompts = [], mutate: mutatePrompts } = useSWR<SystemPrompt[]>(
     workspaceId ? `/api/w/${workspaceId}/prompts` : null,
     fetcher,
   );
+  const { data: jiraProjects = [], mutate: mutateJira } = useSWR<JiraProject[]>(
+    workspaceId ? `/api/w/${workspaceId}/jira` : null,
+    fetcher,
+  );
 
-  const handleSave = async (data: Omit<BotConfig, "id" | "createdAt" | "status">) => {
-    const created = (await apiForWorkspace.bots.create(
-      data as unknown as Record<string, unknown>,
-    )) as BotConfig;
+  const handleAiSave = async (slug: string, apiKey: string, enabled: boolean) => {
+    const template = ALLOWED_AI_PROVIDERS.find((p) => p.slug === slug);
+    if (!template) return;
+    const existing = (providersRaw ?? []).find((p) => p.slug === slug);
+    const providerId = existing?.id ?? `${workspaceId}-${slug}`;
+    if (existing) {
+      await apiForWorkspace.aiModels.update(providerId, {
+        apiKey: apiKey.trim() || undefined,
+        enabled,
+      });
+    } else {
+      await apiForWorkspace.aiModels.create({
+        name: template.name,
+        slug: template.slug,
+        apiKey: apiKey.trim() || undefined,
+        enabled: true,
+      });
+    }
+    mutateProviders();
+  };
+
+  const handleCreatePrompt = async (data: {
+    name: string;
+    content: string;
+    isGlobal: boolean;
+    botIds?: string[];
+  }) => {
+    await apiForWorkspace.prompts.create(data);
+    mutatePrompts();
+  };
+
+  const handleCreateJiraProject = async (
+    data: Pick<JiraProject, "name" | "key" | "url"> & { apiKey?: string; repos: RepoRow[] },
+  ) => {
+    const created = (await apiForWorkspace.jira.create({
+      name: data.name,
+      key: data.key,
+      url: data.url,
+      apiKey: data.apiKey,
+      repositories: data.repos
+        .filter((r) => r.url.trim())
+        .map((repo, i) => ({
+          id: `repo-${Date.now()}-${i}`,
+          name: repo.url.split("/").pop() ?? "repo",
+          url: repo.url,
+          branch: "main",
+          label: repo.label,
+          status: "cloning",
+        })),
+      labelMappings: [],
+      status: "syncing",
+    })) as JiraProject;
+    mutateJira();
+    return created;
+  };
+
+  const handleSave = async (
+    data: Omit<BotConfig, "id" | "createdAt" | "status"> & { jiraProjectId?: string },
+  ) => {
+    const { jiraProjectId, ...botData } = data;
+    const created = (await apiForWorkspace.bots.create({
+      ...botData,
+      jiraProjectId,
+    } as unknown as Record<string, unknown>)) as BotConfig;
     router.push(`/w/${workspaceId}/bots/${created.id}`);
   };
 
-  if (isLoading) return <PageSkeleton />;
+  if (isLoadingProviders) return <PageSkeleton />;
 
-  return <BotForm bot={null} providers={providers} prompts={prompts} onSave={handleSave} />;
+  return (
+    <BotForm
+      bot={null}
+      providers={providers}
+      prompts={prompts}
+      onCreatePrompt={handleCreatePrompt}
+      onPromptsChange={() => mutatePrompts()}
+      jiraProjects={jiraProjects}
+      onCreateJiraProject={handleCreateJiraProject}
+      onJiraProjectsChange={() => mutateJira()}
+      onAiSave={handleAiSave}
+      onAiProvidersChange={() => mutateProviders()}
+      onSave={handleSave}
+    />
+  );
 }

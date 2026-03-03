@@ -101,7 +101,7 @@ export function SkillsPicker({ value, onChange, error, disabled }: SkillsPickerP
         )}
       </div>
 
-      <p className="text-muted-foreground text-[11px]">
+      <p className="text-muted-foreground text-[10px]">
         Add up to {MAX_SKILLS} skills from{" "}
         <a
           href={SKILLS_URL}
@@ -138,7 +138,7 @@ export function SkillsPicker({ value, onChange, error, disabled }: SkillsPickerP
         </div>
       )}
 
-      {error && <p className="text-destructive text-[11px]">{error}</p>}
+      {error && <p className="text-destructive text-[10px]">{error}</p>}
     </div>
   );
 }

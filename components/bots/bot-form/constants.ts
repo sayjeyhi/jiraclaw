@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { Cpu, Kanban, ShieldCheck, Sparkles } from "lucide-react";
+import { Cpu, Kanban, LayoutGrid, ListChecks, ShieldCheck, Sparkles, Trello } from "lucide-react";
 import type { SupervisedSettings } from "@/lib/types";
 
 export const defaultSupervisedSettings: SupervisedSettings = {
@@ -12,8 +12,8 @@ export const defaultSupervisedSettings: SupervisedSettings = {
 
 export const STEPS = [
   { id: 1, label: "Identity & Autonomy", icon: ShieldCheck, optional: false },
-  { id: 2, label: "Skills", icon: Sparkles, optional: false },
-  { id: 3, label: "Project", icon: Kanban, optional: true },
+  { id: 2, label: "Project", icon: Kanban, optional: true },
+  { id: 3, label: "Skills", icon: Sparkles, optional: false },
   { id: 4, label: "AI Model", icon: Cpu, optional: true },
 ] as const;
 
@@ -24,6 +24,28 @@ export const TICKET_INTEGRATIONS = [
     description:
       "Connect a Jira project and link GitHub repositories for automated ticket monitoring.",
     icon: Kanban,
+    disabled: false,
+  },
+  {
+    id: "linear",
+    name: "Linear",
+    description: "Coming soon. Connect Linear workspaces for issue tracking.",
+    icon: ListChecks,
+    disabled: true,
+  },
+  {
+    id: "trello",
+    name: "Trello",
+    description: "Coming soon. Connect Trello boards for project management.",
+    icon: Trello,
+    disabled: true,
+  },
+  {
+    id: "clickup",
+    name: "ClickUp",
+    description: "Coming soon. Connect ClickUp workspaces for task management.",
+    icon: LayoutGrid,
+    disabled: true,
   },
 ] as const;
 
@@ -64,7 +86,11 @@ export const stepTicketProviderSchema = z.object({
   githubToken: z
     .string()
     .optional()
-    .refine((v) => !v || /^(ghp_|github_pat_)[A-Za-z0-9_]+$/.test(v), {
-      message: "Token must start with ghp_ or github_pat_",
-    }),
+    .refine(
+      (v) =>
+        !v ||
+        v.includes("***") || // masked display value from API (skip validation)
+        /^(ghp_|github_pat_)[A-Za-z0-9_]+$/.test(v),
+      { message: "Token must start with ghp_ or github_pat_" },
+    ),
 });

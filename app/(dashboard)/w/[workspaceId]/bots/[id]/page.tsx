@@ -39,11 +39,11 @@ export default function BotDetailPage({ params }: { params: Promise<{ id: string
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-3">
       <BotDetailHeader bot={bot} workspaceId={workspaceId} />
       <BotDetailStats bot={bot} />
       <BotDetailSummary tickets={tickets} />
-      <BotDetailSkills bot={bot} workspaceId={workspaceId} onSkillsSave={handleSkillsSave} />
+      <BotDetailSkills bot={bot} onSkillsSave={handleSkillsSave} />
       <BotTicketsList tickets={tickets} expandedTicketId={ticketIdFromUrl} />
     </div>
   );

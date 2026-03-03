@@ -7,20 +7,7 @@ import useSWR from "swr";
 import { useTheme } from "next-themes";
 import { fetcher } from "@/lib/api";
 import type { BotConfig } from "@/lib/types";
-import {
-  Bot,
-  Kanban,
-  BrainCircuit,
-  FileText,
-  Radio,
-  ScrollText,
-  Menu,
-  X,
-  Sun,
-  Moon,
-  Plus,
-  Settings,
-} from "lucide-react";
+import { Bot, Radio, ScrollText, Menu, X, Sun, Moon, Plus, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { UserMenu } from "@/components/user-menu";
@@ -75,7 +62,7 @@ function SidebarContent({ onNavClick }: { onNavClick?: () => void }) {
             </Link>
           </li>
 
-          {hasBots ? (
+          {hasBots &&
             bots.map((bot) => {
               const href = base ? `${base}/bots/${bot.id}` : "/";
               const isActive = pathname === href || pathname.startsWith(href + "/");
@@ -96,19 +83,18 @@ function SidebarContent({ onNavClick }: { onNavClick?: () => void }) {
                   </Link>
                 </li>
               );
-            })
-          ) : (
-            <li>
-              <Link
-                href={base ? `${base}/bots/new` : "/"}
-                onClick={onNavClick}
-                className="border-border text-muted-foreground hover:text-foreground hover:bg-sidebar-accent hover:border-primary/30 flex items-center justify-center gap-3 rounded-md border border-dashed px-3 py-2 text-xs font-medium transition-colors"
-              >
-                <Plus className="size-4 shrink-0" />
-                Create a bot
-              </Link>
-            </li>
-          )}
+            })}
+
+          <li>
+            <Link
+              href={base ? `${base}/bots/new` : "/"}
+              onClick={onNavClick}
+              className="border-border text-muted-foreground hover:text-foreground hover:bg-sidebar-accent hover:border-primary/30 flex items-center justify-center gap-3 rounded-md border border-dashed px-3 py-2 text-xs font-medium transition-colors"
+            >
+              <Plus className="size-4 shrink-0" />
+              Create a bot
+            </Link>
+          </li>
 
           <li className="mt-10">
             <ul className="flex flex-col gap-1">

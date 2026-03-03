@@ -120,12 +120,12 @@ export function BotForm({
           title: form.title,
           email: form.email,
         });
-      if (step === 2)
+      if (step === 2) return stepTicketProviderSchema.safeParse({ githubToken: form.githubToken });
+      if (step === 3)
         return stepSkillSchema.safeParse({
           skills: form.skills,
           botSkillDescription: form.botSkillDescription,
         });
-      if (step === 3) return stepTicketProviderSchema.safeParse({ githubToken: form.githubToken });
       if (step === 4)
         return stepAIModelSchema.safeParse({
           selectedProvider: form.selectedProvider,
@@ -159,6 +159,17 @@ export function BotForm({
     if (!validateStep()) return;
     setState((prev) => ({ ...prev, isSubmitting: true }));
     try {
+      // Only send githubToken when changed: omit when unchanged (masked value), send "" to clear, send new raw key when entered
+      const savedMasked = bot?.githubToken ?? "";
+      const tokenUnchanged = form.githubToken === savedMasked;
+      const isMaskedValue = form.githubToken?.includes("***");
+      const githubToken =
+        tokenUnchanged || isMaskedValue
+          ? undefined
+          : form.githubToken === ""
+            ? ""
+            : form.githubToken || undefined;
+
       await onSave({
         title: form.title,
         email: form.email,
@@ -167,7 +178,7 @@ export function BotForm({
         enabledChannels: bot?.enabledChannels ?? [],
         defaultProvider: form.selectedProvider || undefined,
         defaultModel: form.selectedModel || undefined,
-        githubToken: form.githubToken || undefined,
+        ...(githubToken !== undefined && { githubToken }),
         spendingLimit: form.spendingLimit ? parseFloat(form.spendingLimit) : undefined,
         autonomyLevel: form.autonomyLevel,
         supervisedSettings:
@@ -207,19 +218,6 @@ export function BotForm({
         )}
 
         {step === 2 && (
-          <StepSkill
-            form={form}
-            errors={errors}
-            prompts={prompts}
-            onFormChange={setForm}
-            onClearError={clearError}
-            bots={bots}
-            onCreatePrompt={onCreatePrompt}
-            onPromptsChange={onPromptsChange}
-          />
-        )}
-
-        {step === 3 && (
           <StepTicketProvider
             form={form}
             errors={errors}
@@ -234,6 +232,19 @@ export function BotForm({
             }
             onEditProject={onEditJiraProject}
             onProjectsChange={onJiraProjectsChange}
+          />
+        )}
+
+        {step === 3 && (
+          <StepSkill
+            form={form}
+            errors={errors}
+            prompts={prompts}
+            onFormChange={setForm}
+            onClearError={clearError}
+            bots={bots}
+            onCreatePrompt={onCreatePrompt}
+            onPromptsChange={onPromptsChange}
           />
         )}
 
@@ -253,6 +264,7 @@ export function BotForm({
       </div>
 
       <div className="flex items-center justify-between">
+        <div />
         <div className="flex gap-2">
           {isFirstStep ? (
             <Button type="button" variant="outline" asChild>

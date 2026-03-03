@@ -12,11 +12,10 @@ const SKILLS_URL = "https://skills.sh";
 
 interface BotDetailSkillsProps {
   bot: BotConfig;
-  workspaceId: string;
   onSkillsSave: (skills: string[]) => Promise<void>;
 }
 
-export function BotDetailSkills({ bot, workspaceId, onSkillsSave }: BotDetailSkillsProps) {
+export function BotDetailSkills({ bot, onSkillsSave }: BotDetailSkillsProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [skills, setSkills] = useState<string[]>(bot.skills ?? []);
   const [isSaving, setIsSaving] = useState(false);

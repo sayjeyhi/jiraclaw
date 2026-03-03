@@ -9,7 +9,7 @@ interface BotDetailStatsProps {
 
 export function BotDetailStats({ bot }: BotDetailStatsProps) {
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+    <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
       <div className="border-border bg-card flex items-start gap-3 rounded-lg border px-4 py-3">
         <BrainCircuit className="text-primary mt-0.5 size-4 shrink-0" />
         <div>
@@ -34,9 +34,7 @@ export function BotDetailStats({ bot }: BotDetailStatsProps) {
             {bot.githubToken ? "Configured" : "Not set"}
           </p>
           {bot.githubToken && (
-            <p className="text-muted-foreground font-mono text-[10px]">
-              {bot.githubToken.slice(0, 8)}...
-            </p>
+            <p className="text-muted-foreground font-mono text-[10px]">{bot.githubToken}</p>
           )}
         </div>
       </div>

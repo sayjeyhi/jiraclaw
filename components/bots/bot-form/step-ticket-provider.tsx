@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Eye, EyeOff, Pencil, Plus } from "lucide-react";
+import { Check, Eye, EyeOff, GitBranch, Pencil, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -109,20 +109,41 @@ export function StepTicketProvider({
             {TICKET_INTEGRATIONS.map((integration) => {
               const Icon = integration.icon;
               const isSelected = form.selectedTicketIntegration === integration.id;
+              const isDisabled = integration.disabled;
               return (
-                <button
+                <div
                   key={integration.id}
-                  type="button"
-                  onClick={() => handleSelectIntegration(integration.id)}
+                  role={isDisabled ? undefined : "button"}
+                  tabIndex={isDisabled ? undefined : 0}
+                  onKeyDown={
+                    isDisabled
+                      ? undefined
+                      : (e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            handleSelectIntegration(integration.id);
+                          }
+                        }
+                  }
+                  onClick={isDisabled ? undefined : () => handleSelectIntegration(integration.id)}
                   className={cn(
-                    "border-border bg-card hover:border-primary/40 flex items-start gap-4 rounded-lg border p-4 text-left transition-all",
-                    isSelected && "border-primary bg-primary/5 ring-primary/20 shadow-sm ring-2",
+                    "border-border flex items-start gap-4 rounded-lg border p-4 text-left transition-all",
+                    isDisabled
+                      ? "bg-muted/30 cursor-not-allowed opacity-60"
+                      : "bg-card hover:border-primary/40 cursor-pointer",
+                    !isDisabled &&
+                      isSelected &&
+                      "border-primary bg-primary/5 ring-primary/20 shadow-sm ring-2",
                   )}
                 >
                   <div
                     className={cn(
                       "flex size-10 shrink-0 items-center justify-center rounded-md",
-                      isSelected ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground",
+                      isDisabled && "bg-muted text-muted-foreground",
+                      !isDisabled &&
+                        (isSelected
+                          ? "bg-primary/15 text-primary"
+                          : "bg-muted text-muted-foreground"),
                     )}
                   >
                     <Icon className="size-5" />
@@ -132,7 +153,12 @@ export function StepTicketProvider({
                       <h3 className="text-card-foreground text-sm font-medium">
                         {integration.name}
                       </h3>
-                      {isSelected && (
+                      {isDisabled && (
+                        <span className="text-muted-foreground rounded border px-1.5 py-0.5 text-[10px]">
+                          Coming soon
+                        </span>
+                      )}
+                      {!isDisabled && isSelected && (
                         <Check className="text-primary size-4 shrink-0" strokeWidth={2.5} />
                       )}
                     </div>
@@ -140,7 +166,7 @@ export function StepTicketProvider({
                       {integration.description}
                     </p>
                   </div>
-                </button>
+                </div>
               );
             })}
           </div>
@@ -148,7 +174,7 @@ export function StepTicketProvider({
 
         {/* Project selection (when Jira is selected) */}
         {form.selectedTicketIntegration === "jira" && (
-          <div>
+          <div className="w-full">
             <div className="mb-2 flex items-center justify-between">
               <h4 className="text-muted-foreground text-xs font-medium tracking-wider uppercase">
                 Jira projects
@@ -163,53 +189,126 @@ export function StepTicketProvider({
                 No projects yet. Click <strong>Connect Project</strong> to add one.
               </p>
             ) : (
-              <div className="grid gap-3 sm:grid-cols-1 lg:grid-cols-2">
+              <div className="flex w-full flex-col gap-3">
                 {projects.map((project) => {
                   const isSelected = form.selectedJiraProjectId === project.id;
                   return (
                     <div
                       key={project.id}
                       className={cn(
-                        "border-border bg-card flex items-start justify-between gap-3 rounded-lg border p-4 transition-all",
+                        "border-border bg-card flex w-full flex-col gap-3 rounded-lg border p-4 transition-all",
                         isSelected &&
                           "border-primary bg-primary/5 ring-primary/20 shadow-sm ring-2",
                       )}
                     >
-                      <button
-                        type="button"
-                        className="min-w-0 flex-1 text-left"
-                        onClick={() => handleSelectProject(project.id)}
-                      >
-                        <div className="flex items-center gap-2">
-                          <h3 className="text-card-foreground text-sm font-medium">
-                            {project.name}
-                          </h3>
-                          <span className="text-muted-foreground shrink-0 rounded border px-1.5 py-0.5 text-[10px]">
-                            {project.key}
-                          </span>
-                          {isSelected && (
-                            <Check className="text-primary size-4 shrink-0" strokeWidth={2.5} />
+                      <div className="flex items-start justify-between gap-3">
+                        <button
+                          type="button"
+                          className="min-w-0 flex-1 text-left"
+                          onClick={() => handleSelectProject(project.id)}
+                        >
+                          <div className="flex items-center gap-2">
+                            <h3 className="text-card-foreground text-sm font-medium">
+                              {project.name}
+                            </h3>
+                            <span className="text-muted-foreground shrink-0 rounded border px-1.5 py-0.5 text-[10px]">
+                              {project.key}
+                            </span>
+                            {isSelected && (
+                              <Check className="text-primary size-4 shrink-0" strokeWidth={2.5} />
+                            )}
+                          </div>
+                          <p className="text-muted-foreground mt-0.5 truncate text-xs">
+                            {project.url}
+                          </p>
+                        </button>
+                        <div className="flex shrink-0 items-center gap-0.5">
+                          {onEditProject && (
+                            <>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="text-muted-foreground hover:text-foreground size-8"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  openEditDialog(project);
+                                }}
+                                aria-label="Manage repositories"
+                                title="Manage repositories"
+                              >
+                                <Plus className="size-4" />
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="text-muted-foreground hover:text-foreground size-8"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  openEditDialog(project);
+                                }}
+                                aria-label="Edit project"
+                                title="Edit project"
+                              >
+                                <Pencil className="size-4" />
+                              </Button>
+                            </>
                           )}
                         </div>
-                        <p className="text-muted-foreground mt-0.5 truncate text-xs">
-                          {project.url}
-                        </p>
-                      </button>
-                      {onEditProject && (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="text-muted-foreground hover:text-foreground size-8 shrink-0"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            openEditDialog(project);
-                          }}
-                          aria-label="Edit project"
-                        >
-                          <Pencil className="size-4" />
-                        </Button>
-                      )}
+                      </div>
+
+                      {/* Repositories */}
+                      <div className="border-border border-t pt-3">
+                        <div className="mb-2 flex items-center justify-between">
+                          <h4 className="text-muted-foreground flex items-center gap-1.5 text-xs font-medium tracking-wider uppercase">
+                            <GitBranch className="size-3" />
+                            Repositories ({project.repositories.length})
+                          </h4>
+                          {onEditProject && (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="text-muted-foreground hover:text-foreground h-6 gap-1 px-2 text-xs"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openEditDialog(project);
+                              }}
+                            >
+                              <Plus className="size-3" />
+                              Add repo
+                            </Button>
+                          )}
+                        </div>
+                        {project.repositories.length === 0 ? (
+                          <p className="text-muted-foreground rounded-md border border-dashed py-4 text-center text-xs">
+                            No repositories linked. Click <strong>Add repo</strong> or the + button
+                            to connect GitHub repos.
+                          </p>
+                        ) : (
+                          <div className="flex flex-col gap-1.5">
+                            {project.repositories.map((repo) => (
+                              <div
+                                key={repo.id}
+                                className="border-border bg-muted/30 flex items-center justify-between gap-2 rounded-md border px-3 py-2"
+                              >
+                                <div className="flex min-w-0 items-center gap-2">
+                                  <span className="text-muted-foreground shrink-0 rounded border px-1.5 py-0.5 text-[10px]">
+                                    {repo.label ?? "any"}
+                                  </span>
+                                  <span className="text-foreground truncate text-sm">
+                                    {repo.name}
+                                  </span>
+                                </div>
+                                <span className="text-muted-foreground shrink-0 truncate text-xs">
+                                  {repo.url}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   );
                 })}

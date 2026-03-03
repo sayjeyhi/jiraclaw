@@ -62,9 +62,10 @@ model BotConfig {
   botSkillDescription String    @default("")
   skills              String[]  @default([]) // skills.sh skill ids (owner/repo/skill-name)
   status              String // "active" | "idle" | "working" | "error"
-  defaultProvider     String?
-  defaultModel        String?
-  githubToken         String?
+  defaultProvider       String?
+  defaultModel          String?
+  encryptedGithubToken  String?   // AES-256-GCM encrypted, server-only
+  maskedGithubToken     String?   // first 2 + last 3 chars for display
   spendingLimit       Int?
   autonomyLevel       String // "autonomous" | "supervised"
   supervisedSettings  Json // SupervisedSettings

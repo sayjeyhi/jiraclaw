@@ -6,6 +6,7 @@ import useSWR from "swr";
 import { BotForm } from "@/components/bots/bot-form";
 import { BotDetailSkeleton } from "@/components/loading-skeletons";
 import { fetcher, api } from "@/lib/api";
+import { mergeProvidersWithModels } from "@/lib/merge-ai-providers";
 import type { BotConfig, AIProvider, SystemPrompt } from "@/lib/types";
 
 export default function EditBotPage({ params }: { params: Promise<{ id: string }> }) {
@@ -19,10 +20,11 @@ export default function EditBotPage({ params }: { params: Promise<{ id: string }
     workspaceId ? `/api/w/${workspaceId}/bots/${id}` : null,
     fetcher,
   );
-  const { data: providers = [] } = useSWR<AIProvider[]>(
+  const { data: providersRaw = [] } = useSWR<AIProvider[]>(
     workspaceId ? `/api/w/${workspaceId}/ai-models` : null,
     fetcher,
   );
+  const providers = mergeProvidersWithModels(providersRaw);
   const { data: prompts = [] } = useSWR<SystemPrompt[]>(
     workspaceId ? `/api/w/${workspaceId}/prompts` : null,
     fetcher,

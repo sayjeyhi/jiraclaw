@@ -116,6 +116,7 @@ export interface AIProvider {
   workspaceId: string;
   name: string;
   slug: string;
+  /** Masked display only: first 2 + last 3 chars (e.g. "sk***xyz"). Full key never sent to frontend. */
   apiKey?: string;
   enabled: boolean;
   models: AIModel[];

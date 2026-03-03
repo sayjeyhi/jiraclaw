@@ -22,32 +22,30 @@ export default function AIModelsPage() {
     mutate,
   } = useSWR<AIProvider[]>(workspaceId ? `/api/w/${workspaceId}/ai-models` : null, fetcher);
 
-  const providerMap = new Map((providers ?? []).map((p) => [p.id, p]));
+  const providerMap = new Map((providers ?? []).map((p) => [p.slug, p]));
 
   const handleToggle = async (id: string, enabled: boolean) => {
     await apiForWorkspace.aiModels.update(id, { enabled });
     mutate();
   };
 
-  const handleSave = async (id: string, apiKey: string, enabled: boolean) => {
-    const exists = providerMap.has(id);
-    const template = ALLOWED_AI_PROVIDERS.find((p) => p.id === id);
+  const handleSave = async (slug: string, apiKey: string, enabled: boolean) => {
+    const template = ALLOWED_AI_PROVIDERS.find((p) => p.slug === slug);
     if (!template) return;
+    const existing = providerMap.get(slug);
+    const providerId = existing?.id ?? `${workspaceId}-${slug}`;
 
-    if (exists) {
-      await apiForWorkspace.aiModels.update(id, {
+    if (existing) {
+      await apiForWorkspace.aiModels.update(providerId, {
         apiKey: apiKey.trim() || undefined,
         enabled,
-        models: template.models,
       });
     } else {
       await apiForWorkspace.aiModels.create({
-        id: template.id,
         name: template.name,
         slug: template.slug,
         apiKey: apiKey.trim() || undefined,
         enabled: true,
-        models: template.models,
       });
     }
     mutate();
@@ -83,12 +81,12 @@ export default function AIModelsPage() {
           <h2 className="text-muted-foreground text-xs font-medium tracking-wider uppercase">
             Providers ({ALLOWED_AI_PROVIDERS.length})
           </h2>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-1 lg:grid-cols-2">
             {ALLOWED_AI_PROVIDERS.map((template) => (
               <ProviderCard
-                key={template.id}
+                key={template.slug}
                 template={template}
-                workspaceProvider={providerMap.get(template.id)}
+                workspaceProvider={providerMap.get(template.slug)}
                 onToggle={handleToggle}
                 onSave={handleSave}
               />

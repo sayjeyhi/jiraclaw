@@ -13,6 +13,7 @@ import { BotCard } from "@/components/bots/bot-card";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { PageSkeleton } from "@/components/loading-skeletons";
 import { fetcher, api } from "@/lib/api";
+import { mergeProvidersWithModels } from "@/lib/merge-ai-providers";
 import type { BotConfig, BotTicket, AIProvider } from "@/lib/types";
 
 export default function BotsPage() {
@@ -25,10 +26,11 @@ export default function BotsPage() {
     isLoading,
     mutate: mutateBots,
   } = useSWR<BotConfig[]>(workspaceId ? `/api/w/${workspaceId}/bots` : null, fetcher);
-  const { data: providers = [] } = useSWR<AIProvider[]>(
+  const { data: providersRaw = [] } = useSWR<AIProvider[]>(
     workspaceId ? `/api/w/${workspaceId}/ai-models` : null,
     fetcher,
   );
+  const providers = mergeProvidersWithModels(providersRaw);
   const { data: allTickets = [] } = useSWR<BotTicket[]>(
     workspaceId && bots && bots.length > 0
       ? bots.map((b) => `/api/w/${workspaceId}/bots/${b.id}/tickets`)

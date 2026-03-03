@@ -30,9 +30,9 @@ const mainNavItems = [{ name: "Logs", path: "logs", icon: ScrollText }];
 
 const settingsNavItems = [
   { name: "AI Providers", path: "ai-models", icon: BrainCircuit },
-  { name: "Tickets", path: "jira", icon: Kanban },
-  { name: "Prompts", path: "prompts", icon: FileText },
-  { name: "Channels", path: "channels", icon: Radio },
+  { name: "Ticket Integration", path: "jira", icon: Kanban },
+  { name: "Communication Channels", path: "channels", icon: Radio },
+  { name: "System Prompts", path: "prompts", icon: FileText },
 ];
 
 function getWorkspaceBase(pathname: string): string | null {
@@ -114,7 +114,7 @@ function SidebarContent({ onNavClick }: { onNavClick?: () => void }) {
                       href={href}
                       onClick={onNavClick}
                       className={cn(
-                        "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                        "flex items-center gap-3 rounded-md px-3 py-2 text-xs font-medium transition-colors",
                         isActive
                           ? "bg-sidebar-accent text-sidebar-primary"
                           : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground",

@@ -119,10 +119,13 @@ export const app = new Elysia({ prefix: "/api", aot: false })
      * Logs the error and returns a JSON error response.
      */
     ({ code, error, set }) => {
-      console.error("API error handler", error, { code });
+      const err = error instanceof Error ? error : new Error(String(error));
+      const message = err.message;
+      const name = err.name;
+      console.error("API error handler", { name, message, code });
       set.status = code === "NOT_FOUND" ? 404 : 500;
       return JSON.stringify({
-        error: error instanceof Error ? JSON.stringify({ error }) : JSON.stringify({ error }),
+        error: { name, message },
         status: set.status,
       });
     },

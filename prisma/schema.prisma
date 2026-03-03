@@ -91,14 +91,14 @@ model JiraProject {
 }
 
 model AIProvider {
-  id          String    @id
-  workspaceId String
-  name        String
-  slug        String
-  apiKey      String?
-  enabled     Boolean   @default(true)
-  models      Json // AIModel[]
-  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  id              String    @id
+  workspaceId     String
+  name            String
+  slug            String
+  encryptedApiKey String?   // AES-256-GCM encrypted, server-only
+  maskedApiKey    String?   // first 2 + last 3 chars for display
+  enabled         Boolean   @default(true)
+  workspace       Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
   @@unique([workspaceId, slug])
 }

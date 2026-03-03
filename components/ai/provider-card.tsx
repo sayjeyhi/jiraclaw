@@ -1,63 +1,101 @@
 "use client";
 
-import { useState } from "react";
-import { Eye, EyeOff, Key } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import { useState, useRef, useEffect } from "react";
+import { Eye, EyeOff, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import type { AIProvider } from "@/lib/types";
+import type { AIProvider, AllowedAIProvider } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 interface ProviderCardProps {
-  provider: AIProvider;
-  onToggle: (id: string, enabled: boolean) => void;
-  onUpdateApiKey: (id: string, apiKey: string) => void;
+  template: AllowedAIProvider;
+  workspaceProvider?: AIProvider | null;
+  onToggle: (id: string, enabled: boolean) => Promise<void>;
+  onSave: (id: string, apiKey: string, enabled: boolean) => Promise<void>;
 }
 
-export function ProviderCard({ provider, onToggle, onUpdateApiKey }: ProviderCardProps) {
+export function ProviderCard({ template, workspaceProvider, onToggle, onSave }: ProviderCardProps) {
   const [showKey, setShowKey] = useState(false);
-  const [apiKey, setApiKey] = useState(provider.apiKey ?? "");
+  const [modelsExpanded, setModelsExpanded] = useState(false);
+  const [hasModelsOverflow, setHasModelsOverflow] = useState(false);
+  const modelsContainerRef = useRef<HTMLDivElement>(null);
+  const [apiKey, setApiKey] = useState(workspaceProvider?.apiKey ?? "");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const enabled = workspaceProvider?.enabled ?? false;
+  const isConfigured = !!workspaceProvider;
+
+  const handleSave = async () => {
+    setError("");
+    setLoading(true);
+    try {
+      await onSave(template.id, apiKey.trim(), true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to save");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const el = modelsContainerRef.current;
+    if (!el || modelsExpanded) return;
+    const check = () => setHasModelsOverflow(el.scrollHeight > el.clientHeight);
+    check();
+    const ro = new ResizeObserver(check);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [template.models, modelsExpanded]);
+
+  const handleToggle = async (checked: boolean) => {
+    if (!workspaceProvider) return;
+    setError("");
+    try {
+      await onToggle(template.id, checked);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to update");
+    }
+  };
 
   return (
     <div
       className={cn(
         "bg-card rounded-lg border transition-colors",
-        provider.enabled ? "border-primary/30" : "border-border",
+        enabled ? "border-primary/30" : "border-border",
       )}
     >
       <div className="flex items-center justify-between px-4 py-3">
         <div className="flex items-center gap-3">
           <div
             className={cn(
-              "flex size-8 items-center justify-center rounded-md text-xs font-bold",
-              provider.enabled ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground",
+              "flex size-8 items-center justify-center rounded-md",
+              enabled
+                ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
+                : "bg-muted text-muted-foreground",
             )}
           >
-            {provider.name.slice(0, 2).toUpperCase()}
+            {enabled ? (
+              <Check className="size-4" strokeWidth={2.5} />
+            ) : (
+              <span className="text-xs font-bold">{template.name.slice(0, 2).toUpperCase()}</span>
+            )}
           </div>
           <div>
-            <h3 className="text-card-foreground text-sm font-medium">{provider.name}</h3>
-            {provider.models.length > 0 && (
-              <p className="text-muted-foreground text-xs">
-                {provider.models.length} model{provider.models.length !== 1 ? "s" : ""} available
-              </p>
-            )}
+            <h3 className="text-card-foreground text-sm font-medium">{template.name}</h3>
+            <p className="text-muted-foreground text-xs">
+              {template.models.length} model
+              {template.models.length !== 1 ? "s" : ""} available
+            </p>
           </div>
         </div>
 
         <div className="flex items-center gap-3">
-          {provider.apiKey && (
-            <Badge variant="outline" className="text-success border-success/25 text-[10px]">
-              <Key className="mr-1 size-2.5" />
-              Configured
-            </Badge>
+          {isConfigured && (
+            <Switch checked={enabled} onCheckedChange={handleToggle} disabled={!isConfigured} />
           )}
-          <Switch
-            checked={provider.enabled}
-            onCheckedChange={(checked) => onToggle(provider.id, checked)}
-          />
         </div>
       </div>
 
@@ -68,9 +106,12 @@ export function ProviderCard({ provider, onToggle, onUpdateApiKey }: ProviderCar
             <div className="flex items-center gap-2">
               <Input
                 type={showKey ? "text" : "password"}
-                placeholder="Enter API key..."
+                placeholder="Enter API key…"
                 value={apiKey}
-                onChange={(e) => setApiKey(e.target.value)}
+                onChange={(e) => {
+                  setApiKey(e.target.value);
+                  setError("");
+                }}
                 className="font-mono text-xs"
               />
               <Button
@@ -87,29 +128,47 @@ export function ProviderCard({ provider, onToggle, onUpdateApiKey }: ProviderCar
                 type="button"
                 size="sm"
                 variant="outline"
-                onClick={() => onUpdateApiKey(provider.id, apiKey)}
+                onClick={handleSave}
+                disabled={loading}
               >
-                Save
+                {loading ? "Saving…" : "Save"}
               </Button>
             </div>
+            {error && <p className="text-destructive text-xs">{error}</p>}
+            <p className="text-muted-foreground text-[11px]">
+              Your key is stored securely. Leave empty for local providers like Ollama.
+            </p>
           </div>
 
-          {provider.models.length > 0 && (
+          {template.models.length > 0 && (
             <div className="flex flex-col gap-2">
-              <Label className="text-xs">Available Models</Label>
-              <div className="flex max-h-40 flex-wrap gap-2 overflow-y-auto">
-                {provider.models.map((model) => (
-                  <div
+              <Label className="text-xs">Available models</Label>
+              <div
+                ref={modelsContainerRef}
+                className={cn(
+                  "flex flex-wrap gap-1.5",
+                  modelsExpanded ? "max-h-40 overflow-y-auto" : "max-h-14 overflow-hidden",
+                )}
+              >
+                {template.models.map((model) => (
+                  <span
                     key={model.id}
-                    className="border-border bg-muted/50 flex items-center gap-2 rounded-md border px-3 py-1.5"
+                    className="border-border bg-muted/50 rounded border px-2 py-1 font-mono text-[11px]"
                   >
-                    <span className="text-foreground font-mono text-xs">{model.name}</span>
-                    <span className="text-muted-foreground text-[10px]">
-                      {(model.maxTokens / 1000).toFixed(0)}k tokens
-                    </span>
-                  </div>
+                    {model.name}
+                  </span>
                 ))}
               </div>
+              {(hasModelsOverflow || modelsExpanded) && (
+                <Button
+                  type="button"
+                  variant="link"
+                  className="h-auto p-0 text-xs font-normal"
+                  onClick={() => setModelsExpanded(!modelsExpanded)}
+                >
+                  {modelsExpanded ? "Show less" : "Show more"}
+                </Button>
+              )}
             </div>
           )}
         </div>

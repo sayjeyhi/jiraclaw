@@ -1,19 +1,16 @@
 "use client";
 
 import { useParams } from "next/navigation";
-import { useState } from "react";
-import { BrainCircuit, TriangleAlert } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { TriangleAlert } from "lucide-react";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { PageHeader } from "@/components/page-header";
-import { EmptyStatePlaceholder } from "@/components/empty-state-placeholder";
 import { ProviderCard } from "@/components/ai/provider-card";
-import { ConfigureProviderDialog } from "@/components/ai/configure-provider-dialog";
 import { fetcher, api } from "@/lib/api";
 import { ALLOWED_AI_PROVIDERS } from "@/lib/constants/allowed-ai-providers";
-import { AIProvider, AllowedAIProvider } from "@/lib/types";
+import type { AIProvider } from "@/lib/types";
 import useSWR from "swr";
-import { ProviderListSkeleton } from "@/components/loading-skeletons";
+import { CardGridSkeleton } from "@/components/loading-skeletons";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function AIModelsPage() {
   const params = useParams();
@@ -25,17 +22,34 @@ export default function AIModelsPage() {
     mutate,
   } = useSWR<AIProvider[]>(workspaceId ? `/api/w/${workspaceId}/ai-models` : null, fetcher);
 
-  const [allowedProviders, setAllowedProviders] =
-    useState<AllowedAIProvider[]>(ALLOWED_AI_PROVIDERS);
-  const [configureOpen, setConfigureOpen] = useState(false);
+  const providerMap = new Map((providers ?? []).map((p) => [p.id, p]));
 
   const handleToggle = async (id: string, enabled: boolean) => {
     await apiForWorkspace.aiModels.update(id, { enabled });
     mutate();
   };
 
-  const handleUpdateApiKey = async (id: string, apiKey: string) => {
-    await apiForWorkspace.aiModels.update(id, { apiKey });
+  const handleSave = async (id: string, apiKey: string, enabled: boolean) => {
+    const exists = providerMap.has(id);
+    const template = ALLOWED_AI_PROVIDERS.find((p) => p.id === id);
+    if (!template) return;
+
+    if (exists) {
+      await apiForWorkspace.aiModels.update(id, {
+        apiKey: apiKey.trim() || undefined,
+        enabled,
+        models: template.models,
+      });
+    } else {
+      await apiForWorkspace.aiModels.create({
+        id: template.id,
+        name: template.name,
+        slug: template.slug,
+        apiKey: apiKey.trim() || undefined,
+        enabled: true,
+        models: template.models,
+      });
+    }
     mutate();
   };
 
@@ -44,75 +58,44 @@ export default function AIModelsPage() {
 
   return (
     <div className="flex flex-col gap-6 pb-2">
-      <PageHeader title="AI Providers" description="Configure AI providers, API keys">
-        <div className="flex items-center gap-3">
-          <Button onClick={() => setConfigureOpen(true)}>Configure AI provider</Button>
-        </div>
-      </PageHeader>
+      <PageHeader
+        title="AI Providers"
+        description="Configure AI providers and API keys for your workspace."
+      />
 
       {!hasConfigured && allProviders.length > 0 && (
         <Alert className="border-amber-500/50 bg-amber-50/50 text-amber-800 dark:bg-amber-950/20 dark:text-amber-400">
           <TriangleAlert className="size-4" />
           <AlertTitle>No AI provider enabled</AlertTitle>
           <AlertDescription>
-            You need at least one configured AI provider before you can create bots or use AI
-            features.{" "}
-            <button
-              type="button"
-              onClick={() => setConfigureOpen(true)}
-              className="font-medium underline underline-offset-2"
-            >
-              Configure one now
-            </button>
+            Enable at least one provider below before you can create bots or use AI features.
           </AlertDescription>
         </Alert>
       )}
 
       {isLoading ? (
-        <ProviderListSkeleton />
-      ) : allProviders.length === 0 ? (
-        <EmptyStatePlaceholder
-          icon={BrainCircuit}
-          title="No AI provider configured"
-          description="Add AI providers and configure API keys to power your bots."
-          actionLabel="Configure AI provider"
-          onAction={() => setConfigureOpen(true)}
-        />
+        <div className="flex flex-col gap-3">
+          <Skeleton className="h-4 w-24" />
+          <CardGridSkeleton count={6} />
+        </div>
       ) : (
-        <>
-          {allProviders.length > 0 && (
-            <div className="flex flex-col gap-3">
-              <h2 className="text-muted-foreground text-xs font-medium tracking-wider uppercase">
-                Available ({allProviders.length})
-              </h2>
-              <div className="flex flex-col gap-2">
-                {allProviders.map((provider) => (
-                  <ProviderCard
-                    key={provider.id}
-                    provider={provider}
-                    onToggle={handleToggle}
-                    onUpdateApiKey={handleUpdateApiKey}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
-        </>
+        <div className="flex flex-col gap-3">
+          <h2 className="text-muted-foreground text-xs font-medium tracking-wider uppercase">
+            Providers ({ALLOWED_AI_PROVIDERS.length})
+          </h2>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {ALLOWED_AI_PROVIDERS.map((template) => (
+              <ProviderCard
+                key={template.id}
+                template={template}
+                workspaceProvider={providerMap.get(template.id)}
+                onToggle={handleToggle}
+                onSave={handleSave}
+              />
+            ))}
+          </div>
+        </div>
       )}
-
-      <ConfigureProviderDialog
-        open={configureOpen}
-        onOpenChange={setConfigureOpen}
-        providers={allowedProviders}
-        workspaceId={workspaceId}
-        existingProviderIds={allProviders.map((p) => p.id)}
-        onSuccess={(id, apiKey) => {
-          setAllowedProviders((prev) =>
-            prev.map((p) => (p.id === id ? { ...p, apiKey, enabled: true } : p)),
-          );
-          mutate();
-        }}
-      />
     </div>
   );
 }

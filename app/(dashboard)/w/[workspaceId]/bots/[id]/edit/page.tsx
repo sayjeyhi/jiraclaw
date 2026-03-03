@@ -8,7 +8,7 @@ import { BotDetailSkeleton } from "@/components/loading-skeletons";
 import { fetcher, api } from "@/lib/api";
 import { mergeProvidersWithModels } from "@/lib/merge-ai-providers";
 import { ALLOWED_AI_PROVIDERS } from "@/lib/constants/allowed-ai-providers";
-import type { BotConfig, AIProvider, JiraProject, SystemPrompt } from "@/lib/types";
+import type { BotConfig, AIProvider, ChannelConfig, JiraProject, SystemPrompt } from "@/lib/types";
 
 interface RepoRow {
   url: string;
@@ -38,6 +38,10 @@ export default function EditBotPage({ params }: { params: Promise<{ id: string }
   );
   const { data: jiraProjects = [], mutate: mutateJira } = useSWR<JiraProject[]>(
     workspaceId ? `/api/w/${workspaceId}/jira` : null,
+    fetcher,
+  );
+  const { data: channels = [], mutate: mutateChannels } = useSWR<ChannelConfig[]>(
+    workspaceId ? `/api/w/${workspaceId}/channels` : null,
     fetcher,
   );
 
@@ -98,6 +102,17 @@ export default function EditBotPage({ params }: { params: Promise<{ id: string }
     return created;
   };
 
+  const handleCreateChannel = async (data: {
+    name: string;
+    slug: string;
+    icon: string;
+    credentials: Record<string, string>;
+  }) => {
+    const created = (await apiForWorkspace.channels.create(data)) as ChannelConfig;
+    mutateChannels();
+    return created;
+  };
+
   const handleEditJiraProject = async (
     project: JiraProject,
     data: Pick<JiraProject, "name" | "key" | "url"> & { apiKey?: string; repos: RepoRow[] },
@@ -148,6 +163,9 @@ export default function EditBotPage({ params }: { params: Promise<{ id: string }
       onJiraProjectsChange={() => mutateJira()}
       onAiSave={handleAiSave}
       onAiProvidersChange={() => mutateProviders()}
+      channels={channels}
+      onCreateChannel={handleCreateChannel}
+      onChannelsChange={() => mutateChannels()}
       onSave={handleSave}
     />
   );

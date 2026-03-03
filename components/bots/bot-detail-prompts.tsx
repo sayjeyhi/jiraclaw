@@ -14,7 +14,7 @@ export function BotDetailPrompts({ bot, prompts }: BotDetailPromptsProps) {
   const prompt = systemPromptId ? prompts.find((p) => p.id === systemPromptId) : null;
 
   return (
-    <div className="border-border bg-card flex flex-col gap-3 rounded-lg border p-4">
+    <div className="border-border bg-card flex flex-col gap-3 rounded-lg border p-3">
       <div className="flex items-center gap-2">
         <FileText className="text-primary size-4" />
         <h3 className="text-sm font-medium">Prompts</h3>

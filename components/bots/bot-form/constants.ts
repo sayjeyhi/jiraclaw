@@ -1,5 +1,14 @@
 import { z } from "zod";
-import { Cpu, Kanban, LayoutGrid, ListChecks, ShieldCheck, Sparkles, Trello } from "lucide-react";
+import {
+  Cpu,
+  Kanban,
+  LayoutGrid,
+  ListChecks,
+  Radio,
+  ShieldCheck,
+  Sparkles,
+  Trello,
+} from "lucide-react";
 import type { SupervisedSettings } from "@/lib/types";
 
 export const defaultSupervisedSettings: SupervisedSettings = {
@@ -15,6 +24,7 @@ export const STEPS = [
   { id: 2, label: "Tickets & Git", icon: Kanban, optional: true },
   { id: 3, label: "Skills", icon: Sparkles, optional: false },
   { id: 4, label: "AI Model", icon: Cpu, optional: true },
+  { id: 5, label: "Channels", icon: Radio, optional: true },
 ] as const;
 
 export const TICKET_INTEGRATIONS = [
@@ -65,6 +75,10 @@ export const stepSkillSchema = z
     message: "Add at least one skill or a description (min 20 characters)",
     path: ["skills"],
   });
+
+export const stepChannelsSchema = z.object({
+  selectedChannelIds: z.array(z.string()).max(2, "Select up to 2 channels"),
+});
 
 export const stepAIModelSchema = z
   .object({

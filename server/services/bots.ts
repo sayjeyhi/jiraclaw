@@ -98,9 +98,7 @@ export const botsService = new Elysia({ prefix: "/bots", aot: false })
     async ({ params, body }) => {
       const { jiraProjectId, githubToken: rawToken, ...rest } = body;
       const skills = normalizeSkills(rest.skills ?? []);
-      const botSkillDescription =
-        rest.botSkillDescription ??
-        (skills.length > 0 ? `Skills from skills.sh: ${skills.join(", ")}` : "");
+      const botSkillDescription = rest.botSkillDescription ?? "";
       const rawKey = rawToken?.trim() || null;
       const encrypted = rawKey ? encrypt(rawKey) : null;
       const masked = rawKey ? maskApiKey(rawKey) : null;
@@ -171,6 +169,7 @@ export const botsService = new Elysia({ prefix: "/bots", aot: false })
         updateData.defaultProvider = rest.defaultProvider || null;
       if (rest.defaultModel !== undefined) updateData.defaultModel = rest.defaultModel || null;
       if (rest.spendingLimit !== undefined) updateData.spendingLimit = rest.spendingLimit ?? null;
+      // systemPromptId stores both global and local prompt IDs - always update when provided
       if (rest.systemPromptId !== undefined)
         updateData.systemPromptId = rest.systemPromptId ?? null;
       if (rawToken !== undefined) {

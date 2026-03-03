@@ -12,6 +12,7 @@ import {
   stepAutonomySchema,
   stepSkillSchema,
   stepTicketProviderSchema,
+  stepChannelsSchema,
   stepAIModelSchema,
 } from "./constants";
 import { resetState } from "./utils";
@@ -20,8 +21,9 @@ import { StepIndicator } from "./step-indicator";
 import { StepAutonomy } from "./step-autonomy";
 import { StepSkill } from "./step-skill";
 import { StepTicketProvider } from "./step-ticket-provider";
+import { StepChannels } from "./step-channels";
 import { StepAIModel } from "./step-ai-model";
-import type { JiraProject } from "@/lib/types";
+import type { JiraProject, ChannelConfig } from "@/lib/types";
 
 interface RepoRow {
   url: string;
@@ -51,6 +53,14 @@ interface BotFormProps {
   onJiraProjectsChange?: () => void;
   onAiSave?: (slug: string, apiKey: string, enabled: boolean) => Promise<void>;
   onAiProvidersChange?: () => void;
+  channels?: ChannelConfig[];
+  onCreateChannel?: (data: {
+    name: string;
+    slug: string;
+    icon: string;
+    credentials: Record<string, string>;
+  }) => Promise<ChannelConfig | void>;
+  onChannelsChange?: () => void;
   onSave: (
     data: Omit<BotConfig, "id" | "createdAt" | "status"> & { jiraProjectId?: string },
   ) => Promise<void>;
@@ -69,6 +79,9 @@ export function BotForm({
   onJiraProjectsChange = () => {},
   onAiSave,
   onAiProvidersChange = () => {},
+  channels = [],
+  onCreateChannel,
+  onChannelsChange = () => {},
   onSave,
 }: BotFormProps) {
   const linkedJiraProjectId = jiraProjects.find((p) => p.botId === bot?.id)?.id;
@@ -134,6 +147,10 @@ export function BotForm({
           selectedModel: form.selectedModel,
           spendingLimit: form.spendingLimit,
         });
+      if (step === 5)
+        return stepChannelsSchema.safeParse({
+          selectedChannelIds: form.selectedChannelIds ?? [],
+        });
       return { success: true as const };
     })();
 
@@ -172,12 +189,16 @@ export function BotForm({
             ? ""
             : form.githubToken || undefined;
 
+      // Resolve prompt: local (bot-specific) takes precedence over global
+      const effectivePromptId =
+        form.selectedSystemPromptId?.trim() || form.selectedGlobalPromptId?.trim() || null;
+
       await onSave({
         title: form.title,
         email: form.email,
         skills: form.skills,
         botSkillDescription: form.botSkillDescription.trim() || "",
-        enabledChannels: bot?.enabledChannels ?? [],
+        enabledChannels: form.selectedChannelIds ?? bot?.enabledChannels ?? [],
         defaultProvider: form.selectedProvider || undefined,
         defaultModel: form.selectedModel || undefined,
         ...(githubToken !== undefined && { githubToken }),
@@ -185,7 +206,7 @@ export function BotForm({
         autonomyLevel: form.autonomyLevel,
         supervisedSettings:
           form.autonomyLevel === "supervised" ? form.supervisedSettings : defaultSupervisedSettings,
-        systemPromptId: form.selectedSystemPromptId || form.selectedGlobalPromptId || null,
+        systemPromptId: effectivePromptId,
         workspaceId,
         jiraProjectId: form.selectedJiraProjectId || undefined,
       });
@@ -261,6 +282,28 @@ export function BotForm({
             onClearError={clearError}
             onAiSave={onAiSave}
             onAiProvidersChange={onAiProvidersChange}
+          />
+        )}
+
+        {step === 5 && (
+          <StepChannels
+            form={form}
+            errors={errors}
+            channels={channels}
+            onFormChange={setForm}
+            onClearError={clearError}
+            onCreateChannel={
+              onCreateChannel ??
+              ((async () => {
+                throw new Error("Channel creation not available");
+              }) as (data: {
+                name: string;
+                slug: string;
+                icon: string;
+                credentials: Record<string, string>;
+              }) => Promise<ChannelConfig | void>)
+            }
+            onChannelsChange={onChannelsChange}
           />
         )}
       </div>

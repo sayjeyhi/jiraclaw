@@ -28,15 +28,6 @@ export const CHANNEL_PROVIDERS: ChannelProviderDef[] = [
     credentials: [{ key: "botToken", label: "Bot Token", type: "password", required: true }],
   },
   {
-    slug: "signal",
-    name: "Signal",
-    icon: "Shield",
-    credentials: [
-      { key: "phoneNumber", label: "Phone Number", type: "text", required: true },
-      { key: "apiKey", label: "API Key", type: "password", required: true },
-    ],
-  },
-  {
     slug: "slack",
     name: "Slack",
     icon: "Hash",
@@ -54,12 +45,6 @@ export const CHANNEL_PROVIDERS: ChannelProviderDef[] = [
       { key: "phoneNumberId", label: "Phone Number ID", type: "text", required: true },
       { key: "accessToken", label: "Access Token", type: "password", required: true },
     ],
-  },
-  {
-    slug: "imessage",
-    name: "iMessage",
-    icon: "Smartphone",
-    credentials: [],
   },
   {
     slug: "email",

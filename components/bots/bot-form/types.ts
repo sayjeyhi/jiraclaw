@@ -13,6 +13,7 @@ export interface FormState {
   selectedJiraProjectId: string;
   selectedProvider: string;
   selectedModel: string;
+  selectedChannelIds: string[];
   githubToken: string;
   spendingLimit: string;
   autonomyLevel: "autonomous" | "supervised";

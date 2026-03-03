@@ -78,10 +78,10 @@ export function StepAutonomy({
               onClearError("skills");
               onClearError("botSkillDescription");
             }}
-            className="min-h-[80px]"
+            className="min-h-20"
           />
           <p className="text-muted-foreground text-[10px]">
-            Optional. Add at least one skill in the next step or a description (min 20 characters).
+            Optional. What the bot is responsible for?
           </p>
         </div>
       </div>

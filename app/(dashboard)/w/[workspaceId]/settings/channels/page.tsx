@@ -53,26 +53,21 @@ export default function ChannelsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <PageHeader
-        title="Communication Channels"
-        description="Configure inbound and outbound communication channels for your bots."
-      >
-        <div className="flex items-center gap-2">
-          <div className="relative">
-            <Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
-            <Input
-              placeholder="Search channels..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-60 pl-9"
-            />
-          </div>
-          <Button onClick={() => setDialogOpen(true)}>
-            <Plus className="mr-2 size-4" />
-            Add Channel
-          </Button>
+      <div className="absolute top-18 right-4 flex items-center justify-end gap-2">
+        <div className="relative">
+          <Search className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
+          <Input
+            placeholder="Search channels..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-60 pl-9"
+          />
         </div>
-      </PageHeader>
+        <Button onClick={() => setDialogOpen(true)}>
+          <Plus className="mr-2 size-4" />
+          Add Channel
+        </Button>
+      </div>
 
       {isLoading ? (
         <ProviderListSkeleton count={8} />

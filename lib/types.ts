@@ -78,6 +78,7 @@ export interface BotConfig {
   spendingLimit?: number;
   autonomyLevel: "autonomous" | "supervised";
   supervisedSettings: SupervisedSettings;
+  globalPromptId?: string | null;
   systemPromptId?: string | null;
   enabledChannels: string[];
   createdAt: string;

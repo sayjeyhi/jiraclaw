@@ -66,15 +66,10 @@ export const stepAutonomySchema = z.object({
   email: z.string().email("Enter a valid email address"),
 });
 
-export const stepSkillSchema = z
-  .object({
-    skills: z.array(z.string()).max(10, "Maximum 10 skills allowed"),
-    botSkillDescription: z.string(),
-  })
-  .refine((d) => d.skills.length > 0 || (d.botSkillDescription?.trim().length ?? 0) >= 20, {
-    message: "Add at least one skill or a description (min 20 characters)",
-    path: ["skills"],
-  });
+export const stepSkillSchema = z.object({
+  skills: z.array(z.string()).max(10, "Maximum 10 skills allowed"),
+  botSkillDescription: z.string(),
+});
 
 export const stepChannelsSchema = z.object({
   selectedChannelIds: z.array(z.string()).max(2, "Select up to 2 channels"),

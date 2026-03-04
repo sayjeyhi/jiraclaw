@@ -49,14 +49,7 @@ export function BotDetailStats({ bot }: BotDetailStatsProps) {
           </p>
         </div>
       </div>
-      <div
-        className={cn(
-          "flex items-start gap-3 rounded-lg border px-4 py-3",
-          bot.autonomyLevel === "autonomous"
-            ? "border-primary/20 bg-primary/5"
-            : "border-warning/20 bg-warning/5",
-        )}
-      >
+      <div className={cn("flex items-start gap-3 rounded-lg border px-4 py-3")}>
         {bot.autonomyLevel === "autonomous" ? (
           <Zap className="text-primary mt-0.5 size-4 shrink-0" />
         ) : (
@@ -66,12 +59,7 @@ export function BotDetailStats({ bot }: BotDetailStatsProps) {
           <p className="text-muted-foreground text-[10px] font-medium tracking-wider uppercase">
             Autonomy
           </p>
-          <p
-            className={cn(
-              "mt-0.5 text-xs font-medium",
-              bot.autonomyLevel === "autonomous" ? "text-primary" : "text-warning",
-            )}
-          >
+          <p className={cn("text-foreground mt-0.5 text-xs font-medium")}>
             {bot.autonomyLevel === "autonomous" ? "Autonomous" : "Supervised"}
           </p>
           {bot.autonomyLevel === "supervised" && (

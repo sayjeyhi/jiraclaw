@@ -7,7 +7,7 @@ import useSWR from "swr";
 import { useTheme } from "next-themes";
 import { fetcher } from "@/lib/api";
 import type { BotConfig } from "@/lib/types";
-import { Bot, Radio, ScrollText, Menu, X, Sun, Moon, Plus, Settings } from "lucide-react";
+import { Bot, ScrollText, Menu, X, Sun, Moon, Plus, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { UserMenu } from "@/components/user-menu";
@@ -15,7 +15,6 @@ import { Logo } from "@/components/logo";
 import { WorkspaceSwitcher } from "@/components/workspace-switcher";
 
 const mainNavItems = [
-  { name: "Channels", path: "channels", icon: Radio },
   { name: "Logs", path: "logs", icon: ScrollText },
   { name: "Settings", path: "settings", icon: Settings },
 ];

@@ -82,7 +82,10 @@ export function BotCard({ bot, tickets, editHref, onEdit, onDelete, workspaceId 
       : `/bots/${bot.id}?ticket=${t.id}`;
 
   return (
-    <div className="group border-border bg-card hover:border-primary/30 relative flex flex-col gap-5 rounded-lg border p-6 transition-colors">
+    <Link
+      href={botHref}
+      className="group border-border bg-card hover:border-primary/30 relative flex flex-col gap-5 rounded-lg border p-3 transition-colors"
+    >
       {/* Header row */}
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div className="flex items-center gap-4">
@@ -90,18 +93,15 @@ export function BotCard({ bot, tickets, editHref, onEdit, onDelete, workspaceId 
             <Bot className="text-primary size-6" />
           </div>
           <div>
-            <Link
-              href={botHref}
-              className="text-card-foreground hover:text-primary text-base font-semibold transition-colors"
-            >
+            <h2 className="text-card-foreground hover:text-primary text-base font-semibold transition-colors">
               {bot.title}
-            </Link>
+            </h2>
             <div className="text-muted-foreground mt-1 flex items-center gap-1.5 text-sm">
               <Mail className="size-3.5" />
               <span>{bot.email}</span>
             </div>
             {bot.createdAt && (
-              <div className="text-muted-foreground mt-0.5 flex items-center gap-1 text-xs">
+              <div className="text-muted-foreground mt-0.5 flex items-center gap-1 text-[10px]">
                 <Calendar className="size-3" />
                 <span>Created {formatDate(bot.createdAt)}</span>
               </div>
@@ -162,70 +162,6 @@ export function BotCard({ bot, tickets, editHref, onEdit, onDelete, workspaceId 
               <Trash2 className="size-3.5" />
               <span className="sr-only">Delete</span>
             </Button>
-          </div>
-        </div>
-      </div>
-
-      <p className="text-muted-foreground line-clamp-2 text-sm leading-relaxed">
-        {bot.skills?.length
-          ? `${bot.skills.length} skill${bot.skills.length !== 1 ? "s" : ""} from skills.sh`
-          : bot.botSkillDescription || "No skills configured"}
-      </p>
-
-      {/* Stats grid */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6">
-        <div className="border-border bg-muted/30 flex items-center gap-3 rounded-lg border px-4 py-3">
-          <Ticket className="text-primary size-4 shrink-0" />
-          <div>
-            <p className="text-muted-foreground text-[10px] font-medium tracking-wider uppercase">
-              Total Tickets
-            </p>
-            <p className="text-foreground text-sm font-semibold">{ticketStats.total}</p>
-          </div>
-        </div>
-        <div className="border-border bg-muted/30 flex items-center gap-3 rounded-lg border px-4 py-3">
-          <Circle className="text-muted-foreground size-4 shrink-0" />
-          <div>
-            <p className="text-muted-foreground text-[10px] font-medium tracking-wider uppercase">
-              Open
-            </p>
-            <p className="text-foreground text-sm font-semibold">{ticketStats.open}</p>
-          </div>
-        </div>
-        <div className="border-border bg-muted/30 flex items-center gap-3 rounded-lg border px-4 py-3">
-          <Loader2 className="text-warning size-4 shrink-0" />
-          <div>
-            <p className="text-muted-foreground text-[10px] font-medium tracking-wider uppercase">
-              In Progress
-            </p>
-            <p className="text-foreground text-sm font-semibold">{ticketStats.inProgress}</p>
-          </div>
-        </div>
-        <div className="border-border bg-muted/30 flex items-center gap-3 rounded-lg border px-4 py-3">
-          <Search className="text-chart-1 size-4 shrink-0" />
-          <div>
-            <p className="text-muted-foreground text-[10px] font-medium tracking-wider uppercase">
-              In Review
-            </p>
-            <p className="text-foreground text-sm font-semibold">{ticketStats.inReview}</p>
-          </div>
-        </div>
-        <div className="border-border bg-muted/30 flex items-center gap-3 rounded-lg border px-4 py-3">
-          <CheckCircle2 className="text-success size-4 shrink-0" />
-          <div>
-            <p className="text-muted-foreground text-[10px] font-medium tracking-wider uppercase">
-              Done
-            </p>
-            <p className="text-foreground text-sm font-semibold">{ticketStats.done}</p>
-          </div>
-        </div>
-        <div className="border-border bg-muted/30 flex items-center gap-3 rounded-lg border px-4 py-3">
-          <XCircle className="text-destructive size-4 shrink-0" />
-          <div>
-            <p className="text-muted-foreground text-[10px] font-medium tracking-wider uppercase">
-              Failed
-            </p>
-            <p className="text-foreground text-sm font-semibold">{ticketStats.failed}</p>
           </div>
         </div>
       </div>
@@ -314,6 +250,6 @@ export function BotCard({ bot, tickets, editHref, onEdit, onDelete, workspaceId 
           )}
         </div>
       </div>
-    </div>
+    </Link>
   );
 }

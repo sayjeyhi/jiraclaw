@@ -74,7 +74,7 @@ export function BotDetailSkills({ bot, onSkillsSave }: BotDetailSkillsProps) {
         <SkillsPicker value={skills} onChange={setSkills} />
       ) : skills.length === 0 ? (
         <div className="border-border bg-muted/30 rounded-lg border border-dashed p-4">
-          <p className="text-muted-foreground text-sm">
+          <p className="text-muted-foreground text-center text-xs">
             No skills added. Click Edit to add skills.
           </p>
         </div>

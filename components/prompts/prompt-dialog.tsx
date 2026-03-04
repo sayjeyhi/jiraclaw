@@ -20,6 +20,7 @@ import type { SystemPrompt } from "@/lib/types";
 interface BotOption {
   id: string;
   title: string;
+  globalPromptId?: string | null;
   systemPromptId?: string | null;
 }
 
@@ -61,7 +62,13 @@ export function PromptDialog({
       setName(prompt.name);
       setContent(prompt.content);
       setIsGlobal(prompt.isGlobal);
-      const ids = bots.filter((b) => b.systemPromptId === prompt.id).map((b) => b.id);
+      const ids = bots
+        .filter(
+          (b) =>
+            (prompt.isGlobal && b.globalPromptId === prompt.id) ||
+            (!prompt.isGlobal && b.systemPromptId === prompt.id),
+        )
+        .map((b) => b.id);
       setSelectedBotIds(ids);
     } else {
       setName("");

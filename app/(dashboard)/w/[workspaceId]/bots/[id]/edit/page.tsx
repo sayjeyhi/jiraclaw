@@ -154,7 +154,14 @@ export default function EditBotPage({ params }: { params: Promise<{ id: string }
       bot={bot}
       providers={providers}
       prompts={prompts}
-      bots={[{ id: bot.id, title: bot.title, systemPromptId: bot.systemPromptId }]}
+      bots={[
+        {
+          id: bot.id,
+          title: bot.title,
+          globalPromptId: bot.globalPromptId,
+          systemPromptId: bot.systemPromptId,
+        },
+      ]}
       onCreatePrompt={handleCreatePrompt}
       onPromptsChange={() => mutatePrompts()}
       jiraProjects={jiraProjects}

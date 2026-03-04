@@ -44,10 +44,10 @@ export default function BotDetailPage({ params }: { params: Promise<{ id: string
   }
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-2">
       <BotDetailHeader bot={bot} workspaceId={workspaceId} />
       <BotDetailStats bot={bot} />
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid gap-2 sm:grid-cols-2">
         <BotDetailSkills bot={bot} onSkillsSave={handleSkillsSave} />
         <BotDetailPrompts bot={bot} prompts={prompts} />
       </div>

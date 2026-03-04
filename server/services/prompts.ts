@@ -97,10 +97,17 @@ export const promptsService = new Elysia({ prefix: "/prompts", aot: false })
           });
         }
       } else if (rest.isGlobal === true) {
-        // Switching to global: clear from all bots that were using this prompt
+        // Switching to global: clear from all bots that were using this prompt (local)
         await prisma.botConfig.updateMany({
           where: { workspaceId: params.workspaceId, systemPromptId: params.id },
           data: { systemPromptId: null },
+        });
+      }
+      // When switching to local: clear globalPromptId from bots that had this as global
+      if (rest.isGlobal === false) {
+        await prisma.botConfig.updateMany({
+          where: { workspaceId: params.workspaceId, globalPromptId: params.id },
+          data: { globalPromptId: null },
         });
       }
       return prompt;
@@ -114,6 +121,15 @@ export const promptsService = new Elysia({ prefix: "/prompts", aot: false })
         where: { id: params.id, workspaceId: params.workspaceId },
       });
       if (!existing) throw new Error("Prompt not found");
+      // Clear references from bots before deleting
+      await prisma.botConfig.updateMany({
+        where: { workspaceId: params.workspaceId, globalPromptId: params.id },
+        data: { globalPromptId: null },
+      });
+      await prisma.botConfig.updateMany({
+        where: { workspaceId: params.workspaceId, systemPromptId: params.id },
+        data: { systemPromptId: null },
+      });
       await prisma.systemPrompt.delete({ where: { id: params.id } });
       return { success: true };
     },

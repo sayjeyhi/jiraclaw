@@ -34,7 +34,12 @@ interface BotFormProps {
   bot?: BotConfig | null;
   providers: AIProvider[];
   prompts: SystemPrompt[];
-  bots?: { id: string; title: string; systemPromptId?: string | null }[];
+  bots?: {
+    id: string;
+    title: string;
+    globalPromptId?: string | null;
+    systemPromptId?: string | null;
+  }[];
   onCreatePrompt?: (data: {
     name: string;
     content: string;
@@ -189,9 +194,8 @@ export function BotForm({
             ? ""
             : form.githubToken || undefined;
 
-      // Resolve prompt: local (bot-specific) takes precedence over global
-      const effectivePromptId =
-        form.selectedSystemPromptId?.trim() || form.selectedGlobalPromptId?.trim() || null;
+      const globalPromptId = form.selectedGlobalPromptId?.trim() || null;
+      const systemPromptId = form.selectedSystemPromptId?.trim() || null;
 
       await onSave({
         title: form.title,
@@ -206,7 +210,8 @@ export function BotForm({
         autonomyLevel: form.autonomyLevel,
         supervisedSettings:
           form.autonomyLevel === "supervised" ? form.supervisedSettings : defaultSupervisedSettings,
-        systemPromptId: effectivePromptId,
+        globalPromptId,
+        systemPromptId,
         workspaceId,
         jiraProjectId: form.selectedJiraProjectId || undefined,
       });

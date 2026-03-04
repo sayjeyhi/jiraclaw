@@ -48,6 +48,7 @@ const botBody = t.Object({
   spendingLimit: t.Optional(t.Number()),
   autonomyLevel: t.Union([t.Literal("autonomous"), t.Literal("supervised")]),
   supervisedSettings: supervisedSettingsSchema,
+  globalPromptId: t.Optional(t.Union([t.String(), t.Null()])),
   systemPromptId: t.Optional(t.Union([t.String(), t.Null()])),
   enabledChannels: t.Array(t.String()),
   workspaceId: t.String(),
@@ -81,10 +82,7 @@ export const botsService = new Elysia({ prefix: "/bots", aot: false })
       });
       if (!existing) throw new Error("Bot not found");
       const skills = normalizeSkills(body.skills);
-      const botSkillDescription =
-        skills.length > 0
-          ? `Skills from skills.sh: ${skills.join(", ")}`
-          : existing.botSkillDescription;
+      const botSkillDescription = existing.botSkillDescription;
       const bot = await prisma.botConfig.update({
         where: { id: params.id },
         data: { skills, botSkillDescription },
@@ -117,6 +115,7 @@ export const botsService = new Elysia({ prefix: "/bots", aot: false })
           spendingLimit: rest.spendingLimit ?? null,
           autonomyLevel: rest.autonomyLevel,
           supervisedSettings: rest.supervisedSettings as object,
+          globalPromptId: rest.globalPromptId ?? null,
           systemPromptId: rest.systemPromptId ?? null,
           enabledChannels: rest.enabledChannels ?? [],
           encryptedGithubToken: encrypted,
@@ -151,9 +150,7 @@ export const botsService = new Elysia({ prefix: "/bots", aot: false })
       const botSkillDescription =
         rest.botSkillDescription !== undefined
           ? rest.botSkillDescription
-          : skills.length > 0
-            ? `Skills from skills.sh: ${skills.join(", ")}`
-            : existing.botSkillDescription;
+          : existing.botSkillDescription;
 
       // Only pass known BotConfig fields to avoid "column does not exist" errors
       const updateData: Parameters<typeof prisma.botConfig.update>[0]["data"] = {
@@ -169,7 +166,8 @@ export const botsService = new Elysia({ prefix: "/bots", aot: false })
         updateData.defaultProvider = rest.defaultProvider || null;
       if (rest.defaultModel !== undefined) updateData.defaultModel = rest.defaultModel || null;
       if (rest.spendingLimit !== undefined) updateData.spendingLimit = rest.spendingLimit ?? null;
-      // systemPromptId stores both global and local prompt IDs - always update when provided
+      if (rest.globalPromptId !== undefined)
+        updateData.globalPromptId = rest.globalPromptId ?? null;
       if (rest.systemPromptId !== undefined)
         updateData.systemPromptId = rest.systemPromptId ?? null;
       if (rawToken !== undefined) {

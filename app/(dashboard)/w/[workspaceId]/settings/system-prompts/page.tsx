@@ -80,7 +80,12 @@ export default function SystemPromptsSettingsPage() {
           open={dialogOpen}
           onOpenChange={setDialogOpen}
           prompt={editingPrompt}
-          bots={bots.map((b) => ({ id: b.id, title: b.title, systemPromptId: b.systemPromptId }))}
+          bots={bots.map((b) => ({
+            id: b.id,
+            title: b.title,
+            globalPromptId: b.globalPromptId,
+            systemPromptId: b.systemPromptId,
+          }))}
           onSave={editingPrompt ? handleEdit : handleCreate}
         />
       </div>
@@ -89,7 +94,7 @@ export default function SystemPromptsSettingsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="absolute top-20 right-4 flex items-center justify-end">
+      <div className="absolute top-18 right-4 flex items-center justify-end">
         <Button
           onClick={() => {
             setEditingPrompt(null);
@@ -153,7 +158,12 @@ export default function SystemPromptsSettingsPage() {
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         prompt={editingPrompt}
-        bots={bots.map((b) => ({ id: b.id, title: b.title, systemPromptId: b.systemPromptId }))}
+        bots={bots.map((b) => ({
+          id: b.id,
+          title: b.title,
+          globalPromptId: b.globalPromptId,
+          systemPromptId: b.systemPromptId,
+        }))}
         onSave={editingPrompt ? handleEdit : handleCreate}
       />
 

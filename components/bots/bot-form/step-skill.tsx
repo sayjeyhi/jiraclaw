@@ -20,6 +20,7 @@ import type { PromptSaveData } from "@/components/prompts/prompt-dialog";
 interface BotOption {
   id: string;
   title: string;
+  globalPromptId?: string | null;
   systemPromptId?: string | null;
 }
 
@@ -117,7 +118,9 @@ export function StepSkill({
                 ))}
               </SelectContent>
             </Select>
-            <p className="text-muted-foreground text-[10px]">Base prompt applied across bots</p>
+            <p className="text-muted-foreground text-[10px]">
+              Base shared prompt applied to this bot
+            </p>
           </div>
 
           <div className="flex flex-col gap-2">
@@ -161,7 +164,7 @@ export function StepSkill({
               </SelectContent>
             </Select>
             <p className="text-muted-foreground text-[10px]">
-              Bot-specific override (takes precedence over global)
+              Bot-specific prompt to combine with the global prompt
             </p>
           </div>
         </div>

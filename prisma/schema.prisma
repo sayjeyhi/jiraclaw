@@ -69,7 +69,8 @@ model BotConfig {
   spendingLimit       Int?
   autonomyLevel       String // "autonomous" | "supervised"
   supervisedSettings  Json // SupervisedSettings
-  systemPromptId      String?
+  globalPromptId      String?  // base prompt applied across bots
+  systemPromptId      String?  // bot-specific override (takes precedence)
   enabledChannels     String[] // array of channel ids
   createdAt           DateTime  @default(now())
   workspace           Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)

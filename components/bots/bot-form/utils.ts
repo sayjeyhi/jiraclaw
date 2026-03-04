@@ -25,14 +25,24 @@ export function botToForm(
   linkedJiraProjectId?: string,
   prompts?: SystemPrompt[],
 ): FormState {
-  const systemPromptId = bot.systemPromptId ?? "";
-  const prompt = systemPromptId && prompts?.find((p) => p.id === systemPromptId);
-  const isGlobal = prompt?.isGlobal ?? false;
+  let selectedGlobalPromptId = bot.globalPromptId ?? "";
+  let selectedSystemPromptId = bot.systemPromptId ?? "";
+  // Migrate old data: bot had only systemPromptId, infer global vs local from prompt
+  if (!bot.globalPromptId && bot.systemPromptId && prompts) {
+    const prompt = prompts.find((p) => p.id === bot.systemPromptId);
+    if (prompt?.isGlobal) {
+      selectedGlobalPromptId = bot.systemPromptId;
+      selectedSystemPromptId = "";
+    } else {
+      selectedSystemPromptId = bot.systemPromptId;
+      selectedGlobalPromptId = "";
+    }
+  }
   return {
     title: bot.title,
     email: bot.email,
-    selectedGlobalPromptId: isGlobal ? systemPromptId : "",
-    selectedSystemPromptId: !isGlobal ? systemPromptId : "",
+    selectedGlobalPromptId,
+    selectedSystemPromptId,
     skills: bot.skills ?? [],
     botSkillDescription: bot.botSkillDescription ?? "",
     selectedTicketIntegration: "jira",

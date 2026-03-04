@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { usePathname, useParams } from "next/navigation";
-import { BrainCircuit, Kanban, FileText } from "lucide-react";
+import { BrainCircuit, Kanban, FileText, Radio } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const settingsTabs = [
   { name: "AI Providers", path: "ai-providers", icon: BrainCircuit },
   { name: "Ticket Integration", path: "ticket-integration", icon: Kanban },
   { name: "System Prompts", path: "system-prompts", icon: FileText },
+  { name: "Channels", path: "channels", icon: Radio },
 ];
 
 export default function SettingsLayout({ children }: { children: React.ReactNode }) {
@@ -35,13 +36,13 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
                 key={tab.path}
                 href={href}
                 className={cn(
-                  "hover:text-foreground flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-medium transition-colors",
+                  "hover:text-foreground flex items-center gap-2 border-b-2 px-4 py-3 text-xs font-medium transition-colors",
                   isActive
                     ? "border-primary text-foreground"
                     : "text-muted-foreground hover:border-muted-foreground/30 border-transparent",
                 )}
               >
-                <tab.icon className="size-4 shrink-0" />
+                <tab.icon className="size-3 shrink-0" />
                 {tab.name}
               </Link>
             );

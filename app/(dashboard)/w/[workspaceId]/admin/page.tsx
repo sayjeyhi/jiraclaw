@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import useSWR from "swr";
 import {
   ArrowLeft,
@@ -33,7 +33,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/lib/auth-context";
-import { fetcher, api } from "@/lib/api";
+import { fetcher } from "@/lib/api";
+import { api } from "@/lib/edyen";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { ListSkeleton } from "@/components/loading-skeletons";
 import type { User, UserRole, UserPermissions } from "@/lib/types";
@@ -449,17 +450,26 @@ export default function ManageUsersPage() {
   const [editTarget, setEditTarget] = useState<User | null>(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<User | null>(null);
+  const params = useParams();
+  const workspaceId = params.workspaceId as string;
+
+  const { data: result } = useSWR(
+    `membership_${workspaceId}_${user?.id || ""}`,
+    api.w({ workspaceId }).membership({ userId: user?.id || "" }).get,
+  );
+  const membership = (result?.data ?? [])[0];
+  const isWorkspaceAdmin = membership?.role === "admin" || membership?.role === "owner";
+
+  if (!isWorkspaceAdmin) {
+    router.push(`/w/${workspaceId}/bots`);
+    return null;
+  }
 
   const {
     data: users,
     isLoading,
     mutate: mutateUsers,
   } = useSWR<User[]>("/api/admin/users", fetcher);
-
-  if (!user || user.role !== "admin") {
-    router.push("/bots");
-    return null;
-  }
 
   const allUsers = users ?? [];
   const filteredUsers = allUsers.filter(

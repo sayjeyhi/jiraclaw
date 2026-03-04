@@ -130,3 +130,5 @@ export const app = new Elysia({ prefix: "/api", aot: false })
       });
     },
   );
+
+export type App = typeof app;

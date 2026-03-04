@@ -17,7 +17,6 @@ import {
   DollarSign,
   BrainCircuit,
   Key,
-  Ticket,
   Calendar,
   MessageSquare,
 } from "lucide-react";
@@ -65,15 +64,6 @@ function formatDate(iso: string) {
 export function BotCard({ bot, tickets, editHref, onEdit, onDelete, workspaceId }: BotCardProps) {
   const status = statusConfig[bot.status];
   const recentTickets = tickets.slice(0, 5);
-
-  const ticketStats = {
-    total: tickets.length,
-    open: tickets.filter((t) => t.status === "open").length,
-    inProgress: tickets.filter((t) => t.status === "in_progress").length,
-    inReview: tickets.filter((t) => t.status === "in_review").length,
-    done: tickets.filter((t) => t.status === "done").length,
-    failed: tickets.filter((t) => t.status === "failed").length,
-  };
 
   const botHref = workspaceId ? `/w/${workspaceId}/bots/${bot.id}` : `/bots/${bot.id}`;
   const ticketHref = (t: BotTicket) =>
@@ -156,6 +146,7 @@ export function BotCard({ bot, tickets, editHref, onEdit, onDelete, workspaceId 
               className="text-muted-foreground hover:text-destructive size-6"
               onClick={(e) => {
                 e.stopPropagation();
+                e.preventDefault();
                 onDelete(bot.id);
               }}
             >

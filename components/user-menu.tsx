@@ -15,7 +15,7 @@ import {
 import { useAuth } from "@/lib/auth-context";
 import { Badge } from "@/components/ui/badge";
 import useSWR from "swr";
-import { fetcher } from "@/lib/api";
+import { api } from "@/lib/edyen";
 
 function getInitials(name: string): string {
   return name
@@ -32,11 +32,11 @@ export function UserMenu() {
   const workspaceId = params.workspaceId as string;
   const router = useRouter();
 
-  const { data: membership } = useSWR<{ role: string } | null>(
-    workspaceId ? `/api/w/${workspaceId}/membership/${user?.id}` : null,
-    fetcher,
+  const { data: result } = useSWR(
+    `membership_${workspaceId}_${user?.id || ""}`,
+    api.w({ workspaceId }).membership({ userId: user?.id || "" }).get,
   );
-  console.log({ membership });
+  const membership = (result?.data ?? [])[0];
   const isWorkspaceAdmin = membership?.role === "admin" || membership?.role === "owner";
 
   if (!user) return null;
@@ -65,7 +65,7 @@ export function UserMenu() {
                 variant={user.role === "admin" ? "default" : "secondary"}
                 className="px-1.5 py-0 text-[10px]"
               >
-                {user.role}
+                {membership?.role}
               </Badge>
             </div>
             <p className="text-muted-foreground text-xs leading-none">{user.email}</p>

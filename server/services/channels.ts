@@ -1,5 +1,9 @@
 import { Elysia, t } from "elysia";
 import { prisma } from "../db";
+import { inngest } from "../inngest/client";
+import { sendChannelMessage } from "../channels";
+import { registerTelegramWebhook, deleteTelegramWebhook } from "../channels/telegram";
+import { Telegram } from "telegraf";
 import { randomUUID } from "node:crypto";
 
 export const channelsService = new Elysia({ prefix: "/channels", aot: false })
@@ -39,6 +43,42 @@ export const channelsService = new Elysia({ prefix: "/channels", aot: false })
       }),
     },
   )
+  .post("/:id/webhook/setup", async ({ params, request }) => {
+    const channel = await prisma.channelConfig.findFirst({
+      where: { id: params.id, workspaceId: params.workspaceId, slug: "telegram" },
+    });
+    if (!channel) throw new Error("Telegram channel not found");
+
+    const botToken = process.env.TELEGRAM_BOT_TOKEN;
+    if (!botToken) throw new Error("TELEGRAM_BOT_TOKEN not configured");
+
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? new URL(request.url).origin;
+    const webhookUrl = `${appUrl}/api/telegram/webhook`;
+
+    await registerTelegramWebhook(botToken, webhookUrl);
+    return { ok: true, webhookUrl };
+  })
+  .post("/:id/webhook/teardown", async ({ params }) => {
+    const channel = await prisma.channelConfig.findFirst({
+      where: { id: params.id, workspaceId: params.workspaceId, slug: "telegram" },
+    });
+    if (!channel) throw new Error("Telegram channel not found");
+
+    const botToken = process.env.TELEGRAM_BOT_TOKEN;
+    if (!botToken) throw new Error("TELEGRAM_BOT_TOKEN not configured");
+
+    const otherCount = await prisma.channelConfig.count({
+      where: {
+        slug: "telegram",
+        enabled: true,
+        id: { not: params.id },
+      },
+    });
+    if (otherCount === 0) {
+      await deleteTelegramWebhook(botToken);
+    }
+    return { ok: true };
+  })
   .get("/:id", async ({ params }) => {
     const c = await prisma.channelConfig.findFirst({
       where: { id: params.id, workspaceId: params.workspaceId },
@@ -46,6 +86,71 @@ export const channelsService = new Elysia({ prefix: "/channels", aot: false })
     if (!c) throw new Error("Channel not found");
     return c;
   })
+  .post(
+    "/:id/send",
+    async ({ params, body }) => {
+      const channel = await prisma.channelConfig.findFirst({
+        where: { id: params.id, workspaceId: params.workspaceId },
+      });
+      if (!channel) throw new Error("Channel not found");
+      if (!channel.enabled) throw new Error("Channel is disabled");
+
+      await inngest.send({
+        name: "app/channel.message.send",
+        data: {
+          channelId: channel.id,
+          workspaceId: params.workspaceId,
+          message: body.message,
+          recipient: body.recipient,
+          ticketId: body.ticketId,
+        },
+      });
+      return { queued: true, channelId: channel.id };
+    },
+    {
+      body: t.Object({
+        message: t.Object({
+          text: t.String(),
+          botId: t.Optional(t.String()),
+          ticketKey: t.Optional(t.String()),
+          metadata: t.Optional(t.Record(t.String(), t.Unknown())),
+        }),
+        recipient: t.Optional(t.String()),
+        ticketId: t.Optional(t.String()),
+      }),
+    },
+  )
+  .post(
+    "/:id/test",
+    async ({ params, body }) => {
+      const channel = await prisma.channelConfig.findFirst({
+        where: { id: params.id, workspaceId: params.workspaceId },
+      });
+      if (!channel) throw new Error("Channel not found");
+      if (!channel.enabled) throw new Error("Channel is disabled — enable it before testing");
+
+      const result = await sendChannelMessage({
+        slug: channel.slug,
+        credentials: channel.credentials as Record<string, string>,
+        message: {
+          text:
+            body?.message ??
+            `[JiraClaw] Test message — ${channel.name} is connected and working correctly.`,
+        },
+        recipient: body?.recipient,
+      });
+
+      return result;
+    },
+    {
+      body: t.Optional(
+        t.Object({
+          recipient: t.Optional(t.String()),
+          message: t.Optional(t.String()),
+        }),
+      ),
+    },
+  )
   .put(
     "/:id",
     async ({ params, body }) => {

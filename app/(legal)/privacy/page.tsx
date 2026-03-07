@@ -6,7 +6,7 @@ export default function PrivacyPolicyPage() {
   return (
     <div className="mx-auto w-full max-w-2xl px-4 py-12">
       <div className="mb-8 flex items-center gap-3">
-        <Link href="/sign-in" className="flex gap-2">
+        <Link href="/" className="flex gap-2">
           <div className="text-muted-foreground hover:bg-accent hover:text-foreground flex size-8 items-center justify-center rounded-md transition-colors">
             <ArrowLeft className="size-4" />
           </div>

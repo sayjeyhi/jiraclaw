@@ -20,6 +20,7 @@ interface ChannelDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   existingSlugs: string[];
+  workspaceId: string;
   onSave: (data: {
     name: string;
     slug: string;
@@ -28,7 +29,13 @@ interface ChannelDialogProps {
   }) => void | Promise<void>;
 }
 
-export function ChannelDialog({ open, onOpenChange, existingSlugs, onSave }: ChannelDialogProps) {
+export function ChannelDialog({
+  open,
+  onOpenChange,
+  existingSlugs,
+  workspaceId,
+  onSave,
+}: ChannelDialogProps) {
   const [selectedSlug, setSelectedSlug] = useState<string | null>(null);
   const [credentials, setCredentials] = useState<Record<string, string>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -51,7 +58,7 @@ export function ChannelDialog({ open, onOpenChange, existingSlugs, onSave }: Cha
       if (provider) {
         const initial: Record<string, string> = {};
         for (const f of provider.credentials) {
-          initial[f.key] = "";
+          initial[f.key] = f.key === "allowedUsernames" ? "[]" : "";
         }
         setCredentials(initial);
       } else {
@@ -88,8 +95,22 @@ export function ChannelDialog({ open, onOpenChange, existingSlugs, onSave }: Cha
 
     const newErrors: Record<string, string> = {};
     for (const f of provider.credentials) {
-      if (f.required && !credentials[f.key]?.trim()) {
-        newErrors[f.key] = `${f.label} is required`;
+      if (f.required) {
+        if (f.key === "allowedUsernames") {
+          let arr: string[] = [];
+          try {
+            const raw = credentials[f.key] ?? "[]";
+            const parsed = JSON.parse(raw);
+            arr = Array.isArray(parsed) ? parsed.filter(Boolean) : [];
+          } catch {
+            /* ignore */
+          }
+          if (arr.length === 0) {
+            newErrors[f.key] = `${f.label} is required — add at least one username`;
+          }
+        } else if (!credentials[f.key]?.trim()) {
+          newErrors[f.key] = `${f.label} is required`;
+        }
       }
     }
     if (Object.keys(newErrors).length > 0) {
@@ -175,24 +196,73 @@ export function ChannelDialog({ open, onOpenChange, existingSlugs, onSave }: Cha
             <div className="border-border flex flex-col gap-3 rounded-lg border p-4">
               <Label className="text-sm font-medium">Credentials</Label>
               <div className="flex flex-col gap-3">
-                {selectedProvider.credentials.map((field) => (
-                  <div key={field.key} className="flex flex-col gap-1.5">
-                    <Label className="text-xs font-normal">
-                      {field.label}
-                      {field.required && <span className="text-destructive ml-0.5">*</span>}
-                    </Label>
-                    <Input
-                      type={field.type}
-                      placeholder={field.placeholder}
-                      value={credentials[field.key] ?? ""}
-                      onChange={(e) => updateCredential(field.key, e.target.value)}
-                      className={errors[field.key] ? "border-destructive" : ""}
-                    />
-                    {errors[field.key] && (
-                      <p className="text-destructive text-xs">{errors[field.key]}</p>
-                    )}
-                  </div>
-                ))}
+                {selectedProvider.credentials.map((field) => {
+                  const isTelegramUsernames =
+                    selectedSlug === "telegram" && field.key === "allowedUsernames";
+                  if (isTelegramUsernames) {
+                    const raw = credentials[field.key] ?? "[]";
+                    let usernames: string[] = [];
+                    try {
+                      const parsed = JSON.parse(raw);
+                      usernames = Array.isArray(parsed)
+                        ? parsed
+                            .map((u: unknown) => String(u).trim().toLowerCase().replace(/^@/, ""))
+                            .filter(Boolean)
+                        : [];
+                    } catch {
+                      /* ignore */
+                    }
+                    const addUsername = (u: string) => {
+                      const normalized = u.trim().toLowerCase().replace(/^@/, "");
+                      if (!normalized || usernames.includes(normalized)) return;
+                      updateCredential(field.key, JSON.stringify([...usernames, normalized]));
+                    };
+                    const removeUsername = (u: string) => {
+                      const next = usernames.filter((x) => x !== u);
+                      updateCredential(field.key, next.length ? JSON.stringify(next) : "[]");
+                    };
+                    return (
+                      <div key={field.key} className="flex flex-col gap-1.5">
+                        <Label className="text-xs font-normal">
+                          {field.label}
+                          {field.required && <span className="text-destructive ml-0.5">*</span>}
+                        </Label>
+                        <DialogAllowedUsernamesInput
+                          usernames={usernames}
+                          onAdd={addUsername}
+                          onRemove={removeUsername}
+                        />
+                        {field.hint && !errors[field.key] && (
+                          <p className="text-muted-foreground text-xs">{field.hint}</p>
+                        )}
+                        {errors[field.key] && (
+                          <p className="text-destructive text-xs">{errors[field.key]}</p>
+                        )}
+                      </div>
+                    );
+                  }
+                  return (
+                    <div key={field.key} className="flex flex-col gap-1.5">
+                      <Label className="text-xs font-normal">
+                        {field.label}
+                        {field.required && <span className="text-destructive ml-0.5">*</span>}
+                      </Label>
+                      <Input
+                        type={field.type}
+                        placeholder={field.placeholder}
+                        value={credentials[field.key] ?? ""}
+                        onChange={(e) => updateCredential(field.key, e.target.value)}
+                        className={errors[field.key] ? "border-destructive" : ""}
+                      />
+                      {field.hint && !errors[field.key] && (
+                        <p className="text-muted-foreground text-xs">{field.hint}</p>
+                      )}
+                      {errors[field.key] && (
+                        <p className="text-destructive text-xs">{errors[field.key]}</p>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -211,5 +281,57 @@ export function ChannelDialog({ open, onOpenChange, existingSlugs, onSave }: Cha
         </form>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function DialogAllowedUsernamesInput({
+  usernames,
+  onAdd,
+  onRemove,
+}: {
+  usernames: string[];
+  onAdd: (u: string) => void;
+  onRemove: (u: string) => void;
+}) {
+  const [inputValue, setInputValue] = useState("");
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      const trimmed = inputValue.trim();
+      if (trimmed) {
+        onAdd(trimmed);
+        setInputValue("");
+      }
+    }
+  };
+
+  return (
+    <div className="border-border bg-background flex min-h-9 flex-wrap items-center gap-1.5 rounded-md border px-3 py-1.5">
+      {usernames.map((u) => (
+        <span
+          key={u}
+          className="bg-muted text-muted-foreground inline-flex items-center gap-0.5 rounded px-2 py-0.5 text-xs"
+        >
+          @{u}
+          <button
+            type="button"
+            className="hover:bg-muted-foreground/20 -mr-0.5 rounded p-0.5"
+            onClick={() => onRemove(u)}
+            aria-label={`Remove ${u}`}
+          >
+            <span className="text-muted-foreground text-[10px]">×</span>
+          </button>
+        </span>
+      ))}
+      <Input
+        type="text"
+        placeholder="Add username, press Enter"
+        value={inputValue}
+        onChange={(e) => setInputValue(e.target.value)}
+        onKeyDown={handleKeyDown}
+        className="min-w-40 border-0 bg-transparent p-0 text-xs shadow-none focus-visible:ring-0"
+      />
+    </div>
   );
 }

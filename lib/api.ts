@@ -158,6 +158,23 @@ export const api = {
           method: "PUT",
           body: JSON.stringify(body),
         }),
+      test: (id: string, body?: { recipient?: string; message?: string }) =>
+        request<{ success: boolean; error?: string; externalId?: string }>(
+          `${w(workspaceId)}/channels/${id}/test`,
+          { method: "POST", body: JSON.stringify(body ?? {}) },
+        ),
+      send: (
+        id: string,
+        body: {
+          message: { text: string; botId?: string; ticketKey?: string };
+          recipient?: string;
+          ticketId?: string;
+        },
+      ) =>
+        request<{ queued: boolean; channelId: string }>(`${w(workspaceId)}/channels/${id}/send`, {
+          method: "POST",
+          body: JSON.stringify(body),
+        }),
     },
     logs: {
       list: (params?: Record<string, string>) => {

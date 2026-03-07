@@ -25,6 +25,7 @@ interface StepChannelsProps {
   form: FormState;
   errors: FieldErrors;
   channels: ChannelConfig[];
+  workspaceId: string;
   onFormChange: (updater: (prev: FormState) => FormState) => void;
   onClearError: (field: string) => void;
   onCreateChannel: (data: CreateChannelData) => Promise<ChannelConfig | void>;
@@ -35,6 +36,7 @@ export function StepChannels({
   form,
   errors,
   channels,
+  workspaceId,
   onFormChange,
   onClearError,
   onCreateChannel,
@@ -178,6 +180,7 @@ export function StepChannels({
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         existingSlugs={existingSlugs}
+        workspaceId={workspaceId}
         onSave={handleAddChannel}
       />
     </>

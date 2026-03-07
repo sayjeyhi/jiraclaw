@@ -10,6 +10,7 @@ import { promptsService } from "./services/prompts";
 import { channelsService } from "./services/channels";
 import { logsService } from "./services/logs";
 import { membershipService } from "./services/membership";
+import { telegramWebhookService } from "./services/telegram-webhook";
 import { DefaultContext, type Generator, rateLimit } from "elysia-rate-limit";
 import { elysiaHelmet } from "elysiajs-helmet";
 import { ip } from "elysia-ip";
@@ -91,9 +92,9 @@ export const app = new Elysia({ prefix: "/api", aot: false })
       context: new DefaultContext(10_000),
     }),
   )
-  .use(adminService)
   .use(workspacesService)
   .use(skillsService)
+  .use(telegramWebhookService)
   .group("/w/:workspaceId", (app) =>
     app
       .derive(async ({ params }) => {
@@ -103,6 +104,7 @@ export const app = new Elysia({ prefix: "/api", aot: false })
         if (!workspace) throw new Error("Workspace not found");
         return { workspace };
       })
+      .use(adminService)
       .use(botsService)
       .use(jiraService)
       .use(aiModelsService)

@@ -8,7 +8,7 @@ const PermissionsSchema = t.Object({
     edit: t.Boolean(),
     delete: t.Boolean(),
   }),
-  jira: t.Object({
+  ticket: t.Object({
     view: t.Boolean(),
     create: t.Boolean(),
     edit: t.Boolean(),

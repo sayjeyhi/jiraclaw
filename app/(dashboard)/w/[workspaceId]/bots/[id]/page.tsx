@@ -9,9 +9,10 @@ import { BotDetailSkills } from "@/components/bots/bot-detail-skills";
 import { BotDetailPrompts } from "@/components/bots/bot-detail-prompts";
 import { BotDetailStats } from "@/components/bots/bot-detail-stats";
 import { BotDetailSummary } from "@/components/bots/bot-detail-summary";
+import { BotDetailRepos } from "@/components/bots/bot-detail-repos";
 import { BotTicketsList } from "@/components/bots/bot-tickets-list";
 import { fetcher, api } from "@/lib/api";
-import type { BotConfig, BotTicket, SystemPrompt } from "@/lib/types";
+import type { BotConfig, BotTicket, JiraProject, SystemPrompt } from "@/lib/types";
 
 export default function BotDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -32,6 +33,11 @@ export default function BotDetailPage({ params }: { params: Promise<{ id: string
     workspaceId ? `/api/w/${workspaceId}/prompts` : null,
     fetcher,
   );
+  const { data: allProjects = [] } = useSWR<JiraProject[]>(
+    workspaceId ? `/api/w/${workspaceId}/jira` : null,
+    fetcher,
+  );
+  const botProjects = allProjects.filter((p) => p.botId === id);
 
   const handleSkillsSave = async (skills: string[]) => {
     if (!bot) return;
@@ -51,6 +57,7 @@ export default function BotDetailPage({ params }: { params: Promise<{ id: string
         <BotDetailSkills bot={bot} onSkillsSave={handleSkillsSave} />
         <BotDetailPrompts bot={bot} prompts={prompts} />
       </div>
+      <BotDetailRepos projects={botProjects} />
       <BotDetailSummary tickets={tickets} />
       <BotTicketsList tickets={tickets} expandedTicketId={ticketIdFromUrl} />
     </div>

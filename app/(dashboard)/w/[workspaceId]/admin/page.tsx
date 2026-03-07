@@ -466,12 +466,12 @@ export default function ManageUsersPage() {
   }
 
   const {
-    data: users,
+    data: getUsersResult,
     isLoading,
     mutate: mutateUsers,
-  } = useSWR<User[]>("/api/admin/users", fetcher);
+  } = useSWR("users", api.w({ workspaceId }).admin.users.get);
 
-  const allUsers = users ?? [];
+  const allUsers = getUsersResult?.data ?? [];
   const filteredUsers = allUsers.filter(
     (u) =>
       u.name.toLowerCase().includes(userSearch.toLowerCase()) ||
@@ -479,12 +479,12 @@ export default function ManageUsersPage() {
   );
 
   async function handleAddUser(data: Omit<User, "id" | "createdAt">) {
-    await api.auth.createUser({
+    await api.w({ workspaceId }).admin.users.post({
       name: data.name,
       email: data.email,
       role: data.role,
       permissions: data.permissions,
-    } as unknown as Record<string, unknown>);
+    });
     mutateUsers();
   }
 
@@ -493,10 +493,10 @@ export default function ManageUsersPage() {
     newPermissions: UserPermissions,
     newRole: UserRole,
   ) {
-    await api.auth.updateUser(id, {
+    await api.w({ workspaceId }).admin.users({ id }).put({
       permissions: newPermissions,
       role: newRole,
-    } as unknown as Record<string, unknown>);
+    });
     mutateUsers();
   }
 
@@ -669,7 +669,7 @@ export default function ManageUsersPage() {
         confirmLabel="Remove User"
         onConfirm={async () => {
           if (!deleteTarget) return;
-          await api.auth.deleteUser(deleteTarget.id);
+          await api.w({ workspaceId }).admin.users({ id: deleteTarget.id }).delete();
           mutateUsers();
           setDeleteTarget(null);
         }}

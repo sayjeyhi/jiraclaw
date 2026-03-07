@@ -7,6 +7,8 @@ const nextConfig = {
     unoptimized: true,
   },
   serverExternalPackages: ["elysia", "@elysiajs/eden"],
+  // disable nextjs debugger
+  devIndicators: false,
 };
 
 export default nextConfig;

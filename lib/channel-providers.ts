@@ -9,6 +9,8 @@ export interface ChannelCredentialField {
   type: "text" | "password" | "url";
   placeholder?: string;
   required?: boolean;
+  /** Short help text shown below the input */
+  hint?: string;
 }
 
 export interface ChannelProviderDef {
@@ -24,8 +26,16 @@ export const CHANNEL_PROVIDERS: ChannelProviderDef[] = [
     slug: "telegram",
     name: "Telegram",
     icon: "Send",
-    description: "Send and receive messages via Telegram Bot API",
-    credentials: [{ key: "botToken", label: "Bot Token", type: "password", required: true }],
+    description: "Send and receive messages via @JiraClawBot on Telegram",
+    credentials: [
+      {
+        key: "allowedUsernames",
+        label: "Allowed usernames",
+        type: "text",
+        required: true,
+        hint: "Add Telegram usernames (without @) and press Enter. Users must message @JiraClawBot first to be linked.",
+      },
+    ],
   },
   {
     slug: "slack",
@@ -34,7 +44,14 @@ export const CHANNEL_PROVIDERS: ChannelProviderDef[] = [
     description: "Integrate with Slack workspaces",
     credentials: [
       { key: "webhookUrl", label: "Webhook URL", type: "url", required: true },
-      { key: "botToken", label: "Bot Token", type: "password", required: false },
+      { key: "botToken", label: "Bot Token (optional)", type: "password", required: false },
+      {
+        key: "channel",
+        label: "Channel ID (for Bot Token mode)",
+        type: "text",
+        placeholder: "C0123456789",
+        required: false,
+      },
     ],
   },
   {

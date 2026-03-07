@@ -295,6 +295,7 @@ export function BotForm({
             form={form}
             errors={errors}
             channels={channels}
+            workspaceId={workspaceId}
             onFormChange={setForm}
             onClearError={clearError}
             onCreateChannel={

@@ -94,7 +94,7 @@ export default function SystemPromptsSettingsPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="absolute top-18 right-4 flex items-center justify-end">
+      <div className="absolute top-4 right-4 flex items-center justify-end">
         <Button
           onClick={() => {
             setEditingPrompt(null);

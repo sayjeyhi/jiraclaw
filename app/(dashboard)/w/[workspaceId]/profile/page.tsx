@@ -78,9 +78,12 @@ export default function ProfilePage() {
               {user.role === "admin" ? "Administrator" : "User"}
             </Badge>
           </div>
-          <div className="text-muted-foreground mt-2 flex items-center gap-1.5 text-[10px]">
-            <Calendar className="size-3" />
-            Joined {formatFullDate(user.createdAt)}
+          <div className="mt-2 flex flex-col items-center gap-1">
+            <div className="text-muted-foreground flex items-center gap-1.5 text-[10px]">
+              <Calendar className="size-3" />
+              Joined {formatFullDate(user.createdAt)}
+            </div>
+            <p className="text-muted-foreground/60 font-mono text-[9px]">ID: {user.id}</p>
           </div>
           {user.role === "admin" && (
             <Button

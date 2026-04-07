@@ -1,0 +1,122 @@
+{{- if .Values.minio.enabled }}
+{{- if not .Values.minio.existingSecret }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "jiraclaw-chart.fullname" . }}-minio-secrets
+  labels:
+    {{- include "jiraclaw-chart.labels" . | nindent 4 }}
+    app.kubernetes.io/component: storage
+type: Opaque
+stringData:
+  MINIO_ROOT_USER: {{ .Values.minio.rootUser | quote }}
+  MINIO_ROOT_PASSWORD: {{ .Values.minio.rootPassword | quote }}
+---
+{{- end }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "jiraclaw-chart.fullname" . }}-minio
+  labels:
+    {{- include "jiraclaw-chart.labels" . | nindent 4 }}
+    app.kubernetes.io/component: storage
+spec:
+  ports:
+    - port: {{ .Values.minio.port }}
+      targetPort: {{ .Values.minio.port }}
+      protocol: TCP
+      name: api
+    - port: {{ .Values.minio.consolePort }}
+      targetPort: {{ .Values.minio.consolePort }}
+      protocol: TCP
+      name: console
+  selector:
+    {{- include "jiraclaw-chart.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: storage
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "jiraclaw-chart.fullname" . }}-minio
+  labels:
+    {{- include "jiraclaw-chart.labels" . | nindent 4 }}
+    app.kubernetes.io/component: storage
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "jiraclaw-chart.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: storage
+  template:
+    metadata:
+      labels:
+        {{- include "jiraclaw-chart.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: storage
+    spec:
+      containers:
+        - name: minio
+          image: "{{ .Values.minio.image.repository }}:{{ .Values.minio.image.tag }}"
+          imagePullPolicy: {{ .Values.minio.image.pullPolicy }}
+          command:
+            - /bin/sh
+            - -c
+            - minio server /data --console-address ":{{ .Values.minio.consolePort }}"
+          ports:
+            - containerPort: {{ .Values.minio.port }}
+              name: api
+            - containerPort: {{ .Values.minio.consolePort }}
+              name: console
+          envFrom:
+            - secretRef:
+                name: {{ .Values.minio.existingSecret | default (printf "%s-minio-secrets" (include "jiraclaw-chart.fullname" .)) }}
+          volumeMounts:
+            - name: minio-data
+              mountPath: /data
+          livenessProbe:
+            httpGet:
+              path: /minio/health/live
+              port: api
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /minio/health/ready
+              port: api
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+          {{- with .Values.minio.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      volumes:
+        - name: minio-data
+          {{- if .Values.minio.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ include "jiraclaw-chart.fullname" . }}-minio-data
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+---
+{{- if .Values.minio.persistence.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "jiraclaw-chart.fullname" . }}-minio-data
+  labels:
+    {{- include "jiraclaw-chart.labels" . | nindent 4 }}
+    app.kubernetes.io/component: storage
+spec:
+  accessModes:
+    - ReadWriteOnce
+  {{- if .Values.minio.persistence.storageClass }}
+  storageClassName: {{ .Values.minio.persistence.storageClass }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.minio.persistence.size }}
+---
+{{- end }}
+{{- end }}

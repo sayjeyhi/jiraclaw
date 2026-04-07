@@ -1,0 +1,61 @@
+jiraclaw has been deployed. Components:
+{{- if .Values.database.enabled }}
+
+  PostgreSQL:           {{ include "jiraclaw-chart.fullname" . }}-postgres:5432
+{{- end }}
+{{- if .Values.minio.enabled }}
+
+  MinIO API:          {{ include "jiraclaw-chart.fullname" . }}-minio:9000
+  MinIO Console:      {{ include "jiraclaw-chart.fullname" . }}-minio:9001
+{{- end }}
+{{- if .Values.rabbitmq.enabled }}
+
+  RabbitMQ AMQP:      {{ include "jiraclaw-chart.fullname" . }}-rabbitmq:5672
+  RabbitMQ Console:   {{ include "jiraclaw-chart.fullname" . }}-rabbitmq:15672
+{{- end }}
+{{- if .Values.grafana.enabled }}
+
+  Grafana UI:         {{ .Release.Name }}-grafana:80 (suggest port-forward 3001:80; app uses 3000)
+{{- end }}
+{{- if .Values.loki.enabled }}
+
+  Loki:               {{ .Release.Name }}-loki:3100 (in-cluster; Grafana datasource when sidecar enabled)
+{{- end }}
+{{- if .Values.alloy.enabled }}
+
+  Alloy (logs→Loki):  {{ .Release.Name }}-alloy (Deployment; pod log collection via K8s API)
+{{- end }}
+
+  Application:        {{ include "jiraclaw-chart.fullname" . }}:3000
+
+{{- if .Values.ingress.enabled }}
+Get the application URL:
+{{- range $host := .Values.ingress.hosts }}
+{{- range .paths }}
+  http{{ if $.Values.ingress.tls }}s{{ end }}://{{ $host.host }}{{ .path }}
+{{- end }}
+{{- end }}
+{{- else if contains "NodePort" .Values.service.type }}
+  export NODE_PORT=$(kubectl get --namespace {{ .Release.Namespace }} -o jsonpath="{.spec.ports[0].nodePort}" services {{ include "jiraclaw-chart.fullname" . }})
+  export NODE_IP=$(kubectl get nodes --namespace {{ .Release.Namespace }} -o jsonpath="{.items[0].status.addresses[0].address}")
+  echo http://$NODE_IP:$NODE_PORT
+{{- else if contains "LoadBalancer" .Values.service.type }}
+  NOTE: It may take a few minutes for the LoadBalancer IP to be available.
+  kubectl get --namespace {{ .Release.Namespace }} svc -w {{ include "jiraclaw-chart.fullname" . }}
+{{- else }}
+  To access the application locally, run:
+  kubectl --namespace {{ .Release.Namespace }} port-forward svc/{{ include "jiraclaw-chart.fullname" . }} 3000:3000
+  Then visit http://127.0.0.1:3000
+{{- end }}
+{{- if .Values.grafana.enabled }}
+
+Grafana (ClusterIP only; get admin password from secret {{ .Release.Name }}-grafana):
+  kubectl --namespace {{ .Release.Namespace }} port-forward svc/{{ .Release.Name }}-grafana 3001:80
+  Then visit http://127.0.0.1:3001  (user: {{ .Values.grafana.adminUser }})
+{{- end }}
+
+Before first use:
+  1. Set image.repository and image.tag to your built jiraclaw image
+  2. Set database.password (or use existingSecret)
+  3. Set env.BETTER_AUTH_SECRET, env.BETTER_AUTH_URL, env.BOOTSTRAP_SECRET for production
+  4. Prisma migrations run automatically via init container

@@ -1,0 +1,83 @@
+{{- if .Values.rabbitmq.enabled }}
+{{- if not .Values.rabbitmq.existingSecret }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ include "jiraclaw-chart.fullname" . }}-rabbitmq
+  labels:
+    {{- include "jiraclaw-chart.labels" . | nindent 4 }}
+    app.kubernetes.io/component: rabbitmq
+type: Opaque
+stringData:
+  RABBITMQ_USER: {{ .Values.rabbitmq.user | quote }}
+  RABBITMQ_PASSWORD: {{ .Values.rabbitmq.password | quote }}
+  RABBITMQ_URL: "amqp://{{ .Values.rabbitmq.user }}:{{ .Values.rabbitmq.password | urlquery }}@{{ include "jiraclaw-chart.fullname" . }}-rabbitmq:5672"
+---
+{{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "jiraclaw-chart.fullname" . }}-rabbitmq
+  labels:
+    {{- include "jiraclaw-chart.labels" . | nindent 4 }}
+    app.kubernetes.io/component: rabbitmq
+spec:
+  ports:
+    - port: 5672
+      targetPort: 5672
+      protocol: TCP
+      name: amqp
+    - port: 15672
+      targetPort: 15672
+      protocol: TCP
+      name: management
+  selector:
+    {{- include "jiraclaw-chart.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: rabbitmq
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "jiraclaw-chart.fullname" . }}-rabbitmq
+  labels:
+    {{- include "jiraclaw-chart.labels" . | nindent 4 }}
+    app.kubernetes.io/component: rabbitmq
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "jiraclaw-chart.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: rabbitmq
+  template:
+    metadata:
+      labels:
+        {{- include "jiraclaw-chart.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: rabbitmq
+    spec:
+      containers:
+        - name: rabbitmq
+          image: "{{ .Values.rabbitmq.image.repository }}:{{ .Values.rabbitmq.image.tag }}"
+          imagePullPolicy: {{ .Values.rabbitmq.image.pullPolicy }}
+          ports:
+            - containerPort: 5672
+              name: amqp
+            - containerPort: 15672
+              name: management
+          env:
+            - name: RABBITMQ_DEFAULT_USER
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.rabbitmq.existingSecret | default (printf "%s-rabbitmq" (include "jiraclaw-chart.fullname" .)) }}
+                  key: RABBITMQ_USER
+            - name: RABBITMQ_DEFAULT_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.rabbitmq.existingSecret | default (printf "%s-rabbitmq" (include "jiraclaw-chart.fullname" .)) }}
+                  key: RABBITMQ_PASSWORD
+          {{- with .Values.rabbitmq.resources }}
+          resources:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+{{- end }}

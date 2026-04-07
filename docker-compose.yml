@@ -1,9 +1,44 @@
 # Only for development and testing environments.
 # For production, use a managed database service or a separate database container with proper security and backup strategies.
 services:
+  #  app:
+  #    build:
+  #      context: .
+  #      dockerfile: Dockerfile
+  #    image: jiraclaw-app:latest
+  #    container_name: jiraclaw_app
+  #    restart: unless-stopped
+  #    ports:
+  #      - "3000:3000"
+  #    environment:
+  #      # Prisma migrate deploy (prestart) + app runtime
+  #      DATABASE_URL: mysql://${DATABASE_USER}:${DATABASE_PASSWORD}@jiraclaw_db:3306/${DATABASE_NAME}
+  #      # MinIO
+  #      MINIO_ENDPOINT: minio
+  #      MINIO_PORT: "9000"
+  #      MINIO_USE_SSL: "false"
+  #      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-minioadmin}
+  #      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-minioadmin}
+  #      MINIO_BUCKET: jiraclaw-uploads
+  #      # RabbitMQ
+  #      RABBITMQ_URL: amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASSWORD:-guest}@rabbitmq:5672
+  #      # Auth
+  #      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET:-dev-secret}
+  #      BETTER_AUTH_URL: ${BETTER_AUTH_URL:-http://localhost:3000}
+  #    depends_on:
+  #      jiraclaw_db:
+  #        condition: service_healthy
+  #      minio:
+  #        condition: service_healthy
+  #      rabbitmq:
+  #        condition: service_healthy
+  #    networks:
+  #      - jiraclaw_network
+
   # Database (Postgres)
   postgres:
     image: postgres:16-alpine
+    container_name: jiraclaw_postgres
     restart: unless-stopped
     ports:
       - ${POSTGRES_PORT:-5432}:5432
@@ -13,43 +48,57 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-postgres}
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    networks:
+      - jiraclaw_network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-postgres}"]
       interval: 10s
       timeout: 5s
       retries: 5
-  # Queue and background worker (Inngest)
-  inngest:
-    image: inngest/inngest:latest
-    restart: always
-    command: >
-      inngest dev
-      -u http://host.docker.internal:3000/api/inngest
-    ports:
-      - "8288:8288"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
 
-#  jiraclaw_redis:
-#    image: redis:7-alpine
-#    container_name: jiraclaw_redis
-#    restart: always
-#    ports:
-#      - "${REDIS_PORT}:6379"
-#    volumes:
-#      - redis_data:/data
-#    networks:
-#      - jiraclaw_network
-#    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru --requirepass ${REDIS_PASSWORD}
-#    healthcheck:
-#      test: [ "CMD", "redis-cli", "ping" ]
-#      interval: 10s
-#      timeout: 3s
-#      retries: 3
+  minio:
+    image: quay.io/minio/minio:latest
+    container_name: jiraclaw_minio
+    restart: always
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-minioadmin}
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    networks:
+      - jiraclaw_network
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: jiraclaw_rabbitmq
+    restart: always
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-guest}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-guest}
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - jiraclaw_network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 networks:
   jiraclaw_network:
 
 volumes:
   postgres_data:
-  redis_data:
+  minio_data:

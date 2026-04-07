@@ -16,9 +16,9 @@ import { elysiaHelmet } from "elysiajs-helmet";
 import { ip } from "elysia-ip";
 import { cors } from "@elysiajs/cors";
 import { serverTiming } from "@elysiajs/server-timing";
-import { SocketAddress } from "bun";
 
-const ipGenerator: Generator<{ ip: SocketAddress }> = (_r, _s, { ip }) => ip?.address ?? "unknown";
+const ipGenerator: Generator<{ ip: { address: string } }> = (_r, _s, { ip }) =>
+  ip?.address ?? "unknown";
 
 export const app = new Elysia({ prefix: "/api", aot: false })
   .trace(async ({ onBeforeHandle, onAfterHandle, onError }) => {

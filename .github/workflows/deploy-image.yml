@@ -1,0 +1,258 @@
+name: Deploy Image
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_type:
+        description: "Version bump type"
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+
+permissions:
+  contents: write
+  packages: write
+  deployments: write
+
+concurrency:
+  group: "${{ github.workflow }}-${{ github.ref }}"
+  cancel-in-progress: true
+
+env:
+  IMAGE: ${{ github.repository_owner }}/jiraclaw
+  NODE_OPTIONS: "--max-old-space-size=8192"
+
+jobs:
+  build-and-deploy:
+    runs-on: arc-runner-set
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: latest
+
+      - name: Configure Git
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Bump version
+        run: |
+          pnpm version ${{ github.event.inputs.version_type }} --no-git-tag-version
+          echo "NEW_VERSION=$(jq -r '.version' package.json)" >> $GITHUB_ENV
+
+      - name: Commit version bump
+        run: |
+          git add package.json
+          git commit -m "chore: bump version to v$NEW_VERSION"
+          git push origin ${{ github.ref_name }}
+
+      - name: Extract version from package.json
+        id: version
+        run: |
+          SHORT="${GITHUB_SHA:0:8}"
+          DATE="$(date +'%Y-%m-%d')"
+          echo "COMMIT_SHA_SHORT=$SHORT" >> "$GITHUB_ENV"
+          echo "CURRENT_DATE=$DATE" >> "$GITHUB_ENV"
+          echo "version=${SHORT}-${DATE}" >> "$GITHUB_OUTPUT"
+          echo "Computed version: ${SHORT}-${DATE}"
+
+      - name: Login to GitHub Container Registery
+        uses: docker/login-action@v3.1.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3.3.0
+
+      - name: Extract Docker Metadata
+        id: meta
+        uses: docker/metadata-action@v5.5.1
+        with:
+          tags: type=raw,prefix=v,value=${{ steps.version.outputs.version }}
+          images: |
+            ghcr.io/${{ env.IMAGE }}
+
+      - name: Build and Push
+        uses: docker/build-push-action@v5.3.0
+        with:
+          context: .
+          target: release-web
+          platforms: linux/amd64
+          tags: ghcr.io/${{ env.IMAGE }}:v${{ steps.version.outputs.version }}
+          labels: ${{ steps.meta.outputs.labels }}
+          push: true
+          build-args: |
+            NX_CLOUD_ACCESS_TOKEN=${{ secrets.NX_CLOUD_ACCESS_TOKEN }}
+            NODE_OPTIONS="--max-old-space-size=8192"
+            NEXT_PUBLIC_APP_VERSION=${{ steps.version.outputs.version }}
+          cache-from: type=registry,ref=ghcr.io/${{ env.IMAGE }}/cache:release-web
+          cache-to: type=registry,ref=ghcr.io/${{ env.IMAGE }}/cache:release-web,mode=max
+
+      - name: Create GitHub deployment (production)
+        id: github_deployment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const deployment = await github.rest.repos.createDeployment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: context.sha,
+              environment: "production",
+              auto_merge: false,
+              required_contexts: [],
+              description: `Deploy ${context.sha.substring(0, 8)} to jiraclaw.com`,
+              transient_environment: false,
+              production_environment: true
+            });
+
+            core.setOutput("deployment_id", String(deployment.data.id));
+
+      - name: Mark GitHub deployment as in progress (production)
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              deployment_id: Number("${{ steps.github_deployment.outputs.deployment_id }}"),
+              state: "in_progress",
+              environment: "production",
+              environment_url: "https://jiraclaw.com",
+              log_url: `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
+            });
+      # Kubernetes deployment steps
+      - name: Set up kubeconfig
+        uses: azure/k8s-set-context@v3
+        with:
+          kubeconfig: ${{ secrets.KUBE_CONFIG }}
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.14.0
+
+      - name: Install kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: v1.29.0
+
+      - name: Install SOPS
+        run: |
+          curl -L https://github.com/getsops/sops/releases/download/v3.10.2/sops-v3.10.2.linux.amd64 -o sops
+          chmod +x sops
+          sudo mv sops /usr/local/bin/
+          sops --version
+
+      - name: Install Helm Secrets plugin
+        run: |
+          helm plugin install https://github.com/jkroepke/helm-secrets
+
+      - name: Helm chart dependencies
+        run: |
+          helm repo add grafana https://grafana.github.io/helm-charts --force-update
+          helm dependency build ./jiraclaw-chart
+
+      - name: Setup GPG key
+        run: |
+          echo "${{ secrets.GPG_PRIVATE_KEY }}" | base64 -d | gpg --batch --import
+          gpg --list-secret-keys
+
+      - name: Ensure namespace exists
+        run: |
+          kubectl create namespace production --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Create GHCR image pull secret
+        run: |
+          kubectl create secret docker-registry ghcr-secret \
+            --namespace production \
+            --docker-server=ghcr.io \
+            --docker-username=${{ github.repository_owner }} \
+            --docker-password=${{ secrets.GITHUB_TOKEN }} \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Deploy to Kubernetes with Helm Secrets
+        id: deploy_k8s
+        run: |
+          helm secrets upgrade --install jiraclaw ./jiraclaw-chart \
+            --namespace production \
+            --create-namespace \
+            --set image.repository=ghcr.io/${{ env.IMAGE }} \
+            --set image.tag=v${{ steps.version.outputs.version }} \
+            --set-string env.BETTER_AUTH_URL=https://jiraclaw.com \
+            --set-string env.FRONTEND_URL=https://jiraclaw.com \
+            --set-string env.NEXT_PUBLIC_APP_URL=https://jiraclaw.com \
+            --set-string ingress.hosts[0].host=jiraclaw.com \
+            --set-string ingress.hosts[0].paths[0].path=/ \
+            --set-string ingress.hosts[0].paths[0].pathType=Prefix \
+            --set-string ingress.hosts[1].host=www.jiraclaw.com \
+            --set-string ingress.hosts[1].paths[0].path=/ \
+            --set-string ingress.hosts[1].paths[0].pathType=Prefix \
+            --set-string ingress.tls[0].secretName=jiraclaw-tls \
+            --set-string ingress.tls[0].hosts[0]=jiraclaw.com \
+            --set-string ingress.tls[0].hosts[1]=www.jiraclaw.com \
+            --set tor.enabled=true \
+            -f jiraclaw-chart/secrets.yaml \
+            --wait --timeout 5m
+
+      - name: Print .onion address
+        if: steps.deploy_k8s.outcome == 'success'
+        run: |
+          echo "Waiting for Tor hidden service to bootstrap..."
+          for i in $(seq 1 12); do
+            ONION=$(kubectl exec -n production \
+              deploy/jiraclaw-jiraclaw-chart-tor \
+              -- cat /var/lib/tor/hidden_service/hostname 2>/dev/null || true)
+            if [ -n "$ONION" ]; then
+              echo "::notice title=Tor .onion address::http://${ONION}"
+              break
+            fi
+            echo "Attempt $i/12: hostname not ready yet, retrying in 10s..."
+            sleep 10
+          done
+
+      - name: Mark GitHub deployment as successful (production)
+        if: ${{ always() && steps.deploy_k8s.outcome == 'success' }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              deployment_id: Number("${{ steps.github_deployment.outputs.deployment_id }}"),
+              state: "success",
+              environment: "production",
+              environment_url: "https://jiraclaw.com",
+              log_url: `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
+            });
+
+      - name: Mark GitHub deployment as failed (production)
+        if: ${{ always() && steps.deploy_k8s.outcome != 'success' }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              deployment_id: Number("${{ steps.github_deployment.outputs.deployment_id }}"),
+              state: "failure",
+              environment: "production",
+              environment_url: "https://jiraclaw.com",
+              log_url: `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
+            });

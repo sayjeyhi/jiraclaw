@@ -1,0 +1,6 @@
+# SOPS config - use GPG key for secrets.yaml
+keys:
+  - &pgp-key EB3A5DFD26786AC068DB6F352C23D33FB270FD43
+creation_rules:
+  - path_regex: secrets.yaml(.dec)?$
+    pgp: *pgp-key

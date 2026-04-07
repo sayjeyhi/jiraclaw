@@ -1,0 +1,327 @@
+# Default values for jiraclaw-chart.
+# Aligned with docker-compose.yml services: jiraclaw_db, minio, rabbitmq
+# This is a YAML-formatted file.
+
+replicaCount: 1
+
+# jiraclaw application image
+image:
+  repository: jiraclaw
+  pullPolicy: IfNotPresent
+  tag: ""
+
+# =============================================================================
+# Admin panel — separate image (Docker target release-admin, tag usually vX.Y.Z-admin).
+# ClusterIP only; no Ingress. Access example:
+#   kubectl port-forward svc/<release>-jiraclaw-chart-admin 30443:3000 -n <ns>
+# CI sets adminPanel.enabled=true when both images are pushed. Set false if you only deploy the public image.
+# =============================================================================
+adminPanel:
+  enabled: false
+  replicas: 1
+  image:
+    repository: ""
+    tag: ""
+  podLabels: {}
+  resources: {}
+  livenessProbe:
+    httpGet:
+      path: /api/health
+      port: http
+    initialDelaySeconds: 30
+    periodSeconds: 10
+  readinessProbe:
+    httpGet:
+      path: /api/health
+      port: http
+    initialDelaySeconds: 5
+    periodSeconds: 10
+
+imagePullSecrets:
+  - name: ghcr-secret
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  automount: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext: {}
+securityContext: {}
+
+# Main application service (Next.js on port 3000)
+service:
+  type: ClusterIP
+  port: 3000
+
+ingress:
+  enabled: true
+  # cert-manager + Let's Encrypt (requires cert-manager installed and ClusterIssuer "letsencrypt-prod")
+  annotations:
+    {
+      cert-manager.io/cluster-issuer: "letsencrypt-prod",
+      traefik.ingress.kubernetes.io/router.tls: "true",
+      traefik.ingress.kubernetes.io/router.entrypoints: "web,websecure",
+    }
+  hosts:
+    - host: jiraclaw.com
+      paths:
+        - path: /
+          pathType: Prefix
+    - host: www.jiraclaw.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: jiraclaw-tls
+      hosts:
+        - jiraclaw.com
+        - www.jiraclaw.com
+
+resources: {}
+  # limits:
+  #   cpu: 500m
+  #   memory: 512Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 256Mi
+
+# Probes: use /api/health (Elysia) not /. Kubelet probes use Pod IP as Host; Next can 404 on / for that.
+livenessProbe:
+  httpGet:
+    path: /api/health
+    port: http
+  initialDelaySeconds: 30
+  periodSeconds: 10
+readinessProbe:
+  httpGet:
+    path: /api/health
+    port: http
+  initialDelaySeconds: 10
+  periodSeconds: 10
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 100
+  targetCPUUtilizationPercentage: 80
+
+volumes: []
+volumeMounts: []
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+# =============================================================================
+# Tor Hidden Service — exposes the app as a .onion v3 address.
+# The tor daemon connects outward to the Tor network; no extra public ports
+# are needed. The hidden service proxies port 80 → app ClusterIP:service.port.
+#
+# Stable .onion address: tor generates a keypair on first start and stores it
+# in HiddenServiceDir. Enable persistence so the PVC survives pod restarts.
+# To *pin* an address, pre-generate a v3 keypair and store it in a Secret
+# (hs_ed25519_secret_key + hs_ed25519_public_key + hostname), then set
+# tor.existingKeySecret to the Secret name.
+#
+# Retrieve your .onion address after first deploy:
+#   kubectl exec -n <namespace> deploy/<release>-jiraclaw-chart-tor \
+#     -- cat /var/lib/tor/hidden_service/hostname
+# =============================================================================
+tor:
+  enabled: false
+  image:
+    repository: osminogin/tor-simple
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  # Pre-existing Secret with pinned v3 onion keypair (optional).
+  # Expected keys: hs_ed25519_secret_key, hs_ed25519_public_key, hostname
+  existingKeySecret: ""
+  persistence:
+    enabled: true
+    size: 100Mi
+    storageClass: ""
+  resources:
+    requests:
+      cpu: 10m
+      memory: 32Mi
+    limits:
+      memory: 128Mi
+
+# =============================================================================
+# Database (PostgreSQL) - from docker-compose postgres
+# Set enabled: false to use external PostgreSQL; provide DATABASE_* via env or existingEnvSecret
+# =============================================================================
+database:
+  enabled: true
+  image:
+    repository: postgres
+    tag: "16-alpine"
+    pullPolicy: IfNotPresent
+  # Credentials - use existingSecret to reference external secret
+  database: "jiraclaw"
+  user: "jiraclaw"
+  password: ""
+  # Or provide existing secret name (keys: postgres-password, postgres-database, postgres-user, postgres-url)
+  existingSecret: ""
+  port: 5432
+  persistence:
+    enabled: true
+    size: 10Gi
+    storageClass: ""
+  resources: {}
+
+# =============================================================================
+# MinIO - from docker-compose minio
+# Set enabled: false to use external MinIO; provide MINIO_* via env or existingEnvSecret
+# =============================================================================
+minio:
+  enabled: true
+  image:
+    repository: quay.io/minio/minio
+    tag: latest
+    pullPolicy: IfNotPresent
+  port: 9000
+  consolePort: 9001
+  # Credentials - use existingSecret to reference external secret
+  rootUser: "minioadmin"
+  rootPassword: "minioadmin"
+  existingSecret: ""
+  persistence:
+    enabled: true
+    size: 10Gi
+    storageClass: ""
+  resources: {}
+
+# =============================================================================
+# RabbitMQ - from docker-compose rabbitmq (queues + background jobs)
+# =============================================================================
+rabbitmq:
+  enabled: true
+  image:
+    repository: rabbitmq
+    tag: 3-management
+    pullPolicy: IfNotPresent
+  user: guest
+  password: guest
+  existingSecret: ""
+  resources: {}
+
+# =============================================================================
+# Worker - consumes RabbitMQ queues, runs cron (user-reactivation)
+# Uses same app image with different command
+# Set enabled: false if you don't use report-assign, Slack notifications, or user-reactivation
+# =============================================================================
+worker:
+  enabled: true
+  replicas: 1
+
+# =============================================================================
+# Application environment variables (injected into main deployment)
+# =============================================================================
+env: {}
+  # BETTER_AUTH_SECRET: "generate-a-secret"
+  # BETTER_AUTH_URL: "https://your-domain.com"
+  # BOOTSTRAP_SECRET: "bootstrap-secret"
+  # FRONTEND_URL: "https://your-domain.com"
+  # NEXT_PUBLIC_APP_URL: "https://your-domain.com"
+  # NODE_ENV: "production"
+
+# Use existing secret for sensitive env vars (optional)
+# Keys should match env var names: DATABASE_PASSWORD, MINIO_ACCESS_KEY, etc.
+existingEnvSecret: ""
+
+# =============================================================================
+# Grafana (optional subchart) — ClusterIP only; no Ingress. Access via:
+#   kubectl port-forward svc/<release>-grafana 3001:80 -n <ns>
+# Set adminPassword or grafana.admin.existingSecret before enabling in prod.
+# Sidecar loads the Loki datasource ConfigMap when loki.enabled is true (label must match labelValue).
+# =============================================================================
+grafana:
+  enabled: true
+  service:
+    type: ClusterIP
+  ingress:
+    enabled: false
+  adminUser: admin
+  adminPassword: adminPassword
+  resources: {}
+  sidecar:
+    datasources:
+      enabled: true
+      label: grafana_datasource
+      labelValue: "1"
+
+# =============================================================================
+# Loki (optional) — log store for Grafana Explore / dashboards. ClusterIP only.
+# SingleBinary + filesystem PVC; uses useTestSchema for a quick setup — replace with a
+# production schema before relying on long-term retention (see Loki docs).
+# =============================================================================
+loki:
+  enabled: true
+  deploymentMode: SingleBinary
+  singleBinary:
+    replicas: 1
+    persistence:
+      enabled: true
+      size: 10Gi
+  gateway:
+    enabled: false
+  read:
+    replicas: 0
+  write:
+    replicas: 0
+  backend:
+    replicas: 0
+  chunksCache:
+    enabled: false
+  resultsCache:
+    enabled: false
+  lokiCanary:
+    enabled: false
+  test:
+    enabled: false
+  loki:
+    storage:
+      type: filesystem
+    commonConfig:
+      replication_factor: 1
+    useTestSchema: true
+
+# =============================================================================
+# Grafana Alloy (optional) — collects pod logs via Kubernetes API and writes to Loki.
+# Enable with loki.enabled. Replaces Promtail (see Loki “Migrate to Alloy”).
+# Single-replica Deployment: one collector for the whole cluster (avoid duplicate logs).
+# =============================================================================
+alloy:
+  enabled: false
+  crds:
+    create: false
+  controller:
+    type: deployment
+    replicas: 1
+  alloy:
+    enableReporting: false
+    resources: {}
+    configMap:
+      create: true
+      content: |
+        discovery.kubernetes "pods" {
+          role = "pod"
+        }
+
+        loki.source.kubernetes "pods" {
+          targets    = discovery.kubernetes.pods.targets
+          forward_to = [loki.write.loki.receiver]
+        }
+
+        loki.write "loki" {
+          endpoint {
+            url = "http://{{ .Release.Name }}-loki:3100/loki/api/v1/push"
+          }
+        }

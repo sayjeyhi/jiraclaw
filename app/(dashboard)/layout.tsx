@@ -21,11 +21,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <main className="flex-1 overflow-y-auto">
             <div className="relative mx-auto max-w-6xl px-4 py-6 md:px-6 md:py-8">{children}</div>
 
-            <footer className="shrink-0 items-center justify-between px-6 pb-4 opacity-70 md:flex">
+            <footer className="shrink-0 items-center justify-between px-6 pb-4 text-center opacity-70 md:flex">
               <p className="text-muted-foreground text-[10px]">
                 All rights reserved © 2026 JiraClaw.
               </p>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center justify-center gap-2">
                 <Link
                   href="/terms"
                   className="text-muted-foreground hover:text-foreground text-[10px]"

@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "prisma generate && next build",
+    "prestart": "pnpm prisma:migrate",
     "start": "next start",
     "lint": "oxlint --type-aware",
     "lint:fix": "oxlint --type-aware --fix",
@@ -15,6 +16,7 @@
     "prisma:migrate": "pnpm exec prisma migrate deploy",
     "prisma:migrate:dev": "pnpm exec prisma migrate dev",
     "prisma:seed": "pnpm exec prisma db seed",
+    "prisma:studio": "pnpm exec prisma studio",
     "db:studio": "prisma studio"
   },
   "dependencies": {
@@ -100,6 +102,7 @@
     "lint-staged": "^16.2.7",
     "oxfmt": "^0.35.0",
     "oxlint": "^1.50.0",
+    "oxlint-tsgolint": "^0.20.0",
     "postcss": "^8.5",
     "prisma": "^7.4.2",
     "tailwindcss": "^4.2.0",

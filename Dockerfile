@@ -19,7 +19,7 @@ COPY package.json pnpm-lock.yaml ./
 COPY ./prisma /app/prisma
 RUN pnpm install --frozen-lockfile
 
-COPY . .
+COPY .github .
 
 ENV NODE_OPTIONS=$NODE_OPTIONS
 ENV NEXT_PUBLIC_APP_VERSION=$NEXT_PUBLIC_APP_VERSION

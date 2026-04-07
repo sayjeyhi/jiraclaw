@@ -15,11 +15,11 @@ FROM base AS build-prep
 ARG NODE_OPTIONS
 ARG NEXT_PUBLIC_APP_VERSION
 
-COPY package.json pnpm-lock.yaml ./
+COPY package.json pnpm-lock.yaml .npmrc ./
 COPY ./prisma /app/prisma
 RUN pnpm install --frozen-lockfile
 
-COPY .github .
+COPY . .
 
 ENV NODE_OPTIONS=$NODE_OPTIONS
 ENV NEXT_PUBLIC_APP_VERSION=$NEXT_PUBLIC_APP_VERSION

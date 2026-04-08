@@ -1,6 +1,6 @@
 import { Elysia } from "elysia";
 import { prisma } from "../db";
-import { inngest } from "../inngest/client";
+import { publishToQueue, QUEUE_NAMES } from "@/lib/rabbitmq";
 import { handleTelegramUpdate, parseTelegramCredentials } from "../channels/telegram";
 import type { Update } from "telegraf/types";
 
@@ -45,15 +45,12 @@ export const telegramWebhookService = new Elysia({ prefix: "/telegram" }).post(
           data: { credentials: nextCreds },
         });
 
-        await inngest.send({
-          name: "app/telegram.message.received",
-          data: {
-            channelId: channel.id,
-            workspaceId: channel.workspaceId,
-            chatId: msg.chatId,
-            text: msg.text,
-            from: msg.from,
-          },
+        await publishToQueue(QUEUE_NAMES.TELEGRAM_MESSAGE_RECEIVED, {
+          channelId: channel.id,
+          workspaceId: channel.workspaceId,
+          chatId: msg.chatId,
+          text: msg.text,
+          from: msg.from,
         });
       }
     });

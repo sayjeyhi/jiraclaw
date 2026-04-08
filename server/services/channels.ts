@@ -1,6 +1,6 @@
 import { Elysia, t } from "elysia";
 import { prisma } from "../db";
-import { inngest } from "../inngest/client";
+import { publishToQueue, QUEUE_NAMES } from "@/lib/rabbitmq";
 import { sendChannelMessage } from "../channels";
 import { registerTelegramWebhook, deleteTelegramWebhook } from "../channels/telegram";
 import { Telegram } from "telegraf";
@@ -95,15 +95,12 @@ export const channelsService = new Elysia({ prefix: "/channels", aot: false })
       if (!channel) throw new Error("Channel not found");
       if (!channel.enabled) throw new Error("Channel is disabled");
 
-      await inngest.send({
-        name: "app/channel.message.send",
-        data: {
-          channelId: channel.id,
-          workspaceId: params.workspaceId,
-          message: body.message,
-          recipient: body.recipient,
-          ticketId: body.ticketId,
-        },
+      await publishToQueue(QUEUE_NAMES.CHANNEL_MESSAGE, {
+        channelId: channel.id,
+        workspaceId: params.workspaceId,
+        message: body.message,
+        recipient: body.recipient,
+        ticketId: body.ticketId,
       });
       return { queued: true, channelId: channel.id };
     },

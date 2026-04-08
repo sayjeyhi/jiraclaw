@@ -23,11 +23,22 @@ spec:
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
       containers:
         - name: worker
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           command: ["pnpm", "worker"]
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
           env:
             {{- if .Values.database.enabled }}
             - name: DATABASE_HOST
@@ -66,8 +77,33 @@ spec:
             - name: {{ $key }}
               value: {{ $val | quote }}
             {{- end }}
+            - name: REPOS_PATH
+              value: /repos
           {{- with .Values.worker.resources }}
           resources:
             {{- toYaml . | nindent 12 }}
           {{- end }}
+          volumeMounts:
+            - name: repos
+              mountPath: /repos
+            - name: tmp
+              mountPath: /tmp
+            - name: pnpm-home
+              mountPath: /pnpm
+            - name: home-node
+              mountPath: /home/node
+      volumes:
+        - name: repos
+          {{- if .Values.worker.repos.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ include "jiraclaw-chart.fullname" . }}-worker-repos
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+        - name: tmp
+          emptyDir: {}
+        - name: pnpm-home
+          emptyDir: {}
+        - name: home-node
+          emptyDir: {}
 {{- end }}

@@ -220,6 +220,12 @@ rabbitmq:
 worker:
   enabled: true
   replicas: 1
+  repos:
+    persistence:
+      enabled: true
+      size: 20Gi
+      storageClass: ""
+  resources: {}
 
 # =============================================================================
 # Application environment variables (injected into main deployment)

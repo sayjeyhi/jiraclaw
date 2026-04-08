@@ -1,0 +1,19 @@
+{{- if and .Values.worker.enabled .Values.worker.repos.persistence.enabled }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "jiraclaw-chart.fullname" . }}-worker-repos
+  labels:
+    {{- include "jiraclaw-chart.labels" . | nindent 4 }}
+    app.kubernetes.io/component: worker
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.worker.repos.persistence.size | default "20Gi" }}
+  {{- if .Values.worker.repos.persistence.storageClass }}
+  storageClassName: {{ .Values.worker.repos.persistence.storageClass }}
+  {{- end }}
+{{- end }}

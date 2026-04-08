@@ -96,9 +96,42 @@ services:
       timeout: 5s
       retries: 5
 
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: release-web
+    image: jiraclaw-app:latest
+    container_name: jiraclaw_worker
+    restart: unless-stopped
+    command: ["pnpm", "worker"]
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    tmpfs:
+      - /tmp
+      - /pnpm
+      - /home/node
+    volumes:
+      - repos_data:/repos
+    environment:
+      REPOS_PATH: /repos
+      RABBITMQ_URL: amqp://${RABBITMQ_USER:-guest}:${RABBITMQ_PASSWORD:-guest}@rabbitmq:5672
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-postgres}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - jiraclaw_network
+
 networks:
   jiraclaw_network:
 
 volumes:
   postgres_data:
   minio_data:
+  repos_data:

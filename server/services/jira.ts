@@ -1,5 +1,6 @@
 import { Elysia, t } from "elysia";
 import { prisma } from "../db";
+import { publishToQueue, QUEUE_NAMES } from "@/lib/rabbitmq";
 
 const repoSchema = t.Object({
   id: t.String(),
@@ -46,11 +47,19 @@ export const jiraService = new Elysia({ prefix: "/jira", aot: false })
           id: `proj-${Date.now()}`,
           workspaceId: params.workspaceId,
           ...body,
-          status: body.status ?? "connected",
+          status: body.repositories?.length ? "syncing" : (body.status ?? "connected"),
           repositories: body.repositories as object,
           labelMappings: body.labelMappings as object,
         },
       });
+
+      if (body.repositories?.length) {
+        await publishToQueue(QUEUE_NAMES.PROJECT_CLONE_REPO, {
+          projectId: project.id,
+          workspaceId: params.workspaceId,
+        });
+      }
+
       return project;
     },
     { body: projectBody },
